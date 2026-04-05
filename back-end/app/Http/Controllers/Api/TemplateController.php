@@ -21,8 +21,10 @@ class TemplateController extends Controller
 
     public function index()
     {
-        $templates = Template::paginate(20);
-        return response()->json($templates);
+        $templates = Template::all(); // Alterado de paginate para retornar todos
+        return response()->json([
+            'data' => $templates
+        ]);
     }
 
     public function store(Request $request)
