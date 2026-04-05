@@ -13,7 +13,7 @@ Este projeto é uma plataforma completa para criação, gerenciamento e renderiz
 
 ---
 
-## ⚙️ Como Rodar o Projeto (O jeito fácil)
+## ⚙️ Como Rodar o Projeto
 
 
 1.  **Feche qualquer terminal aberto**.
