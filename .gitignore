@@ -1,0 +1,23 @@
+# Dependências
+node_modules/
+back-end/vendor/
+
+# Ambiente e Chaves
+.env
+back-end/.env
+
+# Build e Outputs
+front-end/.next/
+front-end/out/
+back-end/public/storage
+back-end/storage/*.key
+
+# IDEs e Sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Banco de Dados
+back-end/database/*.sqlite
+back-end/database/*.sqlite-journal
