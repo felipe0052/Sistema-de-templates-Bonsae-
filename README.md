@@ -13,7 +13,7 @@ Este projeto é uma plataforma completa para criação, gerenciamento e renderiz
 
 ---
 
-## ⚙️ Como Rodar o Projeto
+##  Como Rodar o Projeto
 
 
 1.  **Feche qualquer terminal aberto**.
@@ -23,7 +23,7 @@ Este projeto é uma plataforma completa para criação, gerenciamento e renderiz
 5.  Acesse o sistema em: [**http://localhost:3000**](http://localhost:3000)
 
 
-## 💡 Funcionalidades Principais
+##  Funcionalidades Principais
 - ✅ **CRUD de Templates**: Criar, editar e excluir modelos de documentos.
 - ✅ **Variáveis Dinâmicas**: Use variáveis como `{{nome}}`, `{{cpf}}` no conteúdo.
 - ✅ **Salvamento Híbrido**: Seus templates aparecem na hora (salvos localmente) e sincronizam com o banco de dados depois.
@@ -32,7 +32,7 @@ Este projeto é uma plataforma completa para criação, gerenciamento e renderiz
 
 
 
-## 📁 Estrutura do Repositório
+##  Estrutura do Repositório
 - `/front-end`: Aplicação Next.js.
 - `/back-end`: API Laravel com SQLite.
 
