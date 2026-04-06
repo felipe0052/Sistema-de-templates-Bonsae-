@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 // Rota de Login para obter o token de teste
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/admin-mode/login', [AuthController::class, 'adminModeLogin']);
 
 // Variáveis disponíveis (tornada pública para fácil visualização de teste)
 Route::get('/variables', [StaticVariableController::class, 'index']);

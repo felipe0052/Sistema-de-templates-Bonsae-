@@ -37,6 +37,9 @@ API RESTful para gerenciamento de modelos de documentos com suporte a multi-tena
 ### Autenticação
 - `POST /api/login`: Login para obter token.
   - Body: `{"email": "admin@instituicao.com", "password": "password"}`
+- `POST /api/admin-mode/login`: Bootstrap de desenvolvimento para entrar como admin automaticamente.
+  - Disponível fora de produção quando `ADMIN_MODE_ENABLED=true` ou `APP_ENV != production`.
+  - Cria/recupera o tenant e o usuário `admin@instituicao.com` e devolve token Bearer.
 
 ### Templates
 - `GET /api/templates`: Lista templates da instituição.

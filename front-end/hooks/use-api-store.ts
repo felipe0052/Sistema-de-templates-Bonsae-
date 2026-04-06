@@ -40,18 +40,40 @@ export function useApiStore() {
   // 2. Login automático no background
   useEffect(() => {
     const login = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/login`, {
+      const tryLogin = async (path: string, options?: RequestInit) => {
+        const response = await fetch(`${API_BASE_URL}${path}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          ...options,
+        })
+
+        if (!response.ok) {
+          throw new Error(`Login failed for ${path}`)
+        }
+
+        return response.json()
+      }
+
+      try {
+        const data = await tryLogin("/login", {
           body: JSON.stringify({ email: "admin@instituicao.com", password: "password" }),
         })
-        const data = await response.json()
+
         if (data.access_token) {
           setToken(data.access_token)
+          return
         }
       } catch (error) {
-        console.warn("API Login failed, using local mode only.")
+        try {
+          const adminModeData = await tryLogin("/admin-mode/login")
+
+          if (adminModeData.access_token) {
+            setToken(adminModeData.access_token)
+            return
+          }
+        } catch (adminModeError) {
+          console.warn("API Login failed, using local mode only.")
+        }
       }
     }
     login()

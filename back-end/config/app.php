@@ -41,6 +41,8 @@ return [
 
     'debug' => (bool) env('APP_DEBUG', false),
 
+    'admin_mode_enabled' => env('ADMIN_MODE_ENABLED', env('APP_ENV', 'production') !== 'production'),
+
     /*
     |--------------------------------------------------------------------------
     | Application URL

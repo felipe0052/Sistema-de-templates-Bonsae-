@@ -33,7 +33,7 @@ class StaticVariableApiTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.0.name', 'assistido_nome')
-            ->assertJsonCount(8, 'data');
+            ->assertJsonCount(15, 'data');
     }
 
     public function test_can_search_static_variables(): void

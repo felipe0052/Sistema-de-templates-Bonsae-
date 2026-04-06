@@ -55,6 +55,11 @@ class DatabaseSeeder extends Seeder
     {
         return [
             [
+                'name' => 'nome',
+                'description' => 'Nome completo da pessoa atendida.',
+                'example' => 'João Silva',
+            ],
+            [
                 'name' => 'assistido_nome',
                 'description' => 'Nome completo da pessoa assistida.',
                 'example' => 'Maria da Silva',
@@ -63,6 +68,11 @@ class DatabaseSeeder extends Seeder
                 'name' => 'cpf',
                 'description' => 'CPF da pessoa assistida.',
                 'example' => '123.456.789-00',
+            ],
+            [
+                'name' => 'rg',
+                'description' => 'RG da pessoa atendida.',
+                'example' => '12.345.678-9',
             ],
             [
                 'name' => 'data_nascimento',
@@ -90,9 +100,34 @@ class DatabaseSeeder extends Seeder
                 'example' => 'São Paulo',
             ],
             [
+                'name' => 'estado',
+                'description' => 'Estado de residência.',
+                'example' => 'SP',
+            ],
+            [
+                'name' => 'cep',
+                'description' => 'CEP do endereço.',
+                'example' => '01234-567',
+            ],
+            [
+                'name' => 'telefone',
+                'description' => 'Telefone de contato.',
+                'example' => '(11) 99999-9999',
+            ],
+            [
+                'name' => 'email',
+                'description' => 'E-mail de contato.',
+                'example' => 'joao@email.com',
+            ],
+            [
                 'name' => 'data_atual',
                 'description' => 'Data atual no momento da geração.',
                 'example' => now()->format('d/m/Y'),
+            ],
+            [
+                'name' => 'numero_documento',
+                'description' => 'Número identificador do documento.',
+                'example' => 'DOC-2024-001',
             ],
         ];
     }
