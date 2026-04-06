@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Variable, Search, Plus } from "lucide-react"
-import { variaveisDisponiveis } from "@/lib/store"
 import { useState } from "react"
+import { useStore } from "@/components/store-provider"
 import {
   Tooltip,
   TooltipContent,
@@ -21,8 +21,9 @@ interface VariablePanelProps {
 
 export function VariablePanel({ onInsertVariable }: VariablePanelProps) {
   const [searchQuery, setSearchQuery] = useState("")
+  const { variaveis } = useStore()
 
-  const filteredVariables = variaveisDisponiveis.filter(
+  const filteredVariables = variaveis.filter(
     (v) =>
       v.nome_variavel.toLowerCase().includes(searchQuery.toLowerCase()) ||
       v.descricao.toLowerCase().includes(searchQuery.toLowerCase())

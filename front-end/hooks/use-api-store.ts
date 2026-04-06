@@ -1,10 +1,25 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { Template, Documento, Variavel, Cliente } from "@/lib/types"
+import type {
+  Template,
+  Documento,
+  Variavel,
+  Cliente,
+  StaticVariableApiResponse,
+} from "@/lib/types"
 
 const API_BASE_URL = "http://127.0.0.1:8000/api"
 const LOCAL_STORAGE_KEY = "bonsae_templates_local"
+
+function mapApiVariable(variable: StaticVariableApiResponse): Variavel {
+  return {
+    id: String(variable.id),
+    nome_variavel: variable.name,
+    descricao: variable.description,
+    exemplo: variable.example || "",
+  }
+}
 
 export function useApiStore() {
   const [templates, setTemplates] = useState<Template[]>([])
@@ -42,23 +57,49 @@ export function useApiStore() {
     login()
   }, [])
 
-  // 3. Sincronizar com o Banco de Dados (API) se disponível
+  const fetchVariables = async (search?: string) => {
+    const query = search ? `?search=${encodeURIComponent(search)}` : ""
+    const response = await fetch(`${API_BASE_URL}/variables${query}`, {
+      headers: { Accept: "application/json" },
+    })
+
+    if (!response.ok) {
+      throw new Error("Variables sync failed")
+    }
+
+    const variablesData = await response.json()
+    const mappedVariables: Variavel[] = (variablesData.data || []).map(mapApiVariable)
+    setVariaveis(mappedVariables)
+
+    return mappedVariables
+  }
+
+  // 3. Sincronizar variáveis públicas sempre que possível
+  useEffect(() => {
+    const syncVariables = async () => {
+      try {
+        await fetchVariables()
+      } catch (error) {
+        console.error("Variables sync failed")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    syncVariables()
+  }, [])
+
+  // 4. Sincronizar templates com o Banco de Dados (API) se disponível
   useEffect(() => {
     const fetchData = async () => {
       if (!token) {
-        setIsLoading(false)
         return
       }
       
       try {
-        const [templatesRes, variablesRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/templates`, {
-            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-          }),
-          fetch(`${API_BASE_URL}/variables`, {
-            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-          }),
-        ])
+        const templatesRes = await fetch(`${API_BASE_URL}/templates`, {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        })
 
         if (templatesRes.ok) {
           const templatesData = await templatesRes.json()
@@ -83,21 +124,8 @@ export function useApiStore() {
             return merged
           })
         }
-
-        if (variablesRes.ok) {
-          const variablesData = await variablesRes.json()
-          const mappedVariables: Variavel[] = variablesData.available_variables.map((v: string, index: number) => ({
-            id: String(index + 1),
-            nome_variavel: v,
-            descricao: `Variável ${v}`,
-            exemplo: `Exemplo ${v}`,
-          }))
-          setVariaveis(mappedVariables)
-        }
       } catch (error) {
-        console.error("Sync failed")
-      } finally {
-        setIsLoading(false)
+        console.error("Template sync failed")
       }
     }
 
@@ -224,6 +252,41 @@ export function useApiStore() {
     return null
   }
 
+  const addVariavel = async (variavel: Omit<Variavel, "id">) => {
+    if (!token) {
+      throw new Error("Autenticação necessária para criar variáveis.")
+    }
+
+    const response = await fetch(`${API_BASE_URL}/variables`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        name: variavel.nome_variavel.trim().toLowerCase(),
+        description: variavel.descricao.trim(),
+        example: variavel.exemplo?.trim() || undefined,
+      }),
+    })
+
+    const data = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      const message =
+        data?.errors?.name?.[0] ||
+        data?.message ||
+        "Não foi possível criar a variável."
+      throw new Error(message)
+    }
+
+    const created = mapApiVariable(data as StaticVariableApiResponse)
+    setVariaveis((prev) => [...prev, created].sort((a, b) => a.nome_variavel.localeCompare(b.nome_variavel)))
+
+    return created
+  }
+
   return {
     templates,
     documentos,
@@ -234,9 +297,9 @@ export function useApiStore() {
     updateTemplate,
     deleteTemplate,
     renderTemplate,
+    addVariavel,
     addDocumento: () => {},
     deleteDocumento: () => {},
-    addVariavel: () => {},
     deleteVariavel: () => {},
     addCliente: () => {},
   }

@@ -24,6 +24,15 @@ export interface Variavel {
   exemplo?: string
 }
 
+export interface StaticVariableApiResponse {
+  id: number
+  name: string
+  description: string
+  example?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
 export interface Documento {
   id: string
   template_id: string

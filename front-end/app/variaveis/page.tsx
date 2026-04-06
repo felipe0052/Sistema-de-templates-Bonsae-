@@ -56,10 +56,19 @@ export default function VariaveisPage() {
       toast.error("O nome da variável é obrigatório.")
       return
     }
-    addVariavel(newVar)
-    toast.success("Variável criada com sucesso!")
-    setIsDialogOpen(false)
-    setNewVar({ nome_variavel: "", descricao: "", exemplo: "" })
+    addVariavel({
+      nome_variavel: newVar.nome_variavel.trim(),
+      descricao: newVar.descricao.trim(),
+      exemplo: newVar.exemplo.trim(),
+    })
+      .then(() => {
+        toast.success("Variável criada com sucesso!")
+        setIsDialogOpen(false)
+        setNewVar({ nome_variavel: "", descricao: "", exemplo: "" })
+      })
+      .catch((error: Error) => {
+        toast.error(error.message)
+      })
   }
 
   return (

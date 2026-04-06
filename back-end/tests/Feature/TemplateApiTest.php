@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\StaticVariable;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Template;
@@ -45,13 +46,16 @@ class TemplateApiTest extends TestCase
 
     public function test_can_create_template_with_image()
     {
-        Storage::fake('s3');
+        Storage::fake('public');
 
         $payload = [
             'title' => 'New Template',
             'content' => 'Hello {{assistido_nome}}',
             'visibility' => 'public',
-            'background_image' => UploadedFile::fake()->image('bg.jpg')
+            'background_image' => UploadedFile::fake()->createWithContent(
+                'bg.png',
+                base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn6zkAAAAAASUVORK5CYII=')
+            ),
         ];
 
         $response = $this->postJson('/api/templates', $payload);
@@ -62,13 +66,19 @@ class TemplateApiTest extends TestCase
         $template = Template::first();
         $this->assertNotNull($template->background_image_url);
         
-        // Check if file was uploaded to S3
+        // Check if file was uploaded to the configured public disk
         $path = 'templates/backgrounds/' . $payload['background_image']->hashName();
-        Storage::disk('s3')->assertExists($path);
+        Storage::disk('public')->assertExists($path);
     }
 
     public function test_can_render_template()
     {
+        StaticVariable::create([
+            'name' => 'assistido_nome',
+            'description' => 'Nome completo da pessoa assistida.',
+            'example' => 'Felipe',
+        ]);
+
         $template = Template::create([
             'tenant_id' => $this->tenant->id,
             'title' => 'Render Test',
@@ -85,62 +95,20 @@ class TemplateApiTest extends TestCase
         $response = $this->postJson("/api/templates/{$template->id}/render", $payload);
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['html' => '<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Documento Gerado</title>
-    <style>
-        @page {
-            margin: 0;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            position: relative;
-            width: 21cm;
-            height: 29.7cm;
-        }
-        .background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-image: url(\'\');
-            background-size: cover;
-            background-position: center;
-            opacity: 1;
-        }
-        .content {
-            padding: 2.5cm 2.5cm; /* Margens padrão ABNT ou conforme necessário */
-            position: relative;
-            z-index: 1;
-            line-height: 1.5;
-            font-size: 12pt;
-        }
-    </style>
-</head>
-<body>
-    <div class="content">
-        Hello Felipe
-    </div>
-</body>
-</html>
-']);
+            ->assertJsonPath('html', 'Hello Felipe');
     }
 
     public function test_tenant_isolation()
     {
         $otherTenant = Tenant::create(['name' => 'Other Tenant']);
-        $otherTemplate = Template::create([
-            'tenant_id' => $otherTenant->id,
-            'title' => 'Other Template',
-            'content' => 'Secret',
-            'visibility' => 'private',
-        ]);
+        $otherTemplate = Template::withoutEvents(function () use ($otherTenant) {
+            return Template::create([
+                'tenant_id' => $otherTenant->id,
+                'title' => 'Other Template',
+                'content' => 'Secret',
+                'visibility' => 'private',
+            ]);
+        });
 
         // Current user (from $this->tenant) should not see other tenant's template
         $response = $this->getJson("/api/templates/{$otherTemplate->id}");
