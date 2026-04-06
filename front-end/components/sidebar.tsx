@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
   FileText,
-  FilePlus,
   FolderOpen,
   Variable,
   Users,
@@ -27,11 +26,6 @@ const menuItems = [
     title: "Templates",
     href: "/templates",
     icon: FileText,
-  },
-  {
-    title: "Criar Template",
-    href: "/templates/novo",
-    icon: FilePlus,
   },
   {
     title: "Documentos",
