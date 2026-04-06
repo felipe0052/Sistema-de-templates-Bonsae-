@@ -37,6 +37,9 @@ API RESTful para gerenciamento de modelos de documentos com suporte a multi-tena
 ### Autenticação
 - `POST /api/login`: Login para obter token.
   - Body: `{"email": "admin@instituicao.com", "password": "password"}`
+- `POST /api/admin-mode/login`: Bootstrap de desenvolvimento para entrar como admin automaticamente.
+  - Disponível fora de produção quando `ADMIN_MODE_ENABLED=true` ou `APP_ENV != production`.
+  - Cria/recupera o tenant e o usuário `admin@instituicao.com` e devolve token Bearer.
 
 ### Templates
 - `GET /api/templates`: Lista templates da instituição.
@@ -47,10 +50,15 @@ API RESTful para gerenciamento de modelos de documentos com suporte a multi-tena
   - Body: `{"variables": {"nome": "João", "cpf": "123..."}, "missing_variable_behavior": "underline", "format": "html"}`
 
 ### Utilidades
-- `GET /api/variables`: Lista todas as variáveis fixas disponíveis no sistema.
+- `GET /api/variables`: Lista todas as variáveis estáticas disponíveis no sistema.
+  - Query opcional: `search`
+  - Resposta: `{"data": [{"id": 1, "name": "cpf", "description": "...", "example": "..."}]}`
+- `POST /api/variables`: Cria uma nova variável estática global.
+  - Auth: Bearer token
+  - Body: `{"name": "numero_processo", "description": "Número do processo", "example": "1234/2024"}`
 
 ## Estrutura do Projeto
-- **Models**: `Tenant`, `User`, `Template`.
+- **Models**: `Tenant`, `User`, `Template`, `StaticVariable`.
 - **Services**: `TemplateRenderer` (Lógica de substituição de variáveis).
 - **Middleware**: `EnsureUserHasTenant` (Garante que o usuário pertence a uma instituição).
 - **Traits**: `BelongsToTenant` (Escopo global para multi-tenant).

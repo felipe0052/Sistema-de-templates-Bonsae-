@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Template;
 use App\Services\TemplateRenderer;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -54,11 +55,15 @@ class TemplateController extends Controller
 
     public function show(Template $template)
     {
+        $this->ensureTemplateBelongsToCurrentTenant($template);
+
         return response()->json($template);
     }
 
     public function update(Request $request, Template $template)
     {
+        $this->ensureTemplateBelongsToCurrentTenant($template);
+
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'content' => 'sometimes|required|string',
@@ -82,12 +87,16 @@ class TemplateController extends Controller
 
     public function destroy(Template $template)
     {
+        $this->ensureTemplateBelongsToCurrentTenant($template);
+
         $template->delete();
         return response()->json(null, 204);
     }
 
     public function render(Request $request, Template $template)
     {
+        $this->ensureTemplateBelongsToCurrentTenant($template);
+
         $validated = $request->validate([
             'variables' => 'required|array',
             'missing_variable_behavior' => 'nullable|in:blank,underline',
@@ -113,10 +122,11 @@ class TemplateController extends Controller
         ]);
     }
 
-    public function listVariables()
+    protected function ensureTemplateBelongsToCurrentTenant(Template $template): void
     {
-        return response()->json([
-            'available_variables' => TemplateRenderer::$AVAILABLE_VARIABLES
-        ]);
+        if (auth()->check() && (int) $template->tenant_id !== (int) auth()->user()->tenant_id) {
+            throw (new ModelNotFoundException())->setModel(Template::class, [$template->id]);
+        }
     }
+
 }

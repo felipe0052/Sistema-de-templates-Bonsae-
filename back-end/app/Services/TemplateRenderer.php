@@ -2,26 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\StaticVariable;
 use App\Models\Template;
 use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Support\Facades\Log;
 
 class TemplateRenderer
 {
-    /**
-     * List of fixed variables available for the system.
-     */
-    public static array $AVAILABLE_VARIABLES = [
-        'assistido_nome',
-        'cpf',
-        'data_nascimento',
-        'nome_pai',
-        'nome_mae',
-        'endereco',
-        'cidade',
-        'data_atual',
-    ];
-
     /**
      * Render the template with the provided variables.
      *
@@ -34,7 +21,7 @@ class TemplateRenderer
     {
         $content = $template->content;
 
-        foreach (self::$AVAILABLE_VARIABLES as $variable) {
+        foreach ($this->getAvailableVariables() as $variable) {
             $placeholder = "{{" . $variable . "}}";
             $replacement = $values[$variable] ?? $this->getMissingValue($missingVariableBehavior);
             $content = str_replace($placeholder, $replacement, $content);
@@ -67,5 +54,13 @@ class TemplateRenderer
     protected function getMissingValue(string $behavior): string
     {
         return $behavior === 'underline' ? '____________________' : '';
+    }
+
+    public function getAvailableVariables(): array
+    {
+        return StaticVariable::query()
+            ->orderBy('name')
+            ->pluck('name')
+            ->all();
     }
 }

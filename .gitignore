@@ -11,6 +11,7 @@ front-end/.next/
 front-end/out/
 back-end/public/storage
 back-end/storage/*.key
+back-end/.phpunit.result.cache
 
 # IDEs e Sistema
 .idea/

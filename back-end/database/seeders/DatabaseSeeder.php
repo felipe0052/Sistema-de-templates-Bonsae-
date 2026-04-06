@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Tenant;
+use App\Models\StaticVariable;
 use App\Models\User;
 use App\Models\Template;
 use Illuminate\Database\Seeder;
@@ -22,9 +23,13 @@ class DatabaseSeeder extends Seeder
         $user = User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Admin Teste',
-            'email' => 'admin@exemplo.com',
+            'email' => 'admin@instituicao.com',
             'password' => Hash::make('password'),
         ]);
+
+        foreach ($this->staticVariables() as $variable) {
+            StaticVariable::query()->create($variable);
+        }
 
         // Criar um Template de exemplo
         Template::create([
@@ -44,5 +49,86 @@ class DatabaseSeeder extends Seeder
             'visibility' => 'public',
             'created_by' => $user->id,
         ]);
+    }
+
+    private function staticVariables(): array
+    {
+        return [
+            [
+                'name' => 'nome',
+                'description' => 'Nome completo da pessoa atendida.',
+                'example' => 'João Silva',
+            ],
+            [
+                'name' => 'assistido_nome',
+                'description' => 'Nome completo da pessoa assistida.',
+                'example' => 'Maria da Silva',
+            ],
+            [
+                'name' => 'cpf',
+                'description' => 'CPF da pessoa assistida.',
+                'example' => '123.456.789-00',
+            ],
+            [
+                'name' => 'rg',
+                'description' => 'RG da pessoa atendida.',
+                'example' => '12.345.678-9',
+            ],
+            [
+                'name' => 'data_nascimento',
+                'description' => 'Data de nascimento da pessoa assistida.',
+                'example' => '01/01/1990',
+            ],
+            [
+                'name' => 'nome_pai',
+                'description' => 'Nome completo do pai.',
+                'example' => 'José da Silva',
+            ],
+            [
+                'name' => 'nome_mae',
+                'description' => 'Nome completo da mãe.',
+                'example' => 'Ana Maria da Silva',
+            ],
+            [
+                'name' => 'endereco',
+                'description' => 'Endereço completo.',
+                'example' => 'Rua das Flores, 123',
+            ],
+            [
+                'name' => 'cidade',
+                'description' => 'Cidade de residência.',
+                'example' => 'São Paulo',
+            ],
+            [
+                'name' => 'estado',
+                'description' => 'Estado de residência.',
+                'example' => 'SP',
+            ],
+            [
+                'name' => 'cep',
+                'description' => 'CEP do endereço.',
+                'example' => '01234-567',
+            ],
+            [
+                'name' => 'telefone',
+                'description' => 'Telefone de contato.',
+                'example' => '(11) 99999-9999',
+            ],
+            [
+                'name' => 'email',
+                'description' => 'E-mail de contato.',
+                'example' => 'joao@email.com',
+            ],
+            [
+                'name' => 'data_atual',
+                'description' => 'Data atual no momento da geração.',
+                'example' => now()->format('d/m/Y'),
+            ],
+            [
+                'name' => 'numero_documento',
+                'description' => 'Número identificador do documento.',
+                'example' => 'DOC-2024-001',
+            ],
+        ];
     }
 }
