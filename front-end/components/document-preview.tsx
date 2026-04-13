@@ -57,11 +57,12 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
 
           {/* Content */}
           <div
-            className="relative p-8 md:p-12 prose prose-sm max-w-none text-foreground"
+            className="relative p-8 md:p-12 prose prose-sm max-w-none !text-black"
             style={{
               fontFamily: "Times New Roman, serif",
               fontSize: "12pt",
               lineHeight: "1.6",
+              color: "#000000", // Força preto mesmo se a classe !text-black falhar
             }}
             dangerouslySetInnerHTML={{ __html: displayContent }}
           />

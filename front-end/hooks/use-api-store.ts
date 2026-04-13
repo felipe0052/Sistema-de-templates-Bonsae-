@@ -111,7 +111,7 @@ export function useApiStore() {
     syncVariables()
   }, [])
 
-  // 4. Sincronizar templates com o Banco de Dados (API) se disponível
+  // 4. Sincronizar templates e documentos com o Banco de Dados (API) se disponível
   useEffect(() => {
     const fetchData = async () => {
       if (!token) {
@@ -119,9 +119,14 @@ export function useApiStore() {
       }
       
       try {
-        const templatesRes = await fetch(`${API_BASE_URL}/templates`, {
-          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-        })
+        const [templatesRes, documentsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/templates`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+          }),
+          fetch(`${API_BASE_URL}/documents`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+          })
+        ])
 
         if (templatesRes.ok) {
           const templatesData = await templatesRes.json()
@@ -136,7 +141,6 @@ export function useApiStore() {
             background_image_url: t.background_image_url,
           }))
           
-          // Merge API templates with local ones (API wins for same ID)
           setTemplates(prev => {
             const merged = [...mappedTemplates]
             prev.forEach(p => {
@@ -146,8 +150,20 @@ export function useApiStore() {
             return merged
           })
         }
+
+        if (documentsRes.ok) {
+          const documentsData = await documentsRes.json()
+          const mappedDocuments: Documento[] = (documentsData.data || []).map((d: any) => ({
+            id: String(d.id),
+            template_id: String(d.template_id),
+            nome: d.name,
+            dados_json: d.data_json,
+            created_at: d.created_at,
+          }))
+          setDocumentos(mappedDocuments)
+        }
       } catch (error) {
-        console.error("Template sync failed")
+        console.error("Sync failed")
       }
     }
 
@@ -207,6 +223,41 @@ export function useApiStore() {
     }
 
     return newTemplate
+  }
+
+  const addDocumento = async (doc: Omit<Documento, "id" | "created_at">) => {
+    if (!token) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/documents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          template_id: doc.template_id,
+          name: doc.nome,
+          data_json: doc.dados_json,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const newDoc: Documento = {
+          id: String(data.id),
+          template_id: String(data.template_id),
+          nome: data.name,
+          dados_json: data.data_json,
+          created_at: data.created_at,
+        }
+        setDocumentos((prev) => [newDoc, ...prev])
+        return newDoc
+      }
+    } catch (error) {
+      console.error("Failed to save document")
+    }
   }
 
   const updateTemplate = async (id: string, updates: Partial<Template>) => {
@@ -320,8 +371,21 @@ export function useApiStore() {
     deleteTemplate,
     renderTemplate,
     addVariavel,
-    addDocumento: () => {},
-    deleteDocumento: () => {},
+    addDocumento,
+    deleteDocumento: async (id: string) => {
+      if (!token) return
+      try {
+        const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (response.ok) {
+          setDocumentos((prev) => prev.filter((d) => d.id !== id))
+        }
+      } catch (error) {
+        console.error("Failed to delete document")
+      }
+    },
     deleteVariavel: () => {},
     addCliente: () => {},
   }

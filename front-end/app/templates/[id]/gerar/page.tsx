@@ -284,11 +284,12 @@ export default function GerarDocumentoPage() {
                 )}
                 <div
                   ref={previewRef}
-                  className="relative p-6 prose prose-sm max-w-none"
+                  className="relative p-6 prose prose-sm max-w-none !text-black"
                   style={{
                     fontFamily: "Times New Roman, serif",
                     fontSize: "11pt",
                     lineHeight: "1.6",
+                    color: "#000000",
                   }}
                   dangerouslySetInnerHTML={{
                     __html: processedContent

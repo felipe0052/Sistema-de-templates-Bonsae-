@@ -47,7 +47,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
           <StatsCard
             title="Templates Ativos"
             value={templates.length}
@@ -58,23 +58,9 @@ export default function DashboardPage() {
           <StatsCard
             title="Documentos Gerados"
             value={documentos.length}
-            description="Total gerados"
+            description="Total de PDFs exportados"
             icon={FolderOpen}
             trend={{ value: 8, positive: true }}
-          />
-          <StatsCard
-            title="Clientes Ativos"
-            value={15}
-            description="Usando o sistema"
-            icon={Users}
-            trend={{ value: 5, positive: true }}
-          />
-          <StatsCard
-            title="Taxa de Uso"
-            value="94%"
-            description="Satisfação do cliente"
-            icon={TrendingUp}
-            trend={{ value: 2, positive: true }}
           />
         </div>
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\StaticVariableController;
 use App\Http\Controllers\Api\TemplateController;
 use App\Http\Middleware\EnsureUserHasTenant;
@@ -22,6 +23,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // CRUD de Templates
         Route::apiResource('templates', TemplateController::class);
+        
+        // CRUD de Documentos Gerados
+        Route::apiResource('documents', DocumentController::class);
+        
         Route::post('/variables', [StaticVariableController::class, 'store']);
 
         // Renderização de Templates

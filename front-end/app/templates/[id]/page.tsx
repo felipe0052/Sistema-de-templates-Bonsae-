@@ -61,20 +61,8 @@ export default function EditarTemplatePage() {
   }, [params.id, templates, isLoading])
 
   const handleInsertVariable = (variavel: string) => {
-    const selection = window.getSelection()
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
-      const span = document.createElement("span")
-      span.className = "bg-primary/20 text-primary px-1 rounded font-mono text-sm"
-      span.contentEditable = "false"
-      span.textContent = `{{${variavel}}}`
-      range.deleteContents()
-      range.insertNode(span)
-      
-      const editor = document.querySelector('[contenteditable="true"]')
-      if (editor) {
-        setConteudo(editor.innerHTML)
-      }
+    if ((window as any).insertVariableToEditor) {
+      (window as any).insertVariableToEditor(variavel)
     }
   }
 

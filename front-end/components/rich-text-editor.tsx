@@ -64,27 +64,53 @@ export function RichTextEditor({
   }, [])
 
   const insertVariable = useCallback((variavel: string) => {
+    if (!editorRef.current) return
+
     const selection = window.getSelection()
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
-      const span = document.createElement("span")
-      span.className = "bg-primary/20 text-primary px-1 rounded font-mono text-sm"
-      span.contentEditable = "false"
-      span.textContent = `{{${variavel}}}`
-      range.deleteContents()
-      range.insertNode(span)
-      
-      // Move cursor after the inserted variable
-      range.setStartAfter(span)
-      range.setEndAfter(span)
+    if (!selection) return
+
+    let range: Range
+    
+    // Se o foco não estiver no editor, coloca o cursor no final
+    if (!editorRef.current.contains(selection.anchorNode)) {
+      range = document.createRange()
+      range.selectNodeContents(editorRef.current)
+      range.collapse(false)
       selection.removeAllRanges()
       selection.addRange(range)
-      
-      if (editorRef.current) {
-        onChange(editorRef.current.innerHTML)
-      }
+    } else {
+      range = selection.getRangeAt(0)
     }
+
+    const span = document.createElement("span")
+    span.className = "bg-primary/20 text-primary px-1 rounded font-mono text-sm mx-0.5"
+    span.contentEditable = "false"
+    span.textContent = `{{${variavel}}}`
+    
+    range.deleteContents()
+    range.insertNode(span)
+    
+    // IMPORTANTE: Move o cursor para DEPOIS da variável e adiciona um espaço
+    // Isso evita que a próxima variável substitua a atual
+    const textNode = document.createTextNode("\u00A0") // Espaço não quebrável
+    range.setStartAfter(span)
+    range.insertNode(textNode)
+    range.setStartAfter(textNode)
+    range.collapse(true)
+    
+    selection.removeAllRanges()
+    selection.addRange(range)
+    
+    editorRef.current.focus()
+    onChange(editorRef.current.innerHTML)
   }, [onChange])
+
+  // Expor o método para ser chamado de fora (como no VariablePanel)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).insertVariableToEditor = insertVariable
+    }
+  }, [insertVariable])
 
   const tools = [
     { icon: Bold, command: "bold", label: "Negrito" },
@@ -136,13 +162,16 @@ export function RichTextEditor({
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className="min-h-[400px] p-4 outline-none prose prose-sm max-w-none focus:ring-2 focus:ring-ring focus:ring-inset break-words whitespace-pre-wrap"
+        className="min-h-[400px] p-8 outline-none prose prose-sm max-w-none focus:ring-2 focus:ring-ring focus:ring-inset break-words whitespace-pre-wrap bg-white !text-black shadow-inner mx-auto"
         onInput={handleInput}
         onPaste={handlePaste}
         data-placeholder={placeholder}
         dir="ltr"
         style={{
           minHeight: "400px",
+          width: "100%",
+          maxWidth: "210mm", // Simulando A4
+          color: "#000000",
         }}
       />
     </div>

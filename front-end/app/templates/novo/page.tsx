@@ -46,22 +46,8 @@ export default function NovoTemplatePage() {
   const [isSaving, setIsSaving] = useState(false)
 
   const handleInsertVariable = (variavel: string) => {
-    // Insert variable at cursor position
-    const selection = window.getSelection()
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
-      const span = document.createElement("span")
-      span.className = "bg-primary/20 text-primary px-1 rounded font-mono text-sm"
-      span.contentEditable = "false"
-      span.textContent = `{{${variavel}}}`
-      range.deleteContents()
-      range.insertNode(span)
-      
-      // Update content
-      const editor = document.querySelector('[contenteditable="true"]')
-      if (editor) {
-        setConteudo(editor.innerHTML)
-      }
+    if ((window as any).insertVariableToEditor) {
+      (window as any).insertVariableToEditor(variavel)
     }
   }
 
