@@ -1,4 +1,4 @@
-# Sistema de Templates Bonsae
+# Frontend
 
 Um sistema web robusto desenvolvido com **Next.js** e **React** para criação, gerenciamento e geração de documentos a partir de templates personalizados. O sistema visa agilizar fluxos de trabalho com documentos padronizados usando variáveis dinâmicas e formulários com máscaras inteligentes.
 
@@ -9,11 +9,11 @@ Um sistema web robusto desenvolvido com **Next.js** e **React** para criação, 
 - **Variáveis Dinâmicas:** Insira facilmente variáveis pré-definidas (como `{{nome}}`, `{{cpf}}`, `{{rg}}`) nos templates.
 - **Geração de Documentos:** Preenchimento assistido de dados para criação de novos documentos, contando com máscaras automáticas nos campos de formulário para CPF, RG, CEP, telefone e data.
 - **Busca Integrada:** Navegue e encontre rapidamente os templates na plataforma.
-- **Design Moderno e Responsivo:** Interface construída com **Tailwind CSS** e componentes **shadcn/ui**, suportando *Dark Mode*.
+- **Design Moderno e Responsivo:** Interface construída com **Tailwind CSS** e componentes **shadcn/ui**, suportando *Dark Mode* e *Light Mode*.
 
 ## Tecnologias Utilizadas
 
-- **Framework:** [Next.js 14+] (App Router)
+- **Framework:** [Next.js 16+] (App Router)
 - **Biblioteca UI:** [React]
 - **Estilização:** [Tailwind CSS] com componentes [shadcn/ui]
 - **Gerenciamento de Estado:** Context API / Zustand (via store provider customizado)
