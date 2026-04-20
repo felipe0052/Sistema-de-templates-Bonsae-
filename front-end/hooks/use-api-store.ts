@@ -12,6 +12,10 @@ import type {
 const API_BASE_URL = "http://127.0.0.1:8000/api"
 const LOCAL_STORAGE_KEY = "bonsae_templates_local"
 
+function getApiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || API_BASE_URL
+}
+
 function mapApiVariable(variable: StaticVariableApiResponse): Variavel {
   return {
     id: String(variable.id),
@@ -28,6 +32,7 @@ export function useApiStore() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [token, setToken] = useState<string | null>(null)
+  const apiBaseUrl = getApiBaseUrl()
 
   // 1. Carregar do LocalStorage imediatamente para garantir que o usuário veja algo
   useEffect(() => {
@@ -41,7 +46,7 @@ export function useApiStore() {
   useEffect(() => {
     const login = async () => {
       const tryLogin = async (path: string, options?: RequestInit) => {
-        const response = await fetch(`${API_BASE_URL}${path}`, {
+        const response = await fetch(`${apiBaseUrl}${path}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           ...options,
@@ -77,16 +82,16 @@ export function useApiStore() {
       }
     }
     login()
-  }, [])
+  }, [apiBaseUrl])
 
   const fetchVariables = async (search?: string) => {
     const query = search ? `?search=${encodeURIComponent(search)}` : ""
-    const response = await fetch(`${API_BASE_URL}/variables${query}`, {
+    const response = await fetch(`${apiBaseUrl}/variables${query}`, {
       headers: { Accept: "application/json" },
     })
 
     if (!response.ok) {
-      throw new Error("Variables sync failed")
+      throw new Error(`Variables sync failed with status ${response.status}`)
     }
 
     const variablesData = await response.json()
@@ -102,14 +107,16 @@ export function useApiStore() {
       try {
         await fetchVariables()
       } catch (error) {
-        console.error("Variables sync failed")
+        // In offline/local mode, failing to sync public variables should not break app bootstrap.
+        const message = error instanceof Error ? error.message : String(error)
+        console.warn(`Variables sync skipped: ${message}`)
       } finally {
         setIsLoading(false)
       }
     }
 
     syncVariables()
-  }, [])
+  }, [apiBaseUrl])
 
   // 4. Sincronizar templates e documentos com o Banco de Dados (API) se disponível
   useEffect(() => {
@@ -120,10 +127,10 @@ export function useApiStore() {
       
       try {
         const [templatesRes, documentsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/templates`, {
+          fetch(`${apiBaseUrl}/templates`, {
             headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
           }),
-          fetch(`${API_BASE_URL}/documents`, {
+          fetch(`${apiBaseUrl}/documents`, {
             headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
           })
         ])
@@ -168,7 +175,7 @@ export function useApiStore() {
     }
 
     fetchData()
-  }, [token])
+  }, [token, apiBaseUrl])
 
   const addTemplate = async (template: Omit<Template, "id" | "created_at" | "updated_at">) => {
     // SALVAR NO FRONT-END PRIMEIRO (Imediato)
@@ -189,7 +196,7 @@ export function useApiStore() {
     // TENTAR SALVAR NO BACK-END (Background)
     if (token) {
       try {
-        const response = await fetch(`${API_BASE_URL}/templates`, {
+        const response = await fetch(`${apiBaseUrl}/templates`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -229,7 +236,7 @@ export function useApiStore() {
     if (!token) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/documents`, {
+      const response = await fetch(`${apiBaseUrl}/documents`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -271,7 +278,7 @@ export function useApiStore() {
     // Tenta API
     if (token && !id.startsWith('temp_')) {
       try {
-        await fetch(`${API_BASE_URL}/templates/${id}`, {
+        await fetch(`${apiBaseUrl}/templates/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -297,7 +304,7 @@ export function useApiStore() {
 
     if (token && !id.startsWith('temp_')) {
       try {
-        await fetch(`${API_BASE_URL}/templates/${id}`, {
+        await fetch(`${apiBaseUrl}/templates/${id}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -308,7 +315,7 @@ export function useApiStore() {
   const renderTemplate = async (templateId: string, variables: Record<string, string>, behavior: 'blank' | 'underline' = 'blank') => {
     if (token && !templateId.startsWith('temp_')) {
       try {
-        const response = await fetch(`${API_BASE_URL}/templates/${templateId}/render`, {
+        const response = await fetch(`${apiBaseUrl}/templates/${templateId}/render`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -330,7 +337,7 @@ export function useApiStore() {
       throw new Error("Autenticação necessária para criar variáveis.")
     }
 
-    const response = await fetch(`${API_BASE_URL}/variables`, {
+    const response = await fetch(`${apiBaseUrl}/variables`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -375,7 +382,7 @@ export function useApiStore() {
     deleteDocumento: async (id: string) => {
       if (!token) return
       try {
-        const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+        const response = await fetch(`${apiBaseUrl}/documents/${id}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         })

@@ -1,4 +1,4 @@
-# EditorText Backend - Laravel API
+# Backend - Laravel API
 
 API RESTful para gerenciamento de modelos de documentos com suporte a multi-tenant e renderização de variáveis.
 
@@ -9,6 +9,34 @@ API RESTful para gerenciamento de modelos de documentos com suporte a multi-tena
 - Laravel Sanctum (Autenticação)
 
 ## Configuração
+
+0. Pre-requisito do SQLite no PHP:
+   
+  Verifique se as extensoes estao ativas:
+  ```bash
+  php -m | rg -i "sqlite|pdo"
+  ```
+
+  Se estiver em Arch Linux (yay):
+  ```bash
+  yay -S php-sqlite
+  ```
+
+  Se estiver em Ubuntu/Debian:
+  ```bash
+  sudo apt update
+  sudo apt install -y php-sqlite3
+  ```
+
+  Se estiver no Windows:
+  - Se usa XAMPP/WAMP: edite o `php.ini` da instalacao, habilite as extensoes abaixo e reinicie o Apache.
+  - Se usa PHP via terminal (winget/chocolatey): edite o `php.ini` mostrado por `php --ini` e habilite as extensoes abaixo.
+
+  E habilite no `php.ini` se necessario:
+  ```ini
+  extension=pdo_sqlite
+  extension=sqlite3
+  ```
 
 1. Instale as dependências:
    ```bash
@@ -31,6 +59,8 @@ API RESTful para gerenciamento de modelos de documentos com suporte a multi-tena
    ```bash
    php artisan serve
    ```
+
+Servidor da API: `http://127.0.0.1:8000`
 
 ## Endpoints Principais
 
