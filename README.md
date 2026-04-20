@@ -1,38 +1,96 @@
-#  Sistema de Templates Bonsae (Fullstack)
+# Sistema de Templates Bonsae (Fullstack)
 
-Este projeto é uma plataforma completa para criação, gerenciamento e renderização de modelos de documentos dinâmicos, com suporte a multi-tenant e salvamento híbrido.
-
----
+Este projeto e uma plataforma completa para criacao, gerenciamento e renderizacao de modelos de documentos dinamicos, com suporte a multi-tenant e salvamento hibrido.
 
 ## Tecnologias Utilizadas
 
-- **Front-end**: Next.js 16 (App Router), Tailwind CSS, Lucide Icons.
-- **Back-end**: Laravel 11, PHP 8.2+ (XAMPP), SQLite.
-- **Autenticação**: Laravel Sanctum.
-- **Estratégia de Dados**: Salvamento Híbrido (LocalStorage + API no Background).
+- Front-end: Next.js 16 (App Router), Tailwind CSS, Lucide Icons.
+- Back-end: Laravel 11, PHP 8.2+, SQLite.
+- Autenticacao: Laravel Sanctum.
+- Estrategia de dados: Salvamento hibrido (LocalStorage + API no background).
 
----
+## Fluxo Correto de Execucao
 
-##  Como Rodar o Projeto
+### 1. Pre-requisitos
 
+- Node.js 20+ e npm.
+- PHP 8.2+ e Composer.
+- Extensoes PHP para SQLite habilitadas: `sqlite3` e `pdo_sqlite`.
 
-1.  **Feche qualquer terminal aberto**.
-2.  Abra a pasta principal (`edittext`) no seu computador.
-3.  Dê **dois cliques** no arquivo [**`rodar.bat`**](./rodar.bat).
-4.  Aguarde as duas janelas de comando terminarem de carregar (cerca de 10-15 segundos).
-5.  Acesse o sistema em: [**http://localhost:3000**](http://localhost:3000)
+Validacao rapida:
 
+```bash
+php -m | rg -i "sqlite|pdo"
+```
 
-##  Funcionalidades Principais
-- ✅ **CRUD de Templates**: Criar, editar e excluir modelos de documentos.
-- ✅ **Variáveis Dinâmicas**: Use variáveis como `{{nome}}`, `{{cpf}}` no conteúdo.
-- ✅ **Salvamento Híbrido**: Seus templates aparecem na hora (salvos localmente) e sincronizam com o banco de dados depois.
-- ✅ **Renderização**: Gere o documento final preenchido com os dados do cliente.
-- ✅ **Multi-tenant**: Preparado para separar dados por diferentes instituições.
+Se estiver em Arch Linux (yay):
 
+```bash
+yay -S php-sqlite
+```
 
+Se estiver em Ubuntu/Debian:
 
-##  Estrutura do Repositório
-- `/front-end`: Aplicação Next.js.
+```bash
+sudo apt update
+sudo apt install -y php-sqlite3
+```
+
+Se estiver no Windows:
+
+- Se usa XAMPP/WAMP: edite o `php.ini` da instalacao, habilite as extensoes abaixo e reinicie o Apache.
+- Se usa PHP via terminal (winget/chocolatey): edite o `php.ini` mostrado por `php --ini` e habilite as extensoes abaixo.
+
+Depois habilite no `/etc/php/php.ini` (se necessario):
+
+```ini
+extension=pdo_sqlite
+extension=sqlite3
+```
+
+### 2. Subir o Back-end (Laravel)
+
+```bash
+cd back-end
+composer install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate --seed
+php artisan serve
+```
+
+A API ficara em `http://127.0.0.1:8000`.
+
+### 3. Subir o Front-end (Next.js)
+
+Em outro terminal:
+
+```bash
+cd front-end
+npm install
+npm run dev
+```
+
+O front-end ficara em `http://localhost:3000`.
+
+### 4. Validacao Rapida
+
+- Abra `http://localhost:3000`.
+- Verifique se o endpoint `http://127.0.0.1:8000/api/variables` responde JSON.
+
+Se a API nao estiver no ar, o front entra em modo local para parte dos dados.
+
+## Funcionalidades Principais
+
+- CRUD de templates: Criar, editar e excluir modelos de documentos.
+- Variaveis dinamicas: Use variaveis como `{{nome}}`, `{{cpf}}` no conteudo.
+- Salvamento hibrido: Templates aparecem na hora e sincronizam com o banco depois.
+- Renderizacao: Gere o documento final preenchido com os dados do cliente.
+- Multi-tenant: Preparado para separar dados por diferentes instituicoes.
+
+## Estrutura do Repositorio
+
+- `/front-end`: Aplicacao Next.js.
 - `/back-end`: API Laravel com SQLite.
 
