@@ -1,28 +1,32 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Variable } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Check, ChevronsUpDown, Variable } from "lucide-react"
 import { useState } from "react"
 import { useStore } from "@/components/store-provider"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
 interface VariablePanelProps {
   onInsertVariable: (variavel: string) => void
 }
 
 export function VariablePanel({ onInsertVariable }: VariablePanelProps) {
-  const [selectedVariable, setSelectedVariable] = useState<string | undefined>(undefined)
+  const [open, setOpen] = useState(false)
   const { variaveis } = useStore()
 
-  const handleValueChange = (value: string) => {
+  const handleSelect = (value: string) => {
     onInsertVariable(value)
-    setSelectedVariable(undefined)
+    setOpen(false)
   }
 
   return (
@@ -32,26 +36,60 @@ export function VariablePanel({ onInsertVariable }: VariablePanelProps) {
           <Variable className="h-4 w-4 text-primary" />
           Variáveis
         </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0 space-y-3">
-        <Select value={selectedVariable} onValueChange={handleValueChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Inserir variável" />
-          </SelectTrigger>
-          <SelectContent>
-            {variaveis.map((variavel) => (
-              <SelectItem key={variavel.id} value={variavel.nome_variavel}>
-                {`{{${variavel.nome_variavel}}}`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <p className="text-sm text-muted-foreground">
           Selecione uma variável para inserir no cursor atual do editor.
         </p>
         <p className="text-xs text-muted-foreground">
           Sintaxe: <span className="font-mono text-primary">{"{{nome_variavel}}"}</span>
         </p>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between font-normal"
+            >
+              Buscar e inserir variável
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-(--radix-popover-trigger-width) p-0"
+            side="bottom"
+            align="start"
+            sideOffset={4}
+            avoidCollisions={true}
+          >
+            <Command>
+              <CommandInput placeholder="Buscar variável..." />
+              <CommandList>
+                <CommandEmpty>Nenhuma variável encontrada.</CommandEmpty>
+                <CommandGroup>
+                  {variaveis.map((variavel) => (
+                    <CommandItem
+                      key={variavel.id}
+                      value={`${variavel.nome_variavel} ${variavel.descricao}`}
+                      onSelect={() => handleSelect(variavel.nome_variavel)}
+                    >
+                      <Check className={cn("h-4 w-4 opacity-0")} />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="font-mono text-xs text-primary">
+                          {`{{${variavel.nome_variavel}}}`}
+                        </span>
+                        <span className="truncate text-muted-foreground">
+                          {variavel.descricao}
+                        </span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </CardContent>
     </Card>
   )
