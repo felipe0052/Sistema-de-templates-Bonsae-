@@ -28,6 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('documents', DocumentController::class);
         
         Route::post('/variables', [StaticVariableController::class, 'store']);
+        Route::put('/variables/{variable}', [StaticVariableController::class, 'update']);
+        Route::delete('/variables/{variable}', [StaticVariableController::class, 'destroy']);
 
         // Renderização de Templates
         Route::post('templates/{template}/render', [TemplateController::class, 'render'])->name('api.templates.render');

@@ -367,6 +367,65 @@ export function useApiStore() {
     return created
   }
 
+  const updateVariavel = async (id: string, variavel: Omit<Variavel, "id">) => {
+    if (!token) {
+      throw new Error("Autenticação necessária para editar variáveis.")
+    }
+
+    const response = await fetch(`${apiBaseUrl}/variables/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        name: variavel.nome_variavel.trim().toLowerCase(),
+        description: variavel.descricao.trim(),
+        example: variavel.exemplo?.trim() || undefined,
+      }),
+    })
+
+    const data = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      const message =
+        data?.errors?.name?.[0] ||
+        data?.message ||
+        "Não foi possível atualizar a variável."
+      throw new Error(message)
+    }
+
+    const updated = mapApiVariable(data as StaticVariableApiResponse)
+    setVariaveis((prev) =>
+      prev
+        .map((item) => (item.id === id ? updated : item))
+        .sort((a, b) => a.nome_variavel.localeCompare(b.nome_variavel))
+    )
+
+    return updated
+  }
+
+  const deleteVariavel = async (id: string) => {
+    if (!token) {
+      throw new Error("Autenticação necessária para excluir variáveis.")
+    }
+
+    const response = await fetch(`${apiBaseUrl}/variables/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error("Não foi possível excluir a variável.")
+    }
+
+    setVariaveis((prev) => prev.filter((item) => item.id !== id))
+  }
+
   return {
     templates,
     documentos,
@@ -378,6 +437,7 @@ export function useApiStore() {
     deleteTemplate,
     renderTemplate,
     addVariavel,
+    updateVariavel,
     addDocumento,
     deleteDocumento: async (id: string) => {
       if (!token) return
@@ -393,7 +453,7 @@ export function useApiStore() {
         console.error("Failed to delete document")
       }
     },
-    deleteVariavel: () => {},
+    deleteVariavel,
     addCliente: () => {},
   }
 }

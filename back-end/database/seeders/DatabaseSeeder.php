@@ -3,52 +3,74 @@
 namespace Database\Seeders;
 
 use App\Models\Tenant;
-use App\Models\StaticVariable;
 use App\Models\User;
-use App\Models\Template;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run()
     {
-        // Criar um Tenant
-        $tenant = Tenant::create([
-            'name' => 'Instituição de Exemplo',
-            'domain' => 'exemplo.com.br',
-        ]);
+        DB::table('tenants')->updateOrInsert(
+            ['domain' => 'exemplo.com.br'],
+            [
+                'name' => 'Instituição de Exemplo',
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
 
-        // Criar um Usuário para o Tenant
-        $user = User::create([
-            'tenant_id' => $tenant->id,
-            'name' => 'Admin Teste',
-            'email' => 'admin@instituicao.com',
-            'password' => Hash::make('password'),
-        ]);
+        $tenant = Tenant::query()->where('domain', 'exemplo.com.br')->firstOrFail();
+
+        DB::table('users')->updateOrInsert(
+            ['email' => 'admin@instituicao.com'],
+            [
+                'tenant_id' => $tenant->id,
+                'name' => 'Admin Teste',
+                'password' => Hash::make('password'),
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+
+        $user = User::query()->where('email', 'admin@instituicao.com')->firstOrFail();
 
         foreach ($this->staticVariables() as $variable) {
-            StaticVariable::query()->create($variable);
+            DB::table('static_variables')->updateOrInsert(
+                ['name' => $variable['name']],
+                [
+                    'description' => $variable['description'],
+                    'example' => $variable['example'],
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
         }
 
-        // Criar um Template de exemplo
-        Template::create([
-            'tenant_id' => $tenant->id,
-            'title' => 'Modelo de Procuração',
-            'content' => '<h1>PROCURAÇÃO</h1><p>Eu, <strong>{{assistido_nome}}</strong>, portador do CPF <strong>{{cpf}}</strong>, nascido em {{data_nascimento}}, filho de {{nome_pai}} e {{nome_mae}}, residente em {{endereco}}, {{cidade}}, nomeio meu procurador...</p><p>Data: {{data_atual}}</p>',
-            'variables' => [
-                'assistido_nome',
-                'cpf',
-                'data_nascimento',
-                'nome_pai',
-                'nome_mae',
-                'endereco',
-                'cidade',
-                'data_atual'
+        DB::table('templates')->updateOrInsert(
+            [
+                'tenant_id' => $tenant->id,
+                'title' => 'Modelo de Procuração',
             ],
-            'visibility' => 'public',
-            'created_by' => $user->id,
-        ]);
+            [
+                'content' => '<h1>PROCURAÇÃO</h1><p>Eu, <strong>{{assistido_nome}}</strong>, portador do CPF <strong>{{cpf}}</strong>, nascido em {{data_nascimento}}, filho de {{nome_pai}} e {{nome_mae}}, residente em {{endereco}}, {{cidade}}, nomeio meu procurador...</p><p>Data: {{data_atual}}</p>',
+                'variables' => json_encode([
+                    'assistido_nome',
+                    'cpf',
+                    'data_nascimento',
+                    'nome_pai',
+                    'nome_mae',
+                    'endereco',
+                    'cidade',
+                    'data_atual'
+                ], JSON_UNESCAPED_UNICODE),
+                'visibility' => 'public',
+                'created_by' => $user->id,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
     }
 
     private function staticVariables(): array
