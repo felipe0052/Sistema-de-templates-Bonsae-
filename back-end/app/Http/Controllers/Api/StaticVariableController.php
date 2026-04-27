@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\StaticVariable;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
 class StaticVariableController extends Controller
@@ -31,35 +32,60 @@ class StaticVariableController extends Controller
 
     public function store(Request $request)
     {
+        $validated = $this->validatePayload($request);
+
+        $validated['name'] = strtolower($validated['name']);
+
+        $variable = StaticVariable::create($validated);
+
+        return response()->json($variable, 201);
+    }
+
+    public function update(Request $request, StaticVariable $variable)
+    {
+        $validated = $this->validatePayload($request, $variable);
+
+        $validated['name'] = strtolower($validated['name']);
+
+        $variable->update($validated);
+
+        return response()->json($variable);
+    }
+
+    public function destroy(StaticVariable $variable)
+    {
+        $variable->delete();
+
+        return response()->noContent();
+    }
+
+    protected function validatePayload(Request $request, ?StaticVariable $variable = null): array
+    {
         $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9_]+$/',
-                Rule::unique('static_variables', 'name'),
+                Rule::unique('static_variables', 'name')->ignore($variable?->id),
             ],
             'description' => ['required', 'string'],
             'example' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $validated['name'] = strtolower($validated['name']);
+        $normalizedName = strtolower($validated['name']);
 
-        $existing = StaticVariable::query()
-            ->whereRaw('LOWER(name) = ?', [$validated['name']])
+        $exists = StaticVariable::query()
+            ->whereRaw('LOWER(name) = ?', [$normalizedName])
+            ->when($variable, fn ($query) => $query->whereKeyNot($variable->id))
             ->exists();
 
-        if ($existing) {
-            return response()->json([
-                'message' => 'The name has already been taken.',
-                'errors' => [
-                    'name' => ['The name has already been taken.'],
-                ],
-            ], 422);
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'name' => ['The name has already been taken.'],
+            ]);
         }
 
-        $variable = StaticVariable::create($validated);
-
-        return response()->json($variable, 201);
+        return $validated;
     }
 }
