@@ -91,6 +91,67 @@ class StaticVariableApiTest extends TestCase
             ->assertJsonValidationErrors(['name']);
     }
 
+    public function test_authenticated_user_can_update_static_variable(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $variable = StaticVariable::query()->create([
+            'name' => 'numero_processo',
+            'description' => 'Número anterior.',
+            'example' => '1111/2024',
+        ]);
+
+        $response = $this->putJson("/api/variables/{$variable->id}", [
+            'name' => 'numero_cnj',
+            'description' => 'Número CNJ do processo.',
+            'example' => '5000000-00.2024.8.26.0000',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('name', 'numero_cnj')
+            ->assertJsonPath('description', 'Número CNJ do processo.');
+
+        $this->assertDatabaseHas('static_variables', [
+            'id' => $variable->id,
+            'name' => 'numero_cnj',
+        ]);
+    }
+
+    public function test_cannot_update_static_variable_with_duplicate_name_ignoring_case(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $variable = StaticVariable::query()->where('name', 'assistido_nome')->firstOrFail();
+
+        $response = $this->putJson("/api/variables/{$variable->id}", [
+            'name' => 'CPF',
+            'description' => 'Tentativa duplicada.',
+            'example' => '123.456.789-00',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_authenticated_user_can_delete_static_variable(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $variable = StaticVariable::query()->create([
+            'name' => 'processo_temporario',
+            'description' => 'Variável removível.',
+            'example' => 'TMP-1',
+        ]);
+
+        $response = $this->deleteJson("/api/variables/{$variable->id}");
+
+        $response->assertNoContent();
+
+        $this->assertDatabaseMissing('static_variables', [
+            'id' => $variable->id,
+        ]);
+    }
+
     public function test_renderer_uses_persisted_static_variables(): void
     {
         StaticVariable::query()->create([

@@ -124,6 +124,14 @@ export function useMockStore() {
     localStorage.setItem(STORAGE_KEYS.VARIAVEIS, JSON.stringify(updated))
   }
 
+  const updateVariavel = (id: string, updates: Omit<Variavel, "id">) => {
+    const updated = variaveis
+      .map((v) => (v.id === id ? { ...v, ...updates } : v))
+      .sort((a, b) => a.nome_variavel.localeCompare(b.nome_variavel))
+    setVariaveis(updated)
+    localStorage.setItem(STORAGE_KEYS.VARIAVEIS, JSON.stringify(updated))
+  }
+
   // Cliente Actions
   const addCliente = (cliente: Omit<Cliente, "id" | "created_at">) => {
     const newCliente: Cliente = {
@@ -148,6 +156,7 @@ export function useMockStore() {
     addDocumento,
     deleteDocumento,
     addVariavel,
+    updateVariavel,
     deleteVariavel,
     addCliente,
   }

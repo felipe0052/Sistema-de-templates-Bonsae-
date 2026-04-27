@@ -5,23 +5,12 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
-  LayoutDashboard,
   FileText,
   FolderOpen,
   Variable,
-  Users,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
 
 const menuItems = [
-  {
-    title: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-  },
   {
     title: "Templates",
     href: "/templates",

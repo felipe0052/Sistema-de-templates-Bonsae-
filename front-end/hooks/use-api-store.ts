@@ -73,7 +73,7 @@ export function useApiStore() {
                     setToken(data.access_token);
                     return;
                 }
-            } catch (error) {
+            } catch (_error) {
                 try {
                     const adminModeData = await tryLogin("/admin-mode/login");
 
@@ -81,7 +81,7 @@ export function useApiStore() {
                         setToken(adminModeData.access_token);
                         return;
                     }
-                } catch (adminModeError) {
+                } catch (_adminModeError) {
                     console.warn("API Login failed, using local mode only.");
                 }
             }
@@ -169,8 +169,9 @@ export function useApiStore() {
                     setTemplates((prev) => {
                         const merged = [...mappedTemplates];
                         prev.forEach((p) => {
-                            if (!merged.find((m) => m.id === p.id))
+                            if (!merged.find((m) => m.id === p.id)) {
                                 merged.push(p);
+                            }
                         });
                         localStorage.setItem(
                             LOCAL_STORAGE_KEY,
@@ -193,7 +194,7 @@ export function useApiStore() {
                     }));
                     setDocumentos(mappedDocuments);
                 }
-            } catch (error) {
+            } catch (_error) {
                 console.error("Sync failed");
             }
         };
@@ -257,7 +258,7 @@ export function useApiStore() {
                         return updated;
                     });
                 }
-            } catch (error) {
+            } catch (_error) {
                 console.error(
                     "Background sync failed, template remains local.",
                 );
@@ -297,7 +298,7 @@ export function useApiStore() {
                 setDocumentos((prev) => [newDoc, ...prev]);
                 return newDoc;
             }
-        } catch (error) {
+        } catch (_error) {
             console.error("Failed to save document");
         }
     };
@@ -330,7 +331,7 @@ export function useApiStore() {
                             : undefined,
                     }),
                 });
-            } catch (e) {}
+            } catch (_e) {}
         }
     };
 
@@ -347,7 +348,7 @@ export function useApiStore() {
                     method: "DELETE",
                     headers: { Authorization: `Bearer ${token}` },
                 });
-            } catch (e) {}
+            } catch (_e) {}
         }
     };
 
@@ -375,7 +376,7 @@ export function useApiStore() {
                 );
                 const data = await response.json();
                 return data.html;
-            } catch (error) {
+            } catch (_error) {
                 return null;
             }
         }
@@ -428,7 +429,7 @@ export function useApiStore() {
             }
 
             return null;
-        } catch (error) {
+        } catch (_error) {
             return null;
         }
     };
@@ -472,6 +473,68 @@ export function useApiStore() {
         return created;
     };
 
+    const updateVariavel = async (
+        id: string,
+        variavel: Omit<Variavel, "id">,
+    ) => {
+        if (!token) {
+            throw new Error("Autenticação necessária para editar variáveis.");
+        }
+
+        const response = await fetch(`${apiBaseUrl}/variables/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+            body: JSON.stringify({
+                name: variavel.nome_variavel.trim().toLowerCase(),
+                description: variavel.descricao.trim(),
+                example: variavel.exemplo?.trim() || undefined,
+            }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const message =
+                data?.errors?.name?.[0] ||
+                data?.message ||
+                "Não foi possível atualizar a variável.";
+            throw new Error(message);
+        }
+
+        const updated = mapApiVariable(data as StaticVariableApiResponse);
+        setVariaveis((prev) =>
+            prev
+                .map((item) => (item.id === id ? updated : item))
+                .sort((a, b) => a.nome_variavel.localeCompare(b.nome_variavel)),
+        );
+
+        return updated;
+    };
+
+    const deleteVariavel = async (id: string) => {
+        if (!token) {
+            throw new Error("Autenticação necessária para excluir variáveis.");
+        }
+
+        const response = await fetch(`${apiBaseUrl}/variables/${id}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Não foi possível excluir a variável.");
+        }
+
+        setVariaveis((prev) => prev.filter((item) => item.id !== id));
+    };
+
     return {
         templates,
         documentos,
@@ -484,6 +547,7 @@ export function useApiStore() {
         renderTemplate,
         renderTemplatePdf,
         addVariavel,
+        updateVariavel,
         addDocumento,
         deleteDocumento: async (id: string) => {
             if (!token) return;
@@ -495,11 +559,11 @@ export function useApiStore() {
                 if (response.ok) {
                     setDocumentos((prev) => prev.filter((d) => d.id !== id));
                 }
-            } catch (error) {
+            } catch (_error) {
                 console.error("Failed to delete document");
             }
         },
-        deleteVariavel: () => {},
+        deleteVariavel,
         addCliente: () => {},
     };
 }
