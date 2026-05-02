@@ -1,4 +1,5 @@
 import type { Template, Documento, Variavel } from './types'
+import { extractVariableTokens } from './document-utils'
 
 // Variáveis disponíveis no sistema
 export const variaveisDisponiveis: Variavel[] = [
@@ -116,11 +117,5 @@ export function substituirVariaveis(conteudo: string, dados: Record<string, stri
 }
 
 export function extrairVariaveis(conteudo: string): string[] {
-  const regex = /{{(\w+)}}/g
-  const matches = conteudo.matchAll(regex)
-  const variaveis = new Set<string>()
-  for (const match of matches) {
-    variaveis.add(match[1])
-  }
-  return Array.from(variaveis)
+  return extractVariableTokens(conteudo)
 }

@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, FileDown, Eye, Printer } from "lucide-react";
+import { ArrowLeft, FileDown, Eye, Printer, Save } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "@/components/store-provider";
 import { toast } from "sonner";
 import { extrairVariaveis, substituirVariaveis } from "@/lib/store";
+import { findUnknownVariables, normalizeTemplateContent } from "@/lib/document-utils";
 import type { Template } from "@/lib/types";
 
 // Função auxiliar para formatação
@@ -73,12 +74,14 @@ export default function GerarDocumentoPage() {
         isLoading,
         renderTemplatePdf,
         renderTemplate,
+        variableCatalogAvailable,
     } = useStore();
     const previewRef = useRef<HTMLDivElement>(null);
     const [template, setTemplate] = useState<Template | null>(null);
     const [dados, setDados] = useState<Record<string, string>>({});
     const [variaveis, setVariaveis] = useState<string[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (isLoading) return;
@@ -87,7 +90,8 @@ export default function GerarDocumentoPage() {
         const foundTemplate = templates.find((t) => t.id === templateId);
         if (foundTemplate) {
             setTemplate(foundTemplate);
-            const extractedVars = extrairVariaveis(foundTemplate.conteudo);
+            const normalizedContent = normalizeTemplateContent(foundTemplate.conteudo);
+            const extractedVars = extrairVariaveis(normalizedContent);
             setVariaveis(extractedVars);
 
             // Initialize with current date
@@ -107,8 +111,41 @@ export default function GerarDocumentoPage() {
         setDados((prev) => ({ ...prev, [varName]: formattedValue }));
     };
 
+    const availableVariableNames = variaveisStore.map((item) => item.nome_variavel);
+    const unknownVariables = template && variableCatalogAvailable
+        ? findUnknownVariables(template.conteudo, availableVariableNames)
+        : [];
+    const hasUnknownVariables = unknownVariables.length > 0;
+
+    const saveDocument = async () => {
+        if (!template) return null;
+        return await addDocumento({
+            template_id: template.id,
+            nome: `${template.nome_template} - ${dados.nome || "Novo Documento"}`,
+            dados_json: dados,
+        });
+    };
+
+    const handleSaveDocument = async () => {
+        if (!template || hasUnknownVariables) return;
+        setIsSaving(true);
+        try {
+            const saved = await saveDocument();
+            if (!saved) {
+                toast.error("Não foi possível salvar o documento.");
+                return;
+            }
+            toast.success("Documento salvo com sucesso.");
+            router.push("/documentos");
+        } catch (_error) {
+            toast.error("Erro ao salvar documento.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleGeneratePDF = async () => {
-        if (!template) return;
+        if (!template || hasUnknownVariables) return;
 
         setIsGenerating(true);
 
@@ -119,11 +156,7 @@ export default function GerarDocumentoPage() {
                 "underline",
             );
 
-            await addDocumento({
-                template_id: template.id,
-                nome: `${template.nome_template} - ${dados.nome || "Novo Documento"}`,
-                dados_json: dados,
-            });
+            await saveDocument();
 
             if (!pdfBlob || pdfBlob.type !== "application/pdf") {
                 toast.error("Não foi possível gerar o PDF para download.");
@@ -156,7 +189,7 @@ export default function GerarDocumentoPage() {
     };
 
     const handlePrint = async () => {
-        if (!template) return;
+        if (!template || hasUnknownVariables) return;
 
         setIsGenerating(true);
 
@@ -229,7 +262,7 @@ export default function GerarDocumentoPage() {
     };
 
     const processedContent = template
-        ? substituirVariaveis(template.conteudo, dados)
+        ? substituirVariaveis(normalizeTemplateContent(template.conteudo), dados)
         : "";
 
     if (!template) {
@@ -266,16 +299,24 @@ export default function GerarDocumentoPage() {
                     </Button>
                     <div className="flex gap-2">
                         <Button
+                            variant="secondary"
+                            onClick={handleSaveDocument}
+                            disabled={isSaving || isGenerating || hasUnknownVariables}
+                        >
+                            <Save className="h-4 w-4" />
+                            {isSaving ? "Salvando..." : "Salvar Documento"}
+                        </Button>
+                        <Button
                             variant="outline"
                             onClick={handlePrint}
-                            disabled={isGenerating}
+                            disabled={isGenerating || hasUnknownVariables}
                         >
                             <Printer className="h-4 w-4" />
                             Imprimir
                         </Button>
                         <Button
                             onClick={handleGeneratePDF}
-                            disabled={isGenerating}
+                            disabled={isGenerating || hasUnknownVariables}
                         >
                             <FileDown className="h-4 w-4" />
                             {isGenerating ? "Gerando..." : "Exportar PDF"}
@@ -364,16 +405,17 @@ export default function GerarDocumentoPage() {
                                 )}
                                 <div
                                     ref={previewRef}
-                                    className="relative p-6 prose prose-sm max-w-none !text-black"
+                                    className="preview-document relative !text-black"
                                     style={{
                                         fontFamily: "Times New Roman, serif",
-                                        fontSize: "11pt",
-                                        lineHeight: "1.6",
+                                        fontSize: "12pt",
+                                        lineHeight: "1.7",
                                         color: "#000000",
+                                        padding: "3cm 2.5cm 2.5cm 3cm",
                                     }}
                                     dangerouslySetInnerHTML={{
                                         __html: processedContent.replace(
-                                            /{{(\w+)}}/g,
+                                            /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g,
                                             '<span style="background-color: #fee2e2; color: #991b1b; padding: 0 4px; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">{{$1}}</span>',
                                         ),
                                     }}
@@ -390,9 +432,56 @@ export default function GerarDocumentoPage() {
                                     </p>
                                 </div>
                             )}
+                            {hasUnknownVariables && (
+                                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="text-sm text-red-800">
+                                        O template contém variáveis que não existem no sistema:{" "}
+                                        <span className="font-mono">
+                                            {unknownVariables.map((v) => `{{${v}}}`).join(", ")}
+                                        </span>
+                                        . Corrija antes de salvar/exportar.
+                                    </p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
+                <style jsx>{`
+                    :global(.preview-document p) {
+                        margin: 0 0 12pt 0;
+                        text-indent: 1.25cm;
+                    }
+
+                    :global(.preview-document h1),
+                    :global(.preview-document h2),
+                    :global(.preview-document h3),
+                    :global(.preview-document h4),
+                    :global(.preview-document h5),
+                    :global(.preview-document h6) {
+                        margin: 0 0 12pt 0;
+                        text-indent: 0;
+                        text-align: center;
+                    }
+
+                    :global(.preview-document ul),
+                    :global(.preview-document ol) {
+                        margin: 0 0 12pt 1.2cm;
+                        padding: 0;
+                        text-indent: 0;
+                    }
+
+                    :global(.preview-document ul) {
+                        list-style: disc outside;
+                    }
+
+                    :global(.preview-document ol) {
+                        list-style: decimal outside;
+                    }
+
+                    :global(.preview-document li) {
+                        margin: 0 0 6pt 0;
+                    }
+                `}</style>
             </div>
         </DashboardLayout>
     );

@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { substituirVariaveis } from "@/lib/store"
+import { normalizeTemplateContent } from "@/lib/document-utils"
 import { FileText } from "lucide-react"
 
 interface DocumentPreviewProps {
@@ -11,7 +12,8 @@ interface DocumentPreviewProps {
 }
 
 export function DocumentPreview({ content, letterhead, data }: DocumentPreviewProps) {
-  const processedContent = substituirVariaveis(content, {
+  const normalizedContent = normalizeTemplateContent(content)
+  const processedContent = substituirVariaveis(normalizedContent, {
     ...data,
     data_atual: new Date().toLocaleDateString("pt-BR"),
   })
@@ -57,12 +59,13 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
 
           {/* Content */}
           <div
-            className="relative p-8 md:p-12 prose prose-sm max-w-none !text-black"
+            className="preview-document relative !text-black"
             style={{
               fontFamily: "Times New Roman, serif",
               fontSize: "12pt",
-              lineHeight: "1.6",
+              lineHeight: "1.7",
               color: "#000000", // Força preto mesmo se a classe !text-black falhar
+              padding: "3cm 2.5cm 2.5cm 3cm",
             }}
             dangerouslySetInnerHTML={{ __html: displayContent }}
           />
@@ -90,6 +93,42 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
             <span className="text-muted-foreground">Variável pendente</span>
           </div>
         </div>
+        <style jsx>{`
+          :global(.preview-document p) {
+            margin: 0 0 12pt 0;
+            text-indent: 1.25cm;
+          }
+
+          :global(.preview-document h1),
+          :global(.preview-document h2),
+          :global(.preview-document h3),
+          :global(.preview-document h4),
+          :global(.preview-document h5),
+          :global(.preview-document h6) {
+            margin: 0 0 12pt 0;
+            text-indent: 0;
+            text-align: center;
+          }
+
+          :global(.preview-document ul),
+          :global(.preview-document ol) {
+            margin: 0 0 12pt 1.2cm;
+            padding: 0;
+            text-indent: 0;
+          }
+
+          :global(.preview-document ul) {
+            list-style: disc outside;
+          }
+
+          :global(.preview-document ol) {
+            list-style: decimal outside;
+          }
+
+          :global(.preview-document li) {
+            margin: 0 0 6pt 0;
+          }
+        `}</style>
       </CardContent>
     </Card>
   )
