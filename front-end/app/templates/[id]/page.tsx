@@ -23,6 +23,7 @@ import { Save, Eye, FileDown, ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
 import { useStore } from "@/components/store-provider"
 import { toast } from "sonner"
+import { findUnknownVariables } from "@/lib/document-utils"
 import type { Template } from "@/lib/types"
 
 const categorias = [
@@ -37,7 +38,7 @@ const categorias = [
 export default function EditarTemplatePage() {
   const params = useParams()
   const router = useRouter()
-  const { templates, updateTemplate, isLoading } = useStore()
+  const { templates, updateTemplate, isLoading, variaveis, variableCatalogAvailable } = useStore()
   const [template, setTemplate] = useState<Template | null>(null)
   const [nomeTemplate, setNomeTemplate] = useState("")
   const [categoria, setCategoria] = useState("")
@@ -45,6 +46,13 @@ export default function EditarTemplatePage() {
   const [letterhead, setLetterhead] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("editor")
   const [isSaving, setIsSaving] = useState(false)
+  const unknownVariables = variableCatalogAvailable
+    ? findUnknownVariables(
+        conteudo,
+        variaveis.map((item) => item.nome_variavel),
+      )
+    : []
+  const hasUnknownVariables = unknownVariables.length > 0
 
   useEffect(() => {
     if (isLoading) return
@@ -74,6 +82,10 @@ export default function EditarTemplatePage() {
     }
     if (!conteudo.trim()) {
       toast.error("Por favor, adicione conteúdo ao template.")
+      return
+    }
+    if (hasUnknownVariables) {
+      toast.error("Existem variáveis inválidas no template. Corrija antes de salvar.")
       return
     }
 
@@ -137,7 +149,7 @@ export default function EditarTemplatePage() {
               <Eye className="h-4 w-4" />
               Visualizar
             </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button onClick={handleSave} disabled={isSaving || hasUnknownVariables}>
               <Save className="h-4 w-4" />
               {isSaving ? "Salvando..." : "Salvar"}
             </Button>
@@ -188,6 +200,17 @@ export default function EditarTemplatePage() {
           </TabsList>
 
           <TabsContent value="editor" className="mt-4">
+            {hasUnknownVariables && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">
+                  Variáveis não cadastradas:{" "}
+                  <span className="font-mono">
+                    {unknownVariables.map((item) => `{{${item}}}`).join(", ")}
+                  </span>
+                  . Cadastre em Variáveis ou ajuste o template.
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-3">
                 <RichTextEditor

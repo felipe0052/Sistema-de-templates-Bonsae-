@@ -33,6 +33,8 @@ export function useApiStore() {
     const [variaveis, setVariaveis] = useState<Variavel[]>([]);
     const [clientes, setClientes] = useState<Cliente[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [variableCatalogAvailable, setVariableCatalogAvailable] =
+        useState(false);
     const [token, setToken] = useState<string | null>(null);
     const apiBaseUrl = getApiBaseUrl();
 
@@ -106,6 +108,7 @@ export function useApiStore() {
             mapApiVariable,
         );
         setVariaveis(mappedVariables);
+        setVariableCatalogAvailable(true);
 
         return mappedVariables;
     };
@@ -539,6 +542,7 @@ export function useApiStore() {
         templates,
         documentos,
         variaveis,
+        variableCatalogAvailable,
         clientes,
         isLoading,
         addTemplate,

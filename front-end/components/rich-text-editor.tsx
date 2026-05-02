@@ -16,6 +16,7 @@ import {
   Redo,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { normalizeTemplateContent } from "@/lib/document-utils"
 import {
   Tooltip,
   TooltipContent,
@@ -53,7 +54,11 @@ export function RichTextEditor({
 
   const handleInput = useCallback(() => {
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML)
+      const normalized = normalizeTemplateContent(editorRef.current.innerHTML)
+      if (normalized !== editorRef.current.innerHTML) {
+        editorRef.current.innerHTML = normalized
+      }
+      onChange(normalized)
     }
   }, [onChange])
 
@@ -162,7 +167,7 @@ export function RichTextEditor({
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className="min-h-[400px] p-8 outline-none prose prose-sm max-w-none focus:ring-2 focus:ring-ring focus:ring-inset break-words whitespace-pre-wrap bg-white !text-black shadow-inner mx-auto"
+        className="editor-document min-h-[400px] outline-none focus:ring-2 focus:ring-ring focus:ring-inset break-words whitespace-pre-wrap bg-white !text-black shadow-inner mx-auto"
         onInput={handleInput}
         onPaste={handlePaste}
         data-placeholder={placeholder}
@@ -172,8 +177,47 @@ export function RichTextEditor({
           width: "100%",
           maxWidth: "210mm", // Simulando A4
           color: "#000000",
+          fontFamily: '"Times New Roman", Times, serif',
+          fontSize: "12pt",
+          lineHeight: "1.7",
+          padding: "3cm 2.5cm 2.5cm 3cm",
         }}
       />
+      <style jsx>{`
+        :global(.editor-document p) {
+          margin: 0 0 12pt 0;
+          text-indent: 1.25cm;
+        }
+
+        :global(.editor-document h1),
+        :global(.editor-document h2),
+        :global(.editor-document h3),
+        :global(.editor-document h4),
+        :global(.editor-document h5),
+        :global(.editor-document h6) {
+          margin: 0 0 12pt 0;
+          text-indent: 0;
+          text-align: center;
+        }
+
+        :global(.editor-document ul) {
+          margin: 0 0 12pt 1.2cm;
+          padding: 0;
+          text-indent: 0;
+          list-style: disc outside;
+        }
+
+        :global(.editor-document ol) {
+          margin: 0 0 12pt 1.2cm;
+          padding: 0;
+          text-indent: 0;
+          list-style: decimal outside;
+        }
+
+        :global(.editor-document li) {
+          margin: 0 0 6pt 0;
+        }
+      `}</style>
     </div>
   )
 }
