@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS documentos (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Habilitar RLS (Row Level Security) 
+-- Habilitar RLS (Row Level Security) - Opcional, mas recomendado
 -- ALTER TABLE variaveis ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE templates ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE documentos ENABLE ROW LEVEL SECURITY;
