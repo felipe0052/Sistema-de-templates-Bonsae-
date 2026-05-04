@@ -38,20 +38,17 @@ const categorias = [
 export default function EditarTemplatePage() {
   const params = useParams()
   const router = useRouter()
-  const { templates, updateTemplate, isLoading, variaveis, variableCatalogAvailable } = useStore()
+  const { templates, updateTemplate, isLoading, variaveis } = useStore()
   const [template, setTemplate] = useState<Template | null>(null)
-  const [nomeTemplate, setNomeTemplate] = useState("")
-  const [categoria, setCategoria] = useState("")
+  const [nome, setNome] = useState("")
   const [conteudo, setConteudo] = useState("")
   const [letterhead, setLetterhead] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("editor")
   const [isSaving, setIsSaving] = useState(false)
-  const unknownVariables = variableCatalogAvailable
-    ? findUnknownVariables(
-        conteudo,
-        variaveis.map((item) => item.nome_variavel),
-      )
-    : []
+  const unknownVariables = findUnknownVariables(
+    conteudo,
+    variaveis.map((item) => item.nome),
+  )
   const hasUnknownVariables = unknownVariables.length > 0
 
   useEffect(() => {
@@ -61,10 +58,8 @@ export default function EditarTemplatePage() {
     const foundTemplate = templates.find((t) => t.id === templateId)
     if (foundTemplate) {
       setTemplate(foundTemplate)
-      setNomeTemplate(foundTemplate.nome_template)
-      setCategoria(foundTemplate.categoria || "")
+      setNome(foundTemplate.nome)
       setConteudo(foundTemplate.conteudo)
-      setLetterhead(foundTemplate.imagem_fundo || null)
     }
   }, [params.id, templates, isLoading])
 
@@ -76,7 +71,7 @@ export default function EditarTemplatePage() {
 
   const handleSave = async () => {
     if (!template) return
-    if (!nomeTemplate.trim()) {
+    if (!nome.trim()) {
       toast.error("Por favor, informe o nome do template.")
       return
     }
@@ -91,11 +86,9 @@ export default function EditarTemplatePage() {
 
     setIsSaving(true)
     try {
-      updateTemplate(template.id, {
-        nome_template: nomeTemplate,
-        categoria: categoria,
+      await updateTemplate(template.id, {
+        nome: nome,
         conteudo: conteudo,
-        imagem_fundo: letterhead || undefined,
       })
       toast.success("Template atualizado com sucesso!")
       router.push("/templates")
@@ -127,7 +120,7 @@ export default function EditarTemplatePage() {
   return (
     <DashboardLayout
       title="Editar Template"
-      subtitle={template.nome_template}
+      subtitle={template.nome}
     >
       <div className="space-y-6">
         {/* Header Actions */}
@@ -162,30 +155,15 @@ export default function EditarTemplatePage() {
             <CardTitle className="text-base">Informações do Template</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome do Template</Label>
                 <Input
                   id="nome"
                   placeholder="Ex: Declaração de Residência"
-                  value={nomeTemplate}
-                  onChange={(e) => setNomeTemplate(e.target.value)}
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="categoria">Categoria</Label>
-                <Select value={categoria} onValueChange={setCategoria}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categorias.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </CardContent>

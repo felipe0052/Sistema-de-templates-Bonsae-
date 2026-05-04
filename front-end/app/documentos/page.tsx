@@ -31,6 +31,7 @@ import {
   Trash2,
   Calendar,
   Filter,
+  AlertCircle,
 } from "lucide-react"
 import { useStore } from "@/components/store-provider"
 import { toast } from "sonner"
@@ -41,27 +42,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function DocumentosPage() {
-  const { documentos, templates, deleteDocumento, isLoading } = useStore()
+  const { documentos, templates, deleteDocumento, isLoading, error } = useStore()
   const [searchQuery, setSearchQuery] = useState("")
   const [templateFilter, setTemplateFilter] = useState("all")
 
   if (isLoading) return null
 
-  const filteredDocumentos = documentos.filter((doc) => {
-    const matchesSearch = doc.nome
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-    const matchesTemplate =
-      templateFilter === "all" || doc.template_id === templateFilter
-    return matchesSearch && matchesTemplate
-  })
+  if (error) {
+    return (
+      <DashboardLayout title="Documentos Gerados" subtitle="Erro ao carregar dados">
+        <div className="max-w-2xl mx-auto mt-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro de Conexão</AlertTitle>
+            <AlertDescription className="mt-2">
+              <p>Ocorreu um erro ao conectar ao Supabase: {error}</p>
+            </AlertDescription>
+          </Alert>
+          <Button 
+            className="mt-4 w-full" 
+            onClick={() => window.location.reload()}
+          >
+            Tentar Novamente
+          </Button>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   const getTemplateName = (templateId: string) => {
-    const template = templates.find((t) => t.id === templateId)
-    return template?.nome_template || "Template desconhecido"
+    const template = (templates || []).find((t) => t.id === templateId)
+    return template?.nome || "Template desconhecido"
   }
+
+  const filteredDocumentos = (documentos || []).filter((doc) => {
+    const templateName = getTemplateName(doc?.template_id || "").toLowerCase()
+    const matchesSearch = templateName.includes(searchQuery.toLowerCase())
+    const matchesTemplate =
+      templateFilter === "all" || doc?.template_id === templateFilter
+    return matchesSearch && matchesTemplate
+  })
 
   const handleDelete = (id: string) => {
     if (confirm("Tem certeza que deseja excluir este documento?")) {
@@ -104,9 +127,9 @@ export default function DocumentosPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os templates</SelectItem>
-              {templates.map((t) => (
+              {(templates || []).map((t) => (
                 <SelectItem key={t.id} value={t.id}>
-                  {t.nome_template}
+                  {t.nome}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -122,7 +145,7 @@ export default function DocumentosPage() {
                   <FileText className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{documentos.length}</p>
+                  <p className="text-2xl font-bold">{documentos?.length || 0}</p>
                   <p className="text-sm text-muted-foreground">Total de documentos</p>
                 </div>
               </div>
@@ -136,7 +159,7 @@ export default function DocumentosPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {documentos.filter((d) => d.pdf_gerado).length}
+                    {documentos?.filter((d) => d.status === "concluído").length || 0}
                   </p>
                   <p className="text-sm text-muted-foreground">PDFs exportados</p>
                 </div>
@@ -152,7 +175,8 @@ export default function DocumentosPage() {
                 <div>
                   <p className="text-2xl font-bold">
                     {
-                      documentos.filter((d) => {
+                      (documentos || []).filter((d) => {
+                        if (!d.created_at) return false
                         const docDate = new Date(d.created_at)
                         const now = new Date()
                         return (
@@ -190,23 +214,23 @@ export default function DocumentosPage() {
                         <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
                           <FileText className="h-4 w-4 text-primary" />
                         </div>
-                        <span className="font-medium">{doc.nome}</span>
+                        <span className="font-medium">{getTemplateName(doc?.template_id)}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
-                        {getTemplateName(doc.template_id)}
+                        {Object.keys(doc.dados_variaveis || {}).length} variáveis
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(doc.created_at)}
+                      {doc.created_at ? formatDate(doc.created_at) : "N/A"}
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={doc.pdf_gerado ? "default" : "outline"}
-                        className={doc.pdf_gerado ? "bg-green-100 text-green-700 hover:bg-green-100" : ""}
+                        variant={doc.status === "concluído" ? "default" : "outline"}
+                        className={doc.status === "concluído" ? "bg-green-100 text-green-700 hover:bg-green-100" : ""}
                       >
-                        {doc.pdf_gerado ? "Exportado" : "Pendente"}
+                        {doc.status}
                       </Badge>
                     </TableCell>
                     <TableCell>

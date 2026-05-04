@@ -26,7 +26,9 @@ export function Header({ title, subtitle, onMenuClick, onSearchChange, searchVal
           <Menu className="h-5 w-5" />
         </Button>
         <div className="min-w-0">
-          <h1 className="text-lg md:text-xl font-semibold text-foreground truncate">{title}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg md:text-xl font-semibold text-foreground truncate">{title}</h1>
+          </div>
           {subtitle && (
             <p className="text-xs md:text-sm text-muted-foreground truncate">{subtitle}</p>
           )}

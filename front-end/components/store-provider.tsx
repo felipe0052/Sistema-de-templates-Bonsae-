@@ -9,6 +9,7 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const store = useApiStore()
+  
   return (
     <StoreContext.Provider value={store}>
       {children}
