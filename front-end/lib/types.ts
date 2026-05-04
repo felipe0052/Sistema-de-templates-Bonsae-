@@ -6,27 +6,40 @@ export interface Cliente {
   created_at: string
 }
 
-export interface Variavel {
-  id: string
-  nome: string
-  label: string
-  tipo: 'texto' | 'número' | 'data'
-  created_at?: string
-}
-
 export interface Template {
   id: string
-  nome: string
+  cliente_id: string
+  nome_template: string
   conteudo: string
+  imagem_fundo?: string
+  categoria?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Variavel {
+  id: string
+  nome_variavel: string
+  descricao: string
+  exemplo?: string
+}
+
+export interface StaticVariableApiResponse {
+  id: number
+  name: string
+  description: string
+  example?: string | null
   created_at?: string
+  updated_at?: string
 }
 
 export interface Documento {
   id: string
   template_id: string
-  dados_variaveis: Record<string, any>
-  status: string
-  created_at?: string
+  nome: string
+  dados_json: Record<string, string>
+  pdf_gerado?: string
+  created_at: string
 }
 
 export interface DadosDocumento {

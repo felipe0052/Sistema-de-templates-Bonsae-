@@ -35,28 +35,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Search, Plus, Variable, Pencil, Trash2, AlertCircle } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Search, Plus, Variable, Pencil, Trash2 } from "lucide-react"
 import { useStore } from "@/components/store-provider"
 import { toast } from "sonner"
 import type { Variavel } from "@/lib/types"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-type VariavelTipo = 'texto' | 'número' | 'data';
-const emptyVariableForm: { nome: string; label: string; tipo: VariavelTipo } = { 
-  nome: "", 
-  label: "", 
-  tipo: "texto" 
-}
+const emptyVariableForm = { nome_variavel: "", descricao: "", exemplo: "" }
 
 export default function VariaveisPage() {
-  const { variaveis, addVariavel, updateVariavel, deleteVariavel, isLoading, error } = useStore()
+  const { variaveis, addVariavel, updateVariavel, deleteVariavel, isLoading } = useStore()
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingVarId, setEditingVarId] = useState<string | null>(null)
@@ -66,36 +54,10 @@ export default function VariaveisPage() {
 
   if (isLoading) return null
 
-  if (error) {
-    return (
-      <DashboardLayout title="Variáveis" subtitle="Erro ao carregar dados">
-        <div className="max-w-2xl mx-auto mt-8">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Erro de Conexão</AlertTitle>
-            <AlertDescription className="mt-2">
-              <p>Ocorreu um erro ao conectar ao Supabase: {error}</p>
-              <p className="text-xs mt-2">Verifique suas variáveis de ambiente no arquivo .env.local</p>
-            </AlertDescription>
-          </Alert>
-          <Button 
-            className="mt-4 w-full" 
-            onClick={() => window.location.reload()}
-          >
-            Tentar Novamente
-          </Button>
-        </div>
-      </DashboardLayout>
-    )
-  }
-
-  const filteredVariaveis = (variaveis || []).filter(
-    (v) => {
-      const nome = v?.nome || ""
-      const label = v?.label || ""
-      return nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             label.toLowerCase().includes(searchQuery.toLowerCase())
-    }
+  const filteredVariaveis = variaveis.filter(
+    (v) =>
+      v.nome_variavel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.descricao.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const resetForm = () => {
@@ -118,29 +80,29 @@ export default function VariaveisPage() {
   const handleEditClick = (variavel: Variavel) => {
     setEditingVarId(variavel.id)
     setVariableForm({
-      nome: variavel.nome,
-      label: variavel.label,
-      tipo: variavel.tipo,
+      nome_variavel: variavel.nome_variavel,
+      descricao: variavel.descricao,
+      exemplo: variavel.exemplo || "",
     })
     setIsDialogOpen(true)
   }
 
   const handleSubmitVar = async () => {
-    if (!variableForm.nome.trim()) {
+    if (!variableForm.nome_variavel.trim()) {
       toast.error("O nome da variável é obrigatório.")
       return
     }
-    if (!variableForm.label.trim()) {
-      toast.error("O label da variável é obrigatório.")
+    if (!variableForm.descricao.trim()) {
+      toast.error("A descrição da variável é obrigatória.")
       return
     }
 
     setIsSubmitting(true)
     try {
       const payload = {
-        nome: variableForm.nome.trim().toLowerCase(),
-        label: variableForm.label.trim(),
-        tipo: variableForm.tipo,
+        nome_variavel: variableForm.nome_variavel.trim(),
+        descricao: variableForm.descricao.trim(),
+        exemplo: variableForm.exemplo.trim(),
       }
 
       if (editingVarId) {
@@ -208,43 +170,34 @@ export default function VariaveisPage() {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nome">Nome da Variável (slug)</Label>
+                  <Label htmlFor="nome_variavel">Nome da Variável</Label>
                   <Input
-                    id="nome"
+                    id="nome_variavel"
                     placeholder="Ex: numero_processo"
-                    value={variableForm.nome}
-                    onChange={(e) => setVariableForm({ ...variableForm, nome: e.target.value })}
+                    value={variableForm.nome_variavel}
+                    onChange={(e) => setVariableForm({ ...variableForm, nome_variavel: e.target.value })}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Use apenas letras minúsculas e underscores. Este nome será usado no template como {"{{nome}}"}.
+                    Use apenas letras minúsculas e underscores
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="label">Label (Exibição)</Label>
-                  <Input
-                    id="label"
-                    placeholder="Ex: Número do Processo"
-                    value={variableForm.label}
-                    onChange={(e) => setVariableForm({ ...variableForm, label: e.target.value })}
+                  <Label htmlFor="descricao">Descrição</Label>
+                  <Textarea
+                    id="descricao"
+                    placeholder="Descreva para que serve esta variável"
+                    value={variableForm.descricao}
+                    onChange={(e) => setVariableForm({ ...variableForm, descricao: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tipo">Tipo de Dado</Label>
-                  <Select
-                    value={variableForm.tipo}
-                    onValueChange={(value: VariavelTipo) =>
-                      setVariableForm({ ...variableForm, tipo: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="texto">Texto</SelectItem>
-                      <SelectItem value="número">Número</SelectItem>
-                      <SelectItem value="data">Data</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="exemplo">Exemplo (opcional)</Label>
+                  <Input
+                    id="exemplo"
+                    placeholder="Ex: 1234/2024"
+                    value={variableForm.exemplo}
+                    onChange={(e) => setVariableForm({ ...variableForm, exemplo: e.target.value })}
+                  />
                 </div>
               </div>
               <DialogFooter>
@@ -295,8 +248,8 @@ export default function VariaveisPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Variável</TableHead>
-                  <TableHead>Label</TableHead>
-                  <TableHead>Tipo</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Exemplo</TableHead>
                   <TableHead className="w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -308,16 +261,14 @@ export default function VariaveisPage() {
                         variant="secondary"
                         className="font-mono text-xs bg-primary/10 text-primary"
                       >
-                        {`{{${variavel.nome}}}`}
+                        {`{{${variavel.nome_variavel}}}`}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {variavel.label}
+                      {variavel.descricao}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {variavel.tipo}
-                      </Badge>
+                    <TableCell className="text-muted-foreground">
+                      {variavel.exemplo || "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -340,7 +291,7 @@ export default function VariaveisPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Excluir variável</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Esta ação removerá a variável {`{{${variavel.nome}}}`} da lista pública de templates.
+                                Esta ação removerá a variável {`{{${variavel.nome_variavel}}}`} da lista pública de templates.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

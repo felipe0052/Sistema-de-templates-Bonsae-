@@ -72,6 +72,9 @@ export default function GerarDocumentoPage() {
         variaveis: variaveisStore,
         addDocumento,
         isLoading,
+        renderTemplatePdf,
+        renderTemplate,
+        variableCatalogAvailable,
     } = useStore();
     const previewRef = useRef<HTMLDivElement>(null);
     const [template, setTemplate] = useState<Template | null>(null);
@@ -100,7 +103,7 @@ export default function GerarDocumentoPage() {
     }, [params.id, templates, isLoading]);
 
     const getVariableInfo = (varName: string) => {
-        return variaveisStore.find((v) => v.nome === varName);
+        return variaveisStore.find((v) => v.nome_variavel === varName);
     };
 
     const handleInputChange = (varName: string, value: string) => {
@@ -108,8 +111,8 @@ export default function GerarDocumentoPage() {
         setDados((prev) => ({ ...prev, [varName]: formattedValue }));
     };
 
-    const availableVariableNames = (variaveisStore || []).map((item) => item.nome);
-    const unknownVariables = template
+    const availableVariableNames = variaveisStore.map((item) => item.nome_variavel);
+    const unknownVariables = template && variableCatalogAvailable
         ? findUnknownVariables(template.conteudo, availableVariableNames)
         : [];
     const hasUnknownVariables = unknownVariables.length > 0;
@@ -118,8 +121,8 @@ export default function GerarDocumentoPage() {
         if (!template) return null;
         return await addDocumento({
             template_id: template.id,
-            dados_variaveis: dados,
-            status: 'concluído'
+            nome: `${template.nome_template} - ${dados.nome || "Novo Documento"}`,
+            dados_json: dados,
         });
     };
 
@@ -141,9 +144,121 @@ export default function GerarDocumentoPage() {
         }
     };
 
-    const handlePrint = () => {
-        if (!template) return;
-        window.print();
+    const handleGeneratePDF = async () => {
+        if (!template || hasUnknownVariables) return;
+
+        setIsGenerating(true);
+
+        try {
+            const pdfBlob = await renderTemplatePdf(
+                template.id,
+                dados,
+                "underline",
+            );
+
+            await saveDocument();
+
+            if (!pdfBlob || pdfBlob.type !== "application/pdf") {
+                toast.error("Não foi possível gerar o PDF para download.");
+                return;
+            }
+
+            const fileNameBase =
+                `${template.nome_template}-${dados.nome || "documento"}`
+                    .toLowerCase()
+                    .replace(/[^a-z0-9-_]+/g, "-")
+                    .replace(/-+/g, "-")
+                    .replace(/^-|-$/g, "");
+
+            const downloadUrl = window.URL.createObjectURL(pdfBlob);
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = `${fileNameBase || "documento"}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+
+            toast.success("PDF baixado com sucesso.");
+            router.push("/documentos");
+        } catch (error) {
+            toast.error("Erro ao gerar documento via API.");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handlePrint = async () => {
+        if (!template || hasUnknownVariables) return;
+
+        setIsGenerating(true);
+
+        try {
+            const renderedHtml = await renderTemplate(
+                template.id,
+                dados,
+                "underline",
+            );
+
+            if (!renderedHtml) {
+                toast.error(
+                    "Não foi possível preparar o documento para impressão.",
+                );
+                return;
+            }
+
+            const printWindow = window.open("", "_blank");
+
+            if (!printWindow) {
+                toast.error("Não foi possível abrir a janela de impressão.");
+                return;
+            }
+
+            printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${template?.nome_template || "Documento"}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 20mm;
+            }
+            body {
+              font-family: "Times New Roman", serif;
+              font-size: 12pt;
+              line-height: 1.6;
+              color: #000;
+              margin: 0;
+              padding: 0;
+            }
+            .document-content {
+              max-width: 170mm;
+              margin: 0 auto;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="document-content">
+            ${renderedHtml}
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              }
+            }
+          </script>
+        </body>
+        </html>
+      `);
+            printWindow.document.close();
+        } catch (error) {
+            toast.error("Erro ao preparar impressão.");
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const processedContent = template
@@ -171,7 +286,7 @@ export default function GerarDocumentoPage() {
     return (
         <DashboardLayout
             title="Gerar Documento"
-            subtitle={template.nome}
+            subtitle={template.nome_template}
         >
             <div className="space-y-6">
                 {/* Header */}
@@ -184,68 +299,84 @@ export default function GerarDocumentoPage() {
                     </Button>
                     <div className="flex gap-2">
                         <Button
+                            variant="secondary"
+                            onClick={handleSaveDocument}
+                            disabled={isSaving || isGenerating || hasUnknownVariables}
+                        >
+                            <Save className="h-4 w-4" />
+                            {isSaving ? "Salvando..." : "Salvar Documento"}
+                        </Button>
+                        <Button
                             variant="outline"
                             onClick={handlePrint}
                             disabled={isGenerating || hasUnknownVariables}
                         >
-                            <Printer className="h-4 w-4 mr-2" />
+                            <Printer className="h-4 w-4" />
                             Imprimir
                         </Button>
                         <Button
-                            onClick={handleSaveDocument}
-                            disabled={isSaving || isGenerating || hasUnknownVariables}
+                            onClick={handleGeneratePDF}
+                            disabled={isGenerating || hasUnknownVariables}
                         >
-                            <Save className="h-4 w-4 mr-2" />
-                            {isSaving ? "Salvando..." : "Salvar no Sistema"}
+                            <FileDown className="h-4 w-4" />
+                            {isGenerating ? "Gerando..." : "Exportar PDF"}
                         </Button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Form Side */}
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">
-                                    Preencha os Dados
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {variaveis.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground py-4">
-                                        Nenhuma variável encontrada neste template.
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Form */}
+                    <Card className="bg-card">
+                        <CardHeader>
+                            <CardTitle className="text-base font-semibold">
+                                Preencher Dados
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {variaveis.map((varName) => {
+                                    const info = getVariableInfo(varName);
+                                    return (
+                                        <div
+                                            key={varName}
+                                            className="space-y-2"
+                                        >
+                                            <Label
+                                                htmlFor={varName}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <span className="font-mono text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                                    {`{{${varName}}}`}
+                                                </span>
+                                                <span>
+                                                    {info?.descricao || varName}
+                                                </span>
+                                            </Label>
+                                            <Input
+                                                id={varName}
+                                                placeholder={
+                                                    info?.exemplo ||
+                                                    `Informe ${varName}`
+                                                }
+                                                value={dados[varName] || ""}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        varName,
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            />
+                                        </div>
+                                    );
+                                })}
+                                {variaveis.length === 0 && (
+                                    <p className="text-sm text-muted-foreground text-center py-4">
+                                        Este template não possui variáveis.
                                     </p>
-                                ) : (
-                                    variaveis.map((v) => {
-                                        const info = getVariableInfo(v);
-                                        return (
-                                            <div key={v} className="space-y-2">
-                                                <Label htmlFor={v}>
-                                                    {info?.label || v}
-                                                </Label>
-                                                <Input
-                                                    id={v}
-                                                    placeholder={info?.label || v}
-                                                    value={dados[v] || ""}
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            v,
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                />
-                                                {info?.tipo && (
-                                                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                                                        Tipo: {info.tipo}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        );
-                                    })
                                 )}
-                            </CardContent>
-                        </Card>
-                    </div>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Preview */}
                     <Card className="bg-card">
