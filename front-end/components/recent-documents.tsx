@@ -24,7 +24,7 @@ export function RecentDocuments({ documentos }: RecentDocumentsProps) {
 
   const getTemplateName = (templateId: string) => {
     const template = templates.find(t => t.id === templateId)
-    return template?.nome || "Template desconhecido"
+    return template?.nome_template || "Template desconhecido"
   }
 
   const formatDate = (dateString: string) => {
@@ -55,9 +55,9 @@ export function RecentDocuments({ documentos }: RecentDocumentsProps) {
                   <FileText className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-foreground">{getTemplateName(doc.template_id)}</p>
+                  <p className="font-medium text-sm text-foreground">{doc.nome}</p>
                   <p className="text-xs text-muted-foreground">
-                    {doc.created_at ? formatDate(doc.created_at) : "N/A"}
+                    {getTemplateName(doc.template_id)} • {formatDate(doc.created_at)}
                   </p>
                 </div>
               </div>

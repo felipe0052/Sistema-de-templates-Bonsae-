@@ -35,8 +35,8 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
 
   const handleDuplicate = (template: Template) => {
     addTemplate({
-      nome: `${template.nome} (Cópia)`,
-      conteudo: template.conteudo,
+      ...template,
+      nome_template: `${template.nome_template} (Cópia)`,
     })
     toast.success("Template duplicado com sucesso!")
   }
@@ -70,7 +70,10 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm text-foreground truncate">
-                    {template.nome}
+                    {template.nome_template}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {template.categoria || "Sem categoria"}
                   </p>
                 </div>
               </Link>
@@ -93,8 +96,13 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
                 </div>
                 <div>
                   <CardTitle className="text-base font-semibold line-clamp-1">
-                    {template.nome}
+                    {template.nome_template}
                   </CardTitle>
+                  {template.categoria && (
+                    <Badge variant="secondary" className="mt-1 text-xs">
+                      {template.categoria}
+                    </Badge>
+                  )}
                 </div>
               </div>
               <DropdownMenu>
@@ -125,7 +133,7 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-              Template criado em {template.created_at ? formatDate(template.created_at) : "N/A"}
+              Template criado em {formatDate(template.created_at)}
             </p>
             <div className="flex gap-2">
               <Button size="sm" className="flex-1" asChild>
