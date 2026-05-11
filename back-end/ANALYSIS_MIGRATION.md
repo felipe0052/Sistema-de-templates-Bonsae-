@@ -12,6 +12,8 @@
 | Sistema de origem | NPJ / Escritório jurídico-acadêmico |
 | Abordagem | Dump como base; adaptar Laravel ao dump |
 
+> **Premissa importante:** os dados preenchidos no dump são exemplos. Portanto, números de registros não devem ser usados como critério principal de impacto, esforço ou prioridade. A análise abaixo considera principalmente schema, dependências entre tabelas, fluxo de autenticação/autorização e mudanças necessárias no backend atual.
+
 ---
 
 ## Impacto Geral
@@ -35,8 +37,8 @@
 #### `permissions` + `model_has_permissions` + `role_has_permissions` — ALTO
 - **Colunas**: permission_id, role_id, guard_name, profile, model_type, model_id
 - **Impacto**: Definem o que cada usuário pode fazer
-- **Fluxo**: User → profile → permissions (via role_has_permissions e model_has_permissions). O projeto atual NÃO tem spatie/laravel-permission instalado. Model_has_permissions referencia `App\Models\User` como model_type — se o namespace do User mudar, a relação quebra. Todo o fluxo de autorização (gates, policies, middlewares) precisa ser construído do zero baseado nessa estrutura
-- **Ação**: Instalar spatie/laravel-permission. Migrar permissions, roles, model_has_roles, model_has_permissions. Mapear App\Models\User do dump para o namespace atual. Registrar gates/policies. Remover EnsureUserHasTenant, substituir por EnsureUserHasProfile/Permission
+- **Fluxo**: User → role/profile → permissions. O projeto atual NÃO tem spatie/laravel-permission instalado. As tabelas `model_has_roles`, `model_has_permissions` e `role_has_permissions` usam `model_type`; se o namespace do User no dump divergir do projeto atual, as relações ficam órfãs. Todo o fluxo de autorização (gates, policies, middlewares) precisa ser construído ou adaptado para essa estrutura
+- **Ação**: Instalar spatie/laravel-permission ou implementar camada própria compatível com o schema. Migrar permissions, roles, model_has_roles, model_has_permissions e role_has_permissions. Mapear o `model_type` para o namespace atual. Registrar gates/policies. Remover EnsureUserHasTenant, substituir por EnsureUserHasProfile/Permission
 - **Risco**: Quebrar autorização se a cadeia for migrada parcialmente. Se model_type não for atualizado, as relações user→permission ficam órfãs
 
 #### `roles` — ALTO
@@ -49,45 +51,45 @@
 
 #### `activity_log` — MÉDIO
 - **Colunas**: id, log_name, description, subject_type, subject_id, causer_type, causer_id, properties(JSON), event, batch_uuid, timestamps
-- **Impacto**: 4631 registros de auditoria histórica
+- **Impacto**: Estrutura de auditoria histórica. Como os dados do dump são exemplos, o volume real deve ser validado apenas na migração final
 - **Fluxo**: Cada log referencia `subject_type` (ex: `App\Models\Lawsuit\ActType`) e `causer_type` (`App\Models\User\User`). Após migração, essas classes NÃO existem no novo projeto. O spatie/laravel-activitylog tenta resolver esses tipos — se a classe não existir, o log não quebra, mas os links de navegação (ex: "ver usuário que fez a ação") ficam quebrados. O fluxo de novos logs precisa ser implementado com as classes do projeto atual
 - **Ação**: Migrar dados diretamente (schema compatível). Adicionar spatie/laravel-activitylog ao composer.json. Criar subscriber para logar operações de template automaticamente. Decidir se logs antigos com classes inexistentes serão mantidos como histórico ou limpos
 - **Observação**: Se spatie/laravel-activitylog não estiver instalado, adicionar ao composer.json
 
 #### `configurations` — MÉDIO
 - **Colunas**: id, slug, name, description, key, value, url, is_active, is_profile, profile, timestamps
-- **Impacto**: Configurações globais do sistema (53 registros)
+- **Impacto**: Configurações globais do sistema. O impacto depende de quais chaves forem realmente usadas pelo novo backend/frontend
 - **Ação**: Migrar; analisar quais configurações são relevantes e atualizar no frontend/backend
 
 #### `admins` — MÉDIO
 - **Colunas**: id, name, email, password
-- **Impacto**: Apenas 1 registro (admin geral). Pode ser fundido com users
+- **Impacto**: Estrutura separada de administrador geral. Como o novo projeto usa `users` para autenticação via Sanctum, pode ser fundido com users
 - **Ação**: Inserir na tabela `users` com role de admin
 
 #### `cities` — MÉDIO
 - **Colunas**: id, ibge_code, name, state_id, uf, latitude, longitude
-- **Impacto**: 5570 municípios brasileiros com dados geográficos. Útil para máscaras de endereço
+- **Impacto**: Base de municípios com dados geográficos. Útil para campos de endereço, mas o volume preenchido no dump não deve ser tratado como definitivo
 - **Ação**: Migrar para uso em formulários de templates (campos de endereço)
 - **Observação**: Pode substituir API externa de CEP/municípios
 
 #### `states` — MÉDIO
 - **Colunas**: id, name, uf
-- **Impacto**: 27 estados. Complemento de `cities`
+- **Impacto**: Complemento de `cities`
 - **Ação**: Migrar junto com cities
 
 #### `competences` — MÉDIO
 - **Colunas**: id, name, uf
-- **Impacto**: 1037 registros. Competências jurídicas — úteis se templates forem usados na área jurídica
+- **Impacto**: Competências jurídicas — úteis se templates forem usados na área jurídica
 - **Ação**: Migrar se houver uso em templates jurídicos
 
 #### `configs` — MÉDIO
 - **Colunas**: id, university, instance, instance_id, academic, attendance_folder, automate_card_event, double_deadline, students_access_restriction, timestamps
-- **Impacto**: Configurações da instância do NPJ
-- **Ação**: Migrar e mapear para tabela de configuração de tenant
+- **Impacto**: Configurações da instância do NPJ. Como a proposta remove `tenant_id`, não deve ser tratada automaticamente como configuração de tenant
+- **Ação**: Migrar somente se houver equivalência funcional no novo sistema; caso contrário, manter fora do escopo inicial
 
 #### `act_types` — MÉDIO
 - **Colunas**: id, id_old_bonsae, id_audora, name, active, is_default, flags booleanas (act_first_lawsuit, appointment_type, etc.), timestamps
-- **Impacto**: 47 tipos de atos jurídicos (Atendimento, Triagem, Petição inicial, etc.)
+- **Impacto**: Tipos de atos jurídicos (Atendimento, Triagem, Petição inicial, etc.)
 - **Ação**: Migrar se houver relação com templates de documentos jurídicos
 
 ### 3. Baixo Impacto (úteis, mas não críticos)
@@ -165,12 +167,14 @@
 - Extrair CREATE TABLE de todas as 191 tabelas do dump
 - Remover dados (INSERT), comentários MySQL, AUTO_INCREMENT fixos, charset definitions
 - Gerar arquivo SQL limpo portável
+- Observação: se `clean_dump.sql` já estiver atualizado, esta etapa passa a ser validação/revisão, não extração completa
 
 ### Ação 2: Identificação de Tabelas Úteis
 - Separar ~15-20 tabelas de alto/médio impacto
 - Catalogar colunas e tipos de cada uma
 - Identificar dependências entre tabelas (FKs)
 - Mapear ~140+ tabelas ignoradas com justificativa
+- Não usar volume dos INSERTs de exemplo como critério de prioridade; priorizar dependências reais e uso funcional no novo sistema
 
 ### Ação 3: Refatoração dos Models e Fluxos de Dados
 - Criar/adaptar Eloquent models para cada tabela migrada
@@ -188,7 +192,7 @@
 - Ajustar factorys e seeders
 
 ### Ação 4: Migração de Dados
-- Criar migrations SQL ou seeders para importar dados
+- Criar migrations SQL ou seeders para importar dados reais quando estiverem disponíveis
 - Preservar IDs originais para manter integridade referencial
 - Validar consistência (FKs, valores nulos, tipos)
 - Importar activity_log: mapear subject_type/causer_type do dump para classes do projeto (ou manter null)
@@ -196,6 +200,7 @@
 - Migrar permissions/roles: atualizar model_type de `App\Models\User\User` para `App\Models\User`
 - Migrar profile_id em users: garantir FK exista para a tabela profiles migrada
 - Validar fluxo de login com dados migrados (email + senha hashed)
+- Usar os INSERTs do dump apenas como amostra de formato, nunca como base de volume, performance ou completude
 
 ### Ação 5: Adaptação da Infraestrutura
 - Configurar banco de dados (SQLite ou MySQL para compatibilidade com dump)
@@ -214,6 +219,7 @@
 - Não reatribuir IDs para evitar quebra de relações e referências no activity_log
 - Backups antes de qualquer migração
 - Mapear subject_type/causer_type do activity_log para null se classe não existir
+- Validar essas medidas novamente contra o dump real de produção, já que o dump atual contém dados de exemplo
 
 ### Medida 2: Compatibilidade de Schema
 - Dump é MySQL; projeto usa SQLite — verificar compatibilidade de tipos
@@ -229,7 +235,7 @@
 - Preservar tokens existentes (remember_token, access_token) para não invalidar sessões ativas
 
 ### Medida 4: Versionamento
-- Manter dump_clean.sql versionado no repositório
+- Manter dump_clean.sql versionado no repositório somente se ele não contiver dados sensíveis
 - Criar migration SQL separada para cada grupo de tabelas
 - Documentar tabelas ignoradas e por quê
 - Documentar mudanças no fluxo de dados (remoção de tenant_id, novo fluxo de permissões)
@@ -245,34 +251,45 @@
 
 ## Tempo Estimado Detalhado
 
+As estimativas abaixo consideram complexidade estrutural e risco de refatoração. Elas **não** consideram volume de registros do dump atual, porque os dados preenchidos são exemplos.
+
 | Ação | Sub-ação | Horas |
 |------|----------|-------|
-| **Extração e limpeza** | Extrair CREATE TABLE (191 tabelas) | 2h |
-| | Remover dados/comentários/MySQLisms | 2h |
-| | Gerar dump_clean.sql portável | 1h |
-| | *Subtotal* | *5h* |
-| **Identificação** | Catalogar 15-20 tabelas úteis (colunas, tipos, dependências) | 4h |
-| | Mapear 140+ tabelas ignoradas com justificativa | 3h |
-| | *Subtotal* | *7h* |
-| **Migração de dados** | Migrar users + profiles (core) | 8h |
-| | Migrar permissions + roles + RBAC | 6h |
-| | Migrar activity_log (4631 registros) | 4h |
-| | Migrar cities + states (5600 registros) | 2h |
-| | Migrar configurações (configurations, configs) | 2h |
-| | Migrar act_types, competences, demais tabelas úteis | 6h |
-| | VALIDAÇÃO: checar FKs, consistência, dados órfãos | 4h |
-| | *Subtotal* | *32h* |
-| **Refatoração de models e fluxos** | Refatorar Model User (schema dump, remover tenant_id) | 4h |
-| | Refatorar Model Template/Document (remover BelongsToTenant) | 2h |
-| | Refatorar controllers: remover auth()->user()->tenant_id | 4h |
-| | Instalar/configurar spatie/laravel-permission | 4h |
-| | Criar middleware de autorização baseado em profiles | 4h |
+| **Extração e limpeza** | Validar CREATE TABLE das 191 tabelas | 1-2h |
+| | Revisar remoção de dados/comentários/MySQLisms | 1-2h |
+| | Atualizar dump_clean.sql portável, se necessário | 1h |
+| | *Subtotal* | *3-5h* |
+| **Identificação** | Catalogar 15-20 tabelas úteis (colunas, tipos, dependências) | 3-5h |
+| | Mapear tabelas ignoradas com justificativa funcional | 2-4h |
+| | *Subtotal* | *5-9h* |
+| **Migração estrutural e dados reais** | Migrar users + profiles (core) | 5-8h |
+| | Migrar permissions + roles + RBAC | 6-10h |
+| | Migrar activity_log como estrutura histórica opcional | 2-4h |
+| | Migrar cities + states, se usados em formulários | 2-4h |
+| | Migrar configurações relevantes | 2-4h |
+| | Migrar act_types, competences e demais tabelas úteis | 4-8h |
+| | VALIDAÇÃO: checar FKs, consistência e dados órfãos no dump real | 4-8h |
+| | *Subtotal* | *25-46h* |
+| **Refatoração de models e fluxos** | Refatorar Model User (schema dump, remover tenant_id) | 3-5h |
+| | Refatorar Model Template/Document (remover BelongsToTenant) | 2-3h |
+| | Refatorar controllers: remover auth()->user()->tenant_id | 3-6h |
+| | Instalar/configurar spatie/laravel-permission ou camada equivalente | 4-8h |
+| | Criar middleware de autorização baseado em profiles/permissões | 3-6h |
 | | Remover EnsureUserHasTenant das rotas/kernel | 1h |
-| | Ajustar LoginController/AuthController | 2h |
-| | Ajustar rotas API (remover tenant context) | 2h |
-| | *Subtotal* | *23h* |
-| **Infraestrutura** | Verificar compatibilidade MySQL→SQLite | 4h |
-| | Configurar banco de dados | 2h |
-| | Testes de integração (login, CRUD, autorização) | 8h |
-| | *Subtotal* | *14h* |
-| | **TOTAL** | **~81 horas** |
+| | Ajustar LoginController/AuthController | 2-4h |
+| | Ajustar rotas API (remover tenant context) | 1-3h |
+| | *Subtotal* | *19-36h* |
+| **Infraestrutura e testes** | Verificar compatibilidade MySQL→SQLite ou decidir manter MySQL | 3-6h |
+| | Configurar banco de dados | 1-3h |
+| | Testes de integração (login, CRUD, autorização) | 6-12h |
+| | *Subtotal* | *10-21h* |
+| | **TOTAL CONSERVADOR** | **~62-117 horas** |
+
+### Leitura prática da estimativa
+
+| Escopo | Descrição | Estimativa |
+|--------|-----------|------------|
+| **Mínimo funcional** | Login, users/profiles, remoção de tenant, templates/documentos funcionando | 20-30h |
+| **Funcional com RBAC** | Mínimo funcional + roles/permissions/middlewares/policies | 35-50h |
+| **Migração ampla** | RBAC + tabelas auxiliares + logs + validação com dump real + testes | 55-75h |
+| **Conservador completo** | Inclui incertezas de dados reais, compatibilidade SQLite/MySQL e retrabalho de autorização | 75-110h |
