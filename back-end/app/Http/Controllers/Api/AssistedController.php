@@ -3,47 +3,51 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Assisted;
 use Illuminate\Http\Request;
 
 class AssistedController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return response()->json(['data' => Assisted::all()]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'name'     => 'required|string|max:255',
+            'cpf'      => 'nullable|string|max:30',
+            'email'    => 'nullable|email',
+            'telephone'=> 'nullable|string|max:30',
+        ]);
+
+        $data['creator_id'] = auth()->id();
+
+        return response()->json(Assisted::create($data), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Assisted $assisted)
     {
-        //
+        return response()->json($assisted);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Assisted $assisted)
     {
-        //
+        $data = $request->validate([
+            'name'      => 'sometimes|required|string',
+            'cpf'       => 'nullable|string|max:30',
+            'email'     => 'nullable|email',
+            'telephone' => 'nullable|string|max:30',
+        ]);
+
+        $assisted->update($data);
+        return response()->json($assisted);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Assisted $assisted)
     {
-        //
+        $assisted->delete();
+        return response()->json(null, 204);
     }
 }
