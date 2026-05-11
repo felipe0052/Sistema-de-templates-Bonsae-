@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TemplateController;
 use App\Http\Middleware\EnsureUserHasTenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AssistedController;
 
 // Rota de Login para obter o token de teste
 Route::post('/login', [AuthController::class, 'login']);
@@ -26,6 +27,9 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // CRUD de Documentos Gerados
         Route::apiResource('documents', DocumentController::class);
+
+        // CRUD de Assistidos
+        Route::apiResource('assisteds', AssistedController::class);
         
         Route::post('/variables', [StaticVariableController::class, 'store']);
         Route::put('/variables/{variable}', [StaticVariableController::class, 'update']);
