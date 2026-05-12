@@ -15,11 +15,11 @@ class TenantFactory extends Factory
      * @return array<string, mixed>
      */
     public function definition(): array
-{
-    return [
-        'name'     => fake()->company(),
-        'domain'   => fake()->unique()->domainName(),
-        'logo_url' => null,
-    ];
-}
+    {
+        return [
+            'name'     => fake()->company(),
+            'domain'   => fake()->unique()->domainName(),
+            'logo_url' => null,
+        ];
+    }
 }
