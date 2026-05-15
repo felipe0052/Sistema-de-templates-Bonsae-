@@ -6,6 +6,38 @@ export interface Cliente {
   created_at: string
 }
 
+export interface Assistido {
+  id: string
+  creator_id?: number
+  address_id?: number | null
+  name: string
+  nickname?: string | null
+  social_name?: string | null
+  mother_name?: string | null
+  father_name?: string | null
+  kind_of_person?: string | null
+  is_under_age?: string | null
+  priority?: boolean
+  cpf?: string | null
+  cnpj?: string | null
+  birth_date?: string | null
+  rg?: string | null
+  issuing_body?: string | null
+  uf_issuing_body?: string | null
+  marital_status?: string | null
+  profession?: string | null
+  education?: string | null
+  monthly_income?: number | string | null
+  nationality?: string | null
+  naturalness?: string | null
+  telephone?: string | null
+  telephone2?: string | null
+  email?: string | null
+  email2?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
 export interface Template {
   id: string
   cliente_id: string

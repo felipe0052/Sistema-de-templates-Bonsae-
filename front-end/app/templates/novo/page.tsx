@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { VariablePanel } from "@/components/variable-panel"
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Save, Eye, FileDown, ArrowLeft } from "lucide-react"
+import { Save, Eye, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -37,7 +37,6 @@ import { toast } from "sonner"
 export default function NovoTemplatePage() {
   const router = useRouter()
   const { addTemplate } = useStore()
-  const editorRef = useRef<{ insertVariable: (v: string) => void }>(null)
   const [nomeTemplate, setNomeTemplate] = useState("")
   const [categoria, setCategoria] = useState("")
   const [conteudo, setConteudo] = useState("")

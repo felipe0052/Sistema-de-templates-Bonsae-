@@ -7,13 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, FileDown, Eye, Printer, Save } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, FileDown, Eye, Printer, Save, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "@/components/store-provider";
 import { toast } from "sonner";
 import { extrairVariaveis, substituirVariaveis } from "@/lib/store";
 import { findUnknownVariables, normalizeTemplateContent } from "@/lib/document-utils";
-import type { Template } from "@/lib/types";
+import type { Assistido, Template } from "@/lib/types";
 
 // Função auxiliar para formatação
 const formatValue = (varName: string, value: string) => {
@@ -64,6 +71,52 @@ const formatValue = (varName: string, value: string) => {
     return value;
 };
 
+const formatDateFromApi = (value?: string | null) => {
+    if (!value) return "";
+
+    const [year, month, day] = value.split("T")[0].split("-");
+    if (!year || !month || !day) return value;
+
+    return `${day}/${month}/${year}`;
+};
+
+const getAssistidoValueForVariable = (
+    varName: string,
+    assistido: Assistido,
+) => {
+    const fieldName = varName.toLowerCase();
+    const aliasMap: Record<string, string | undefined | null> = {
+        nome: assistido.name,
+        assistido_nome: assistido.name,
+        nome_assistido: assistido.name,
+        nome_completo: assistido.name,
+        cpf: assistido.cpf,
+        cnpj: assistido.cnpj,
+        rg: assistido.rg,
+        data_nascimento: formatDateFromApi(assistido.birth_date),
+        nascimento: formatDateFromApi(assistido.birth_date),
+        nome_mae: assistido.mother_name,
+        mae: assistido.mother_name,
+        nome_pai: assistido.father_name,
+        pai: assistido.father_name,
+        telefone: assistido.telephone,
+        celular: assistido.telephone,
+        telefone2: assistido.telephone2,
+        email: assistido.email,
+        email2: assistido.email2,
+        nacionalidade: assistido.nationality,
+        naturalidade: assistido.naturalness,
+        profissao: assistido.profession,
+        escolaridade: assistido.education,
+        estado_civil: assistido.marital_status,
+        renda_mensal: assistido.monthly_income?.toString(),
+        orgao_expedidor: assistido.issuing_body,
+        uf_orgao_expedidor: assistido.uf_issuing_body,
+    };
+
+    return aliasMap[fieldName] || "";
+};
+
 export default function GerarDocumentoPage() {
     const params = useParams();
     const router = useRouter();
@@ -75,11 +128,13 @@ export default function GerarDocumentoPage() {
         renderTemplatePdf,
         renderTemplate,
         variableCatalogAvailable,
+        assistidos,
     } = useStore();
     const previewRef = useRef<HTMLDivElement>(null);
     const [template, setTemplate] = useState<Template | null>(null);
     const [dados, setDados] = useState<Record<string, string>>({});
     const [variaveis, setVariaveis] = useState<string[]>([]);
+    const [selectedAssistidoId, setSelectedAssistidoId] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -110,6 +165,33 @@ export default function GerarDocumentoPage() {
         const formattedValue = formatValue(varName, value);
         setDados((prev) => ({ ...prev, [varName]: formattedValue }));
     };
+
+    const handleAssistidoChange = (assistidoId: string) => {
+        setSelectedAssistidoId(assistidoId);
+
+        const assistido = assistidos.find((item) => item.id === assistidoId);
+        if (!assistido) return;
+
+        setDados((prev) => {
+            const nextData = { ...prev };
+
+            variaveis.forEach((varName) => {
+                const value = getAssistidoValueForVariable(varName, assistido);
+                if (value) {
+                    nextData[varName] = formatValue(varName, value);
+                }
+            });
+
+            nextData.data_atual =
+                prev.data_atual || new Date().toLocaleDateString("pt-BR");
+
+            return nextData;
+        });
+    };
+
+    const selectedAssistido = assistidos.find(
+        (item) => item.id === selectedAssistidoId,
+    );
 
     const availableVariableNames = variaveisStore.map((item) => item.nome_variavel);
     const unknownVariables = template && variableCatalogAvailable
@@ -181,7 +263,7 @@ export default function GerarDocumentoPage() {
 
             toast.success("PDF baixado com sucesso.");
             router.push("/documentos");
-        } catch (error) {
+        } catch (_error) {
             toast.error("Erro ao gerar documento via API.");
         } finally {
             setIsGenerating(false);
@@ -254,7 +336,7 @@ export default function GerarDocumentoPage() {
         </html>
       `);
             printWindow.document.close();
-        } catch (error) {
+        } catch (_error) {
             toast.error("Erro ao preparar impressão.");
         } finally {
             setIsGenerating(false);
@@ -334,6 +416,49 @@ export default function GerarDocumentoPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
+                                <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+                                    <Label
+                                        htmlFor="assistido"
+                                        className="flex items-center gap-2"
+                                    >
+                                        <UserRound className="h-4 w-4 text-primary" />
+                                        Assistido para autopreenchimento
+                                    </Label>
+                                    <Select
+                                        value={selectedAssistidoId}
+                                        onValueChange={handleAssistidoChange}
+                                    >
+                                        <SelectTrigger
+                                            id="assistido"
+                                            className="w-full"
+                                        >
+                                            <SelectValue placeholder="Selecione um assistido" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {assistidos.map((assistido) => (
+                                                <SelectItem
+                                                    key={assistido.id}
+                                                    value={assistido.id}
+                                                >
+                                                    {assistido.name}
+                                                    {assistido.cpf
+                                                        ? ` - ${formatValue("cpf", assistido.cpf)}`
+                                                        : ""}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {assistidos.length === 0 && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Nenhum assistido disponível para o seu acesso.
+                                        </p>
+                                    )}
+                                    {selectedAssistido && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Dados de {selectedAssistido.name} aplicados. Revise e edite os campos abaixo antes de gerar o documento.
+                                        </p>
+                                    )}
+                                </div>
                                 {variaveis.map((varName) => {
                                     const info = getVariableInfo(varName);
                                     return (

@@ -6,6 +6,7 @@ import type {
     Documento,
     Variavel,
     Cliente,
+    Assistido,
     StaticVariableApiResponse,
 } from "@/lib/types";
 
@@ -32,6 +33,7 @@ export function useApiStore() {
     const [documentos, setDocumentos] = useState<Documento[]>([]);
     const [variaveis, setVariaveis] = useState<Variavel[]>([]);
     const [clientes, setClientes] = useState<Cliente[]>([]);
+    const [assistidos, setAssistidos] = useState<Assistido[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [variableCatalogAvailable, setVariableCatalogAvailable] =
         useState(false);
@@ -139,7 +141,7 @@ export function useApiStore() {
             }
 
             try {
-                const [templatesRes, documentsRes] = await Promise.all([
+                const [templatesRes, documentsRes, assistedsRes] = await Promise.all([
                     fetch(`${apiBaseUrl}/templates`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -147,6 +149,12 @@ export function useApiStore() {
                         },
                     }),
                     fetch(`${apiBaseUrl}/documents`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            Accept: "application/json",
+                        },
+                    }),
+                    fetch(`${apiBaseUrl}/assisteds`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                             Accept: "application/json",
@@ -196,6 +204,29 @@ export function useApiStore() {
                         created_at: d.created_at,
                     }));
                     setDocumentos(mappedDocuments);
+                }
+
+                if (assistedsRes.ok) {
+                    const assistedsData = await assistedsRes.json();
+                    const mappedAssisteds: Assistido[] = (
+                        assistedsData.data || []
+                    ).map((assisted: any) => ({
+                        ...assisted,
+                        id: String(assisted.id),
+                    }));
+
+                    setAssistidos(mappedAssisteds);
+                    setClientes(
+                        mappedAssisteds.map((assisted) => ({
+                            id: assisted.id,
+                            nome: assisted.name,
+                            email: assisted.email || "",
+                            empresa: "Assistido",
+                            created_at:
+                                assisted.created_at ||
+                                new Date().toISOString(),
+                        })),
+                    );
                 }
             } catch (_error) {
                 console.error("Sync failed");
@@ -334,7 +365,9 @@ export function useApiStore() {
                             : undefined,
                     }),
                 });
-            } catch (_e) {}
+            } catch (_e) {
+                console.error("Failed to update template");
+            }
         }
     };
 
@@ -351,7 +384,9 @@ export function useApiStore() {
                     method: "DELETE",
                     headers: { Authorization: `Bearer ${token}` },
                 });
-            } catch (_e) {}
+            } catch (_e) {
+                console.error("Failed to delete template");
+            }
         }
     };
 
@@ -544,6 +579,7 @@ export function useApiStore() {
         variaveis,
         variableCatalogAvailable,
         clientes,
+        assistidos,
         isLoading,
         addTemplate,
         updateTemplate,
@@ -568,6 +604,6 @@ export function useApiStore() {
             }
         },
         deleteVariavel,
-        addCliente: () => {},
+        addCliente: (_cliente: Omit<Cliente, "id" | "created_at">) => {},
     };
 }

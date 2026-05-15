@@ -71,6 +71,18 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now(),
             ]
         );
+
+        foreach ($this->assisteds($user->id) as $assisted) {
+            DB::table('clients')->updateOrInsert(
+                ['cpf' => $assisted['cpf']],
+                [
+                    ...$assisted,
+                    'creator_id' => $user->id,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+        }
     }
 
     private function staticVariables(): array
@@ -150,6 +162,46 @@ class DatabaseSeeder extends Seeder
                 'name' => 'numero_documento',
                 'description' => 'Número identificador do documento.',
                 'example' => 'DOC-2024-001',
+            ],
+        ];
+    }
+
+    private function assisteds(int $creatorId): array
+    {
+        return [
+            [
+                'creator_id' => $creatorId,
+                'name' => 'Maria da Silva',
+                'mother_name' => 'Ana Maria da Silva',
+                'father_name' => 'José da Silva',
+                'cpf' => '12345678900',
+                'birth_date' => '1990-01-01',
+                'rg' => '123456789',
+                'marital_status' => 'Solteira',
+                'profession' => 'Auxiliar administrativa',
+                'education' => 'Ensino médio completo',
+                'monthly_income' => 1800.00,
+                'nationality' => 'Brasileira',
+                'naturalness' => 'São Paulo',
+                'telephone' => '11999999999',
+                'email' => 'maria.silva@example.com',
+            ],
+            [
+                'creator_id' => $creatorId,
+                'name' => 'João Pereira',
+                'mother_name' => 'Cláudia Pereira',
+                'father_name' => 'Antônio Pereira',
+                'cpf' => '98765432100',
+                'birth_date' => '1985-05-20',
+                'rg' => '987654321',
+                'marital_status' => 'Casado',
+                'profession' => 'Pedreiro',
+                'education' => 'Ensino fundamental completo',
+                'monthly_income' => 2500.00,
+                'nationality' => 'Brasileiro',
+                'naturalness' => 'Montes Claros',
+                'telephone' => '38988887777',
+                'email' => 'joao.pereira@example.com',
             ],
         ];
     }

@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Save, Eye, FileDown, ArrowLeft, Play } from "lucide-react"
+import { Save, Eye, ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
 import { useStore } from "@/components/store-provider"
 import { toast } from "sonner"
@@ -99,7 +99,7 @@ export default function EditarTemplatePage() {
       })
       toast.success("Template atualizado com sucesso!")
       router.push("/templates")
-    } catch (error) {
+    } catch (_error) {
       toast.error("Erro ao atualizar template.")
     } finally {
       setIsSaving(false)

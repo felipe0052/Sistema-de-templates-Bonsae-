@@ -4,7 +4,6 @@ import { useState } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { TemplateList } from "@/components/template-list"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Search, Filter } from "lucide-react"
+import { Plus, Filter } from "lucide-react"
 import { useStore } from "@/components/store-provider"
 import Link from "next/link"
 
