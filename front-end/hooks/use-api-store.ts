@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type {
     Template,
-    Documento,
-    Variavel,
-    Cliente,
+    Document,
+    Variable,
+    Client,
+    Assisted,
     StaticVariableApiResponse,
 } from "@/lib/types";
 
@@ -18,27 +19,27 @@ function getApiBaseUrl(): string {
     );
 }
 
-function mapApiVariable(variable: StaticVariableApiResponse): Variavel {
+function mapApiVariable(variable: StaticVariableApiResponse): Variable {
     return {
         id: String(variable.id),
-        nome_variavel: variable.name,
-        descricao: variable.description,
-        exemplo: variable.example || "",
+        variable_name: variable.name,
+        description: variable.description,
+        example: variable.example || "",
     };
 }
 
 export function useApiStore() {
     const [templates, setTemplates] = useState<Template[]>([]);
-    const [documentos, setDocumentos] = useState<Documento[]>([]);
-    const [variaveis, setVariaveis] = useState<Variavel[]>([]);
-    const [clientes, setClientes] = useState<Cliente[]>([]);
+    const [documents, setDocuments] = useState<Document[]>([]);
+    const [variables, setVariables] = useState<Variable[]>([]);
+    const [clients, setClients] = useState<Client[]>([]);
+    const [assisteds, setAssisteds] = useState<Assisted[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [variableCatalogAvailable, setVariableCatalogAvailable] =
         useState(false);
     const [token, setToken] = useState<string | null>(null);
     const apiBaseUrl = getApiBaseUrl();
 
-    // 1. Carregar do LocalStorage imediatamente para garantir que o usuário veja algo
     useEffect(() => {
         const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (saved) {
@@ -46,7 +47,6 @@ export function useApiStore() {
         }
     }, []);
 
-    // 2. Login automático no background
     useEffect(() => {
         const login = async () => {
             const tryLogin = async (path: string, options?: RequestInit) => {
@@ -104,22 +104,20 @@ export function useApiStore() {
         }
 
         const variablesData = await response.json();
-        const mappedVariables: Variavel[] = (variablesData.data || []).map(
+        const mappedVariables: Variable[] = (variablesData.data || []).map(
             mapApiVariable,
         );
-        setVariaveis(mappedVariables);
+        setVariables(mappedVariables);
         setVariableCatalogAvailable(true);
 
         return mappedVariables;
     };
 
-    // 3. Sincronizar variáveis públicas sempre que possível
     useEffect(() => {
         const syncVariables = async () => {
             try {
                 await fetchVariables();
             } catch (error) {
-                // In offline/local mode, failing to sync public variables should not break app bootstrap.
                 const message =
                     error instanceof Error ? error.message : String(error);
                 console.warn(`Variables sync skipped: ${message}`);
@@ -131,7 +129,51 @@ export function useApiStore() {
         syncVariables();
     }, [apiBaseUrl]);
 
-    // 4. Sincronizar templates e documentos com o Banco de Dados (API) se disponível
+    const fetchAssisteds = useCallback(async (search?: string) => {
+        if (!token) return;
+
+        const query = search ? `?search=${encodeURIComponent(search)}` : "";
+        try {
+            const response = await fetch(`${apiBaseUrl}/assisteds${query}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+            });
+
+            if (response.ok) {
+                const assistedsData = await response.json();
+                const mappedAssisteds: Assisted[] = (
+                    assistedsData.data || []
+                ).map((assisted: any) => ({
+                    ...assisted,
+                    id: String(assisted.id),
+                    address: assisted.address
+                        ? {
+                              ...assisted.address,
+                              id: String(assisted.address.id),
+                          }
+                        : null,
+                }));
+
+                setAssisteds(mappedAssisteds);
+                setClients(
+                    mappedAssisteds.map((assisted) => ({
+                        id: assisted.id,
+                        name: assisted.name,
+                        email: assisted.email || "",
+                        organization: "Assisted",
+                        created_at:
+                            assisted.created_at || new Date().toISOString(),
+                        address: assisted.address || null,
+                    })),
+                );
+            }
+        } catch (_error) {
+            console.error("Sync failed");
+        }
+    }, [token, apiBaseUrl]);
+
     useEffect(() => {
         const fetchData = async () => {
             if (!token) {
@@ -160,13 +202,13 @@ export function useApiStore() {
                         templatesData.data || []
                     ).map((t: any) => ({
                         id: String(t.id),
-                        nome_template: t.title,
-                        conteudo: t.content,
-                        categoria: t.metadata?.categoria || "Geral",
-                        cliente_id: String(t.tenant_id || "1"),
+                        template_name: t.title,
+                        content: t.content,
+                        category: t.metadata?.category || "General",
+                        client_id: String(t.tenant_id || "1"),
                         created_at: t.created_at,
                         updated_at: t.updated_at,
-                        background_image_url: t.background_image_url,
+                        background_image: t.background_image_url,
                     }));
 
                     setTemplates((prev) => {
@@ -186,29 +228,30 @@ export function useApiStore() {
 
                 if (documentsRes.ok) {
                     const documentsData = await documentsRes.json();
-                    const mappedDocuments: Documento[] = (
+                    const mappedDocuments: Document[] = (
                         documentsData.data || []
                     ).map((d: any) => ({
                         id: String(d.id),
                         template_id: String(d.template_id),
-                        nome: d.name,
-                        dados_json: d.data_json,
+                        name: d.name,
+                        data_json: d.data_json,
                         created_at: d.created_at,
                     }));
-                    setDocumentos(mappedDocuments);
+                    setDocuments(mappedDocuments);
                 }
+
+                await fetchAssisteds();
             } catch (_error) {
                 console.error("Sync failed");
             }
         };
 
         fetchData();
-    }, [token, apiBaseUrl]);
+    }, [token, apiBaseUrl, fetchAssisteds]);
 
     const addTemplate = async (
         template: Omit<Template, "id" | "created_at" | "updated_at">,
     ) => {
-        // SALVAR NO FRONT-END PRIMEIRO (Imediato)
         const tempId = "temp_" + Math.random().toString(36).substr(2, 9);
         const newTemplate: Template = {
             ...template,
@@ -223,7 +266,6 @@ export function useApiStore() {
             return updated;
         });
 
-        // TENTAR SALVAR NO BACK-END (Background)
         if (token) {
             try {
                 const response = await fetch(`${apiBaseUrl}/templates`, {
@@ -234,23 +276,22 @@ export function useApiStore() {
                         Accept: "application/json",
                     },
                     body: JSON.stringify({
-                        title: template.nome_template,
-                        content: template.conteudo,
+                        title: template.template_name,
+                        content: template.content,
                         visibility: "public",
-                        metadata: { categoria: template.categoria },
+                        metadata: { category: template.category },
                     }),
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Atualizar o ID temporário pelo ID real do banco
                     setTemplates((prev) => {
                         const updated = prev.map((t) =>
                             t.id === tempId
                                 ? {
                                       ...t,
                                       id: String(data.id),
-                                      cliente_id: String(data.tenant_id),
+                                      client_id: String(data.tenant_id),
                                   }
                                 : t,
                         );
@@ -271,7 +312,7 @@ export function useApiStore() {
         return newTemplate;
     };
 
-    const addDocumento = async (doc: Omit<Documento, "id" | "created_at">) => {
+    const addDocument = async (doc: Omit<Document, "id" | "created_at">) => {
         if (!token) return;
 
         try {
@@ -284,21 +325,21 @@ export function useApiStore() {
                 },
                 body: JSON.stringify({
                     template_id: doc.template_id,
-                    name: doc.nome,
-                    data_json: doc.dados_json,
+                    name: doc.name,
+                    data_json: doc.data_json,
                 }),
             });
 
             if (response.ok) {
                 const data = await response.json();
-                const newDoc: Documento = {
+                const newDoc: Document = {
                     id: String(data.id),
                     template_id: String(data.template_id),
-                    nome: data.name,
-                    dados_json: data.data_json,
+                    name: data.name,
+                    data_json: data.data_json,
                     created_at: data.created_at,
                 };
-                setDocumentos((prev) => [newDoc, ...prev]);
+                setDocuments((prev) => [newDoc, ...prev]);
                 return newDoc;
             }
         } catch (_error) {
@@ -307,7 +348,6 @@ export function useApiStore() {
     };
 
     const updateTemplate = async (id: string, updates: Partial<Template>) => {
-        // Atualiza local primeiro
         setTemplates((prev) => {
             const updated = prev.map((t) =>
                 t.id === id ? { ...t, ...updates } : t,
@@ -316,7 +356,6 @@ export function useApiStore() {
             return updated;
         });
 
-        // Tenta API
         if (token && !id.startsWith("temp_")) {
             try {
                 await fetch(`${apiBaseUrl}/templates/${id}`, {
@@ -327,14 +366,16 @@ export function useApiStore() {
                         Accept: "application/json",
                     },
                     body: JSON.stringify({
-                        title: updates.nome_template,
-                        content: updates.conteudo,
-                        metadata: updates.categoria
-                            ? { categoria: updates.categoria }
+                        title: updates.template_name,
+                        content: updates.content,
+                        metadata: updates.category
+                            ? { category: updates.category }
                             : undefined,
                     }),
                 });
-            } catch (_e) {}
+            } catch (_e) {
+                console.error("Failed to update template");
+            }
         }
     };
 
@@ -351,13 +392,15 @@ export function useApiStore() {
                     method: "DELETE",
                     headers: { Authorization: `Bearer ${token}` },
                 });
-            } catch (_e) {}
+            } catch (_e) {
+                console.error("Failed to delete template");
+            }
         }
     };
 
     const renderTemplate = async (
         templateId: string,
-        variables: Record<string, string>,
+        vars: Record<string, string>,
         behavior: "blank" | "underline" = "blank",
     ) => {
         if (token && !templateId.startsWith("temp_")) {
@@ -371,7 +414,7 @@ export function useApiStore() {
                             Authorization: `Bearer ${token}`,
                         },
                         body: JSON.stringify({
-                            variables,
+                            variables: vars,
                             missing_variable_behavior: behavior,
                             format: "html",
                         }),
@@ -388,7 +431,7 @@ export function useApiStore() {
 
     const renderTemplatePdf = async (
         templateId: string,
-        variables: Record<string, string>,
+        vars: Record<string, string>,
         behavior: "blank" | "underline" = "blank",
     ) => {
         if (!token || templateId.startsWith("temp_")) {
@@ -406,7 +449,7 @@ export function useApiStore() {
                         Accept: "application/pdf, application/json",
                     },
                     body: JSON.stringify({
-                        variables,
+                        variables: vars,
                         missing_variable_behavior: behavior,
                         format: "pdf",
                     }),
@@ -437,7 +480,7 @@ export function useApiStore() {
         }
     };
 
-    const addVariavel = async (variavel: Omit<Variavel, "id">) => {
+    const addVariable = async (variable: Omit<Variable, "id">) => {
         if (!token) {
             throw new Error("Autenticação necessária para criar variáveis.");
         }
@@ -450,9 +493,9 @@ export function useApiStore() {
                 Accept: "application/json",
             },
             body: JSON.stringify({
-                name: variavel.nome_variavel.trim().toLowerCase(),
-                description: variavel.descricao.trim(),
-                example: variavel.exemplo?.trim() || undefined,
+                name: variable.variable_name.trim().toLowerCase(),
+                description: variable.description.trim(),
+                example: variable.example?.trim() || undefined,
             }),
         });
 
@@ -467,18 +510,18 @@ export function useApiStore() {
         }
 
         const created = mapApiVariable(data as StaticVariableApiResponse);
-        setVariaveis((prev) =>
+        setVariables((prev) =>
             [...prev, created].sort((a, b) =>
-                a.nome_variavel.localeCompare(b.nome_variavel),
+                a.variable_name.localeCompare(b.variable_name),
             ),
         );
 
         return created;
     };
 
-    const updateVariavel = async (
+    const updateVariable = async (
         id: string,
-        variavel: Omit<Variavel, "id">,
+        variable: Omit<Variable, "id">,
     ) => {
         if (!token) {
             throw new Error("Autenticação necessária para editar variáveis.");
@@ -492,9 +535,9 @@ export function useApiStore() {
                 Accept: "application/json",
             },
             body: JSON.stringify({
-                name: variavel.nome_variavel.trim().toLowerCase(),
-                description: variavel.descricao.trim(),
-                example: variavel.exemplo?.trim() || undefined,
+                name: variable.variable_name.trim().toLowerCase(),
+                description: variable.description.trim(),
+                example: variable.example?.trim() || undefined,
             }),
         });
 
@@ -509,16 +552,16 @@ export function useApiStore() {
         }
 
         const updated = mapApiVariable(data as StaticVariableApiResponse);
-        setVariaveis((prev) =>
+        setVariables((prev) =>
             prev
                 .map((item) => (item.id === id ? updated : item))
-                .sort((a, b) => a.nome_variavel.localeCompare(b.nome_variavel)),
+                .sort((a, b) => a.variable_name.localeCompare(b.variable_name)),
         );
 
         return updated;
     };
 
-    const deleteVariavel = async (id: string) => {
+    const deleteVariable = async (id: string) => {
         if (!token) {
             throw new Error("Autenticação necessária para excluir variáveis.");
         }
@@ -535,25 +578,26 @@ export function useApiStore() {
             throw new Error("Não foi possível excluir a variável.");
         }
 
-        setVariaveis((prev) => prev.filter((item) => item.id !== id));
+        setVariables((prev) => prev.filter((item) => item.id !== id));
     };
 
     return {
         templates,
-        documentos,
-        variaveis,
+        documents,
+        variables,
         variableCatalogAvailable,
-        clientes,
+        clients,
+        assisteds,
         isLoading,
         addTemplate,
         updateTemplate,
         deleteTemplate,
         renderTemplate,
         renderTemplatePdf,
-        addVariavel,
-        updateVariavel,
-        addDocumento,
-        deleteDocumento: async (id: string) => {
+        addVariable,
+        updateVariable,
+        addDocument,
+        deleteDocument: async (id: string) => {
             if (!token) return;
             try {
                 const response = await fetch(`${apiBaseUrl}/documents/${id}`, {
@@ -561,13 +605,14 @@ export function useApiStore() {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (response.ok) {
-                    setDocumentos((prev) => prev.filter((d) => d.id !== id));
+                    setDocuments((prev) => prev.filter((d) => d.id !== id));
                 }
             } catch (_error) {
                 console.error("Failed to delete document");
             }
         },
-        deleteVariavel,
-        addCliente: () => {},
+        deleteVariable,
+        addClient: (_client: Omit<Client, "id" | "created_at">) => {},
+        fetchAssisteds,
     };
 }

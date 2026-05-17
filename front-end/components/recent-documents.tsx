@@ -9,22 +9,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { Documento } from "@/lib/types"
+import type { Document } from "@/lib/types"
 import Link from "next/link"
 import { useStore } from "@/components/store-provider"
 
 interface RecentDocumentsProps {
-  documentos: Documento[]
+  documents: Document[]
 }
 
-export function RecentDocuments({ documentos }: RecentDocumentsProps) {
+export function RecentDocuments({ documents }: RecentDocumentsProps) {
   const { templates, isLoading } = useStore()
 
   if (isLoading) return null
 
   const getTemplateName = (templateId: string) => {
     const template = templates.find(t => t.id === templateId)
-    return template?.nome_template || "Template desconhecido"
+    return template?.template_name || "Template desconhecido"
   }
 
   const formatDate = (dateString: string) => {
@@ -45,7 +45,7 @@ export function RecentDocuments({ documentos }: RecentDocumentsProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {documentos.map((doc) => (
+          {documents.map((doc) => (
             <div
               key={doc.id}
               className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
@@ -55,7 +55,7 @@ export function RecentDocuments({ documentos }: RecentDocumentsProps) {
                   <FileText className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-foreground">{doc.nome}</p>
+                  <p className="font-medium text-sm text-foreground">{doc.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {getTemplateName(doc.template_id)} • {formatDate(doc.created_at)}
                   </p>
@@ -84,7 +84,7 @@ export function RecentDocuments({ documentos }: RecentDocumentsProps) {
               </DropdownMenu>
             </div>
           ))}
-          {documentos.length === 0 && (
+          {documents.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-8">
               Nenhum documento gerado ainda.
             </p>

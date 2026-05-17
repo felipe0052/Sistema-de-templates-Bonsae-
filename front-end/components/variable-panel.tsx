@@ -22,7 +22,7 @@ interface VariablePanelProps {
 
 export function VariablePanel({ onInsertVariable }: VariablePanelProps) {
   const [open, setOpen] = useState(false)
-  const { variaveis } = useStore()
+  const { variables } = useStore()
 
   const handleSelect = (value: string) => {
     onInsertVariable(value)
@@ -68,19 +68,19 @@ export function VariablePanel({ onInsertVariable }: VariablePanelProps) {
               <CommandList>
                 <CommandEmpty>Nenhuma variável encontrada.</CommandEmpty>
                 <CommandGroup>
-                  {variaveis.map((variavel) => (
+                  {variables.map((variable) => (
                     <CommandItem
-                      key={variavel.id}
-                      value={`${variavel.nome_variavel} ${variavel.descricao}`}
-                      onSelect={() => handleSelect(variavel.nome_variavel)}
+                      key={variable.id}
+                      value={`${variable.variable_name} ${variable.description}`}
+                      onSelect={() => handleSelect(variable.variable_name)}
                     >
                       <Check className={cn("h-4 w-4 opacity-0")} />
                       <div className="flex min-w-0 flex-col">
                         <span className="font-mono text-xs text-primary">
-                          {`{{${variavel.nome_variavel}}}`}
+                          {`{{${variable.variable_name}}}`}
                         </span>
                         <span className="truncate text-muted-foreground">
-                          {variavel.descricao}
+                          {variable.description}
                         </span>
                       </div>
                     </CommandItem>
