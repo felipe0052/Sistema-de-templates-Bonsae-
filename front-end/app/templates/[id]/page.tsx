@@ -168,8 +168,8 @@ export default function EditarTemplatePage() {
                 <Input
                   id="nome"
                   placeholder="Ex: Declaração de Residência"
-                  value={nomeTemplate}
-                  onChange={(e) => setNomeTemplate(e.target.value)}
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
