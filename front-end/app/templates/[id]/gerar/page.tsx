@@ -212,7 +212,7 @@ export default function GerarDocumentoPage() {
     const handleAssistidoChange = (assistidoId: string) => {
         setSelectedAssistidoId(assistidoId);
 
-        const assistido = assisteds.find((item) => item.id === assistidoId);
+        const assistido = assistidos.find((item) => item.id === assistidoId);
         if (!assistido) return;
 
         setDados((prev) => {
@@ -232,7 +232,7 @@ export default function GerarDocumentoPage() {
         });
     };
 
-    const selectedAssistido = assisteds.find(
+    const selectedAssistido = assistidos.find(
         (item) => item.id === selectedAssistidoId,
     );
 
@@ -478,7 +478,7 @@ export default function GerarDocumentoPage() {
                                             <SelectValue placeholder="Selecione um assistido" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {assisteds.map((assistido) => (
+                                            {assistidos.map((assistido) => (
                                                 <SelectItem
                                                     key={assistido.id}
                                                     value={assistido.id}
@@ -491,7 +491,7 @@ export default function GerarDocumentoPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {assisteds.length === 0 && (
+                                    {assistidos.length === 0 && (
                                         <p className="text-sm text-muted-foreground">
                                             Nenhum assistido disponível para o seu acesso.
                                         </p>

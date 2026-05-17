@@ -36,7 +36,7 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
   const handleDuplicate = (template: Template) => {
     addTemplate({
       ...template,
-      template_name: `${template.template_name || template.nome_template || "Template"} (Cópia)`,
+      template_name: `${template.template_name} (Cópia)`,
     })
     toast.success("Template duplicado com sucesso!")
   }
