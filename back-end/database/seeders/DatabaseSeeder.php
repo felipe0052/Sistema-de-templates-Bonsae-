@@ -72,7 +72,20 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        foreach ($this->assisteds($user->id) as $assisted) {
+        foreach ($this->addresses() as $addressData) {
+            DB::table('addresses')->updateOrInsert(
+                ['cep' => $addressData['cep']],
+                [
+                    ...$addressData,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+        }
+
+        $addresses = \App\Models\Address::all()->keyBy('cep');
+
+        foreach ($this->assisteds($user->id, $addresses) as $assisted) {
             DB::table('clients')->updateOrInsert(
                 ['cpf' => $assisted['cpf']],
                 [
@@ -166,11 +179,36 @@ class DatabaseSeeder extends Seeder
         ];
     }
 
-    private function assisteds(int $creatorId): array
+    private function addresses(): array
+    {
+        return [
+            [
+                'cep' => '01001000',
+                'street_name' => 'Praça da Sé',
+                'number' => '100',
+                'complement' => 'Sala 5',
+                'neighborhood' => 'Sé',
+                'city' => 'São Paulo',
+                'state' => 'SP',
+            ],
+            [
+                'cep' => '39400000',
+                'street_name' => 'Rua Santo Antônio',
+                'number' => '250',
+                'complement' => null,
+                'neighborhood' => 'Centro',
+                'city' => 'Montes Claros',
+                'state' => 'MG',
+            ],
+        ];
+    }
+
+    private function assisteds(int $creatorId, $addresses): array
     {
         return [
             [
                 'creator_id' => $creatorId,
+                'address_id' => $addresses->get('01001000')?->id,
                 'name' => 'Maria da Silva',
                 'mother_name' => 'Ana Maria da Silva',
                 'father_name' => 'José da Silva',
@@ -188,6 +226,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'creator_id' => $creatorId,
+                'address_id' => $addresses->get('39400000')?->id,
                 'name' => 'João Pereira',
                 'mother_name' => 'Cláudia Pereira',
                 'father_name' => 'Antônio Pereira',
