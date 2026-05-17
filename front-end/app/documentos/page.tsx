@@ -43,14 +43,14 @@ import {
 } from "@/components/ui/select"
 
 export default function DocumentosPage() {
-  const { documentos, templates, deleteDocumento, isLoading } = useStore()
+  const { documents, templates, deleteDocument, isLoading } = useStore()
   const [searchQuery, setSearchQuery] = useState("")
   const [templateFilter, setTemplateFilter] = useState("all")
 
   if (isLoading) return null
 
-  const filteredDocumentos = documentos.filter((doc) => {
-    const matchesSearch = doc.nome
+  const filteredDocuments = documents.filter((doc) => {
+    const matchesSearch = doc.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase())
     const matchesTemplate =
@@ -60,12 +60,12 @@ export default function DocumentosPage() {
 
   const getTemplateName = (templateId: string) => {
     const template = templates.find((t) => t.id === templateId)
-    return template?.nome_template || "Template desconhecido"
+    return template?.template_name || "Template desconhecido"
   }
 
   const handleDelete = (id: string) => {
     if (confirm("Tem certeza que deseja excluir este documento?")) {
-      deleteDocumento(id)
+      deleteDocument(id)
       toast.success("Documento excluído com sucesso!")
     }
   }
@@ -106,7 +106,7 @@ export default function DocumentosPage() {
               <SelectItem value="all">Todos os templates</SelectItem>
               {templates.map((t) => (
                 <SelectItem key={t.id} value={t.id}>
-                  {t.nome_template}
+                  {t.template_name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -122,7 +122,7 @@ export default function DocumentosPage() {
                   <FileText className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{documentos.length}</p>
+                  <p className="text-2xl font-bold">{documents.length}</p>
                   <p className="text-sm text-muted-foreground">Total de documentos</p>
                 </div>
               </div>
@@ -136,7 +136,7 @@ export default function DocumentosPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {documentos.filter((d) => d.pdf_gerado).length}
+                    {documents.filter((d) => d.pdf_generated).length}
                   </p>
                   <p className="text-sm text-muted-foreground">PDFs exportados</p>
                 </div>
@@ -152,7 +152,7 @@ export default function DocumentosPage() {
                 <div>
                   <p className="text-2xl font-bold">
                     {
-                      documentos.filter((d) => {
+                      documents.filter((d) => {
                         const docDate = new Date(d.created_at)
                         const now = new Date()
                         return (
@@ -183,14 +183,14 @@ export default function DocumentosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDocumentos.map((doc) => (
+                {filteredDocuments.map((doc) => (
                   <TableRow key={doc.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
                           <FileText className="h-4 w-4 text-primary" />
                         </div>
-                        <span className="font-medium">{doc.nome}</span>
+                        <span className="font-medium">{doc.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -203,10 +203,10 @@ export default function DocumentosPage() {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={doc.pdf_gerado ? "default" : "outline"}
-                        className={doc.pdf_gerado ? "bg-green-100 text-green-700 hover:bg-green-100" : ""}
+                        variant={doc.pdf_generated ? "default" : "outline"}
+                        className={doc.pdf_generated ? "bg-green-100 text-green-700 hover:bg-green-100" : ""}
                       >
-                        {doc.pdf_gerado ? "Exportado" : "Pendente"}
+                        {doc.pdf_generated ? "Exportado" : "Pendente"}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -239,7 +239,7 @@ export default function DocumentosPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredDocumentos.length === 0 && (
+                {filteredDocuments.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8">
                       <p className="text-muted-foreground">

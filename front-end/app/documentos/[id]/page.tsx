@@ -10,24 +10,24 @@ import { ArrowLeft, Download, Printer, FileText } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "@/components/store-provider";
 import { toast } from "sonner";
-import type { Documento, Template } from "@/lib/types";
+import type { Document, Template } from "@/lib/types";
 
 export default function VisualizarDocumentoPage() {
     const params = useParams();
 
     const searchParams = useSearchParams();
-    const { documentos, templates, isLoading, renderTemplatePdf } = useStore();
-    const [documento, setDocumento] = useState<Documento | null>(null);
+    const { documents, templates, isLoading, renderTemplatePdf } = useStore();
+    const [document, setDocument] = useState<Document | null>(null);
     const [template, setTemplate] = useState<Template | null>(null);
 
     useEffect(() => {
         if (isLoading) return;
 
         const docId = params.id as string;
-        const foundDoc = documentos.find((d) => d.id === docId);
+        const foundDoc = documents.find((d) => d.id === docId);
 
         if (foundDoc) {
-            setDocumento(foundDoc);
+            setDocument(foundDoc);
             const foundTemplate = templates.find(
                 (t) => t.id === foundDoc.template_id,
             );
@@ -42,19 +42,19 @@ export default function VisualizarDocumentoPage() {
                 }
             }
         }
-    }, [params.id, documentos, templates, isLoading, searchParams]);
+    }, [params.id, documents, templates, isLoading, searchParams]);
 
     const handlePrint = () => {
         window.print();
     };
 
     const handleDownloadPdf = async () => {
-        if (!documento || !template) return;
+        if (!document || !template) return;
 
         try {
             const pdfBlob = await renderTemplatePdf(
                 template.id,
-                documento.dados_json,
+                document.data_json,
                 "underline",
             );
 
@@ -64,8 +64,8 @@ export default function VisualizarDocumentoPage() {
             }
 
             const fileNameBase = (
-                documento.nome ||
-                template.nome_template ||
+                document.name ||
+                template.template_name ||
                 "documento"
             )
                 .toLowerCase()
@@ -90,7 +90,7 @@ export default function VisualizarDocumentoPage() {
 
     if (isLoading) return null;
 
-    if (!documento || !template) {
+    if (!document || !template) {
         return (
             <DashboardLayout title="Documento não encontrado" subtitle="">
                 <div className="text-center py-12">
@@ -109,7 +109,7 @@ export default function VisualizarDocumentoPage() {
     }
 
     return (
-        <DashboardLayout title="Visualizar Documento" subtitle={documento.nome}>
+        <DashboardLayout title="Visualizar Documento" subtitle={document.name}>
             <div className="space-y-6">
                 {/* Actions bar */}
                 <div className="flex flex-wrap items-center justify-between gap-4 no-print">
@@ -147,14 +147,14 @@ export default function VisualizarDocumentoPage() {
                                         <span className="font-medium text-foreground">
                                             Template:
                                         </span>{" "}
-                                        {template.nome_template}
+                                        {template.template_name}
                                     </p>
                                     <p>
                                         <span className="font-medium text-foreground">
                                             Data:
                                         </span>{" "}
                                         {new Date(
-                                            documento.created_at,
+                                            document.created_at,
                                         ).toLocaleDateString("pt-BR")}
                                     </p>
                                 </div>
@@ -166,9 +166,9 @@ export default function VisualizarDocumentoPage() {
                 {/* Document Preview */}
                 <div className="print-container">
                     <DocumentPreview
-                        content={template.conteudo}
-                        letterhead={template.imagem_fundo}
-                        data={documento.dados_json}
+                        content={template.content}
+                        letterhead={template.background_image}
+                        data={document.data_json}
                     />
                 </div>
             </div>

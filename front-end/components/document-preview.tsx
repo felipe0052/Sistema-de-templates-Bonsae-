@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { substituirVariaveis } from "@/lib/store"
+import { replaceVariables } from "@/lib/store"
 import { normalizeTemplateContent } from "@/lib/document-utils"
 import { FileText } from "lucide-react"
 
@@ -13,7 +13,7 @@ interface DocumentPreviewProps {
 
 export function DocumentPreview({ content, letterhead, data }: DocumentPreviewProps) {
   const normalizedContent = normalizeTemplateContent(content)
-  const processedContent = substituirVariaveis(normalizedContent, {
+  const processedContent = replaceVariables(normalizedContent, {
     ...data,
     data_atual: new Date().toLocaleDateString("pt-BR"),
   })

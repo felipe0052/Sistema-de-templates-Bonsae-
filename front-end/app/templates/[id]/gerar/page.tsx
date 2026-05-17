@@ -18,11 +18,10 @@ import { ArrowLeft, FileDown, Eye, Printer, Save, UserRound } from "lucide-react
 import Link from "next/link";
 import { useStore } from "@/components/store-provider";
 import { toast } from "sonner";
-import { extrairVariaveis, substituirVariaveis } from "@/lib/store";
+import { extractVariables, replaceVariables } from "@/lib/store";
 import { findUnknownVariables, normalizeTemplateContent } from "@/lib/document-utils";
-import type { Assistido, Template } from "@/lib/types";
+import type { Assisted, Template, Address } from "@/lib/types";
 
-// Função auxiliar para formatação
 const formatValue = (varName: string, value: string) => {
     if (!value) return "";
 
@@ -43,7 +42,7 @@ const formatValue = (varName: string, value: string) => {
             .replace(/(\d{2})(\d)/, "$1.$2")
             .replace(/(\d{3})(\d)/, "$1.$2")
             .replace(/(\d{3})(\d{1})/, "$1-$2")
-            .replace(/(-\d{1})\d+?$/, "$1"); // RG formato: 12.345.678-9 (pode variar, mas tenta um padrão)
+            .replace(/(-\d{1})\d+?$/, "$1");
     }
 
     if (nomeLower.includes("cep")) {
@@ -80,11 +79,47 @@ const formatDateFromApi = (value?: string | null) => {
     return `${day}/${month}/${year}`;
 };
 
+const buildFullAddress = (address?: Address | null): string => {
+    if (!address) return "";
+
+    const parts: string[] = [];
+
+    if (address.street_name) {
+        let streetPart = address.street_name;
+        if (address.number) {
+            streetPart += `, ${address.number}`;
+        }
+        parts.push(streetPart);
+    }
+
+    if (address.complement) {
+        parts.push(address.complement);
+    }
+
+    if (address.neighborhood) {
+        parts.push(address.neighborhood);
+    }
+
+    const cityStateParts: string[] = [];
+    if (address.city) cityStateParts.push(address.city);
+    if (address.state) cityStateParts.push(address.state);
+    if (cityStateParts.length > 0) {
+        parts.push(cityStateParts.join("/"));
+    }
+
+    if (address.cep) {
+        parts.push(`CEP: ${address.cep}`);
+    }
+
+    return parts.join(" - ");
+};
+
 const getAssistidoValueForVariable = (
     varName: string,
-    assistido: Assistido,
+    assistido: Assisted,
 ) => {
     const fieldName = varName.toLowerCase();
+    const addr = assistido.address;
     const aliasMap: Record<string, string | undefined | null> = {
         nome: assistido.name,
         assistido_nome: assistido.name,
@@ -112,6 +147,14 @@ const getAssistidoValueForVariable = (
         renda_mensal: assistido.monthly_income?.toString(),
         orgao_expedidor: assistido.issuing_body,
         uf_orgao_expedidor: assistido.uf_issuing_body,
+        endereco: buildFullAddress(addr),
+        cidade: addr?.city,
+        estado: addr?.state,
+        cep: addr?.cep,
+        bairro: addr?.neighborhood,
+        logradouro: addr?.street_name,
+        numero: addr?.number,
+        complemento: addr?.complement,
     };
 
     return aliasMap[fieldName] || "";
@@ -122,18 +165,18 @@ export default function GerarDocumentoPage() {
     const router = useRouter();
     const {
         templates,
-        variaveis: variaveisStore,
-        addDocumento,
+        variables: variablesStore,
+        addDocument,
         isLoading,
         renderTemplatePdf,
         renderTemplate,
         variableCatalogAvailable,
-        assistidos,
+        assisteds,
     } = useStore();
     const previewRef = useRef<HTMLDivElement>(null);
     const [template, setTemplate] = useState<Template | null>(null);
     const [dados, setDados] = useState<Record<string, string>>({});
-    const [variaveis, setVariaveis] = useState<string[]>([]);
+    const [variables, setVariables] = useState<string[]>([]);
     const [selectedAssistidoId, setSelectedAssistidoId] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -145,9 +188,9 @@ export default function GerarDocumentoPage() {
         const foundTemplate = templates.find((t) => t.id === templateId);
         if (foundTemplate) {
             setTemplate(foundTemplate);
-            const normalizedContent = normalizeTemplateContent(foundTemplate.conteudo);
-            const extractedVars = extrairVariaveis(normalizedContent);
-            setVariaveis(extractedVars);
+            const normalizedContent = normalizeTemplateContent(foundTemplate.content);
+            const extractedVars = extractVariables(normalizedContent);
+            setVariables(extractedVars);
 
             // Initialize with current date
             const initialData: Record<string, string> = {
@@ -158,7 +201,7 @@ export default function GerarDocumentoPage() {
     }, [params.id, templates, isLoading]);
 
     const getVariableInfo = (varName: string) => {
-        return variaveisStore.find((v) => v.nome_variavel === varName);
+        return variablesStore.find((v) => v.variable_name === varName);
     };
 
     const handleInputChange = (varName: string, value: string) => {
@@ -175,7 +218,7 @@ export default function GerarDocumentoPage() {
         setDados((prev) => {
             const nextData = { ...prev };
 
-            variaveis.forEach((varName) => {
+            variables.forEach((varName) => {
                 const value = getAssistidoValueForVariable(varName, assistido);
                 if (value) {
                     nextData[varName] = formatValue(varName, value);
@@ -193,18 +236,18 @@ export default function GerarDocumentoPage() {
         (item) => item.id === selectedAssistidoId,
     );
 
-    const availableVariableNames = variaveisStore.map((item) => item.nome_variavel);
+    const availableVariableNames = variablesStore.map((item) => item.variable_name);
     const unknownVariables = template && variableCatalogAvailable
-        ? findUnknownVariables(template.conteudo, availableVariableNames)
+        ? findUnknownVariables(template.content, availableVariableNames)
         : [];
     const hasUnknownVariables = unknownVariables.length > 0;
 
     const saveDocument = async () => {
         if (!template) return null;
-        return await addDocumento({
+        return await addDocument({
             template_id: template.id,
-            nome: `${template.nome_template} - ${dados.nome || "Novo Documento"}`,
-            dados_json: dados,
+            name: `${template.template_name} - ${dados.nome || "Novo Documento"}`,
+            data_json: dados,
         });
     };
 
@@ -246,7 +289,7 @@ export default function GerarDocumentoPage() {
             }
 
             const fileNameBase =
-                `${template.nome_template}-${dados.nome || "documento"}`
+                `${template.template_name}-${dados.nome || "documento"}`
                     .toLowerCase()
                     .replace(/[^a-z0-9-_]+/g, "-")
                     .replace(/-+/g, "-")
@@ -300,7 +343,7 @@ export default function GerarDocumentoPage() {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>${template?.nome_template || "Documento"}</title>
+          <title>${template?.template_name || "Documento"}</title>
           <style>
             @page {
               size: A4;
@@ -344,7 +387,7 @@ export default function GerarDocumentoPage() {
     };
 
     const processedContent = template
-        ? substituirVariaveis(normalizeTemplateContent(template.conteudo), dados)
+        ? replaceVariables(normalizeTemplateContent(template.content), dados)
         : "";
 
     if (!template) {
@@ -368,7 +411,7 @@ export default function GerarDocumentoPage() {
     return (
         <DashboardLayout
             title="Gerar Documento"
-            subtitle={template.nome_template}
+            subtitle={template.template_name}
         >
             <div className="space-y-6">
                 {/* Header */}
@@ -459,7 +502,7 @@ export default function GerarDocumentoPage() {
                                         </p>
                                     )}
                                 </div>
-                                {variaveis.map((varName) => {
+                                {variables.map((varName) => {
                                     const info = getVariableInfo(varName);
                                     return (
                                         <div
@@ -474,13 +517,13 @@ export default function GerarDocumentoPage() {
                                                     {`{{${varName}}}`}
                                                 </span>
                                                 <span>
-                                                    {info?.descricao || varName}
+                                                    {info?.description || varName}
                                                 </span>
                                             </Label>
                                             <Input
                                                 id={varName}
                                                 placeholder={
-                                                    info?.exemplo ||
+                                                    info?.example ||
                                                     `Informe ${varName}`
                                                 }
                                                 value={dados[varName] || ""}
@@ -494,7 +537,7 @@ export default function GerarDocumentoPage() {
                                         </div>
                                     );
                                 })}
-                                {variaveis.length === 0 && (
+                                {variables.length === 0 && (
                                     <p className="text-sm text-muted-foreground text-center py-4">
                                         Este template não possui variáveis.
                                     </p>
@@ -520,11 +563,11 @@ export default function GerarDocumentoPage() {
                                     overflowY: "auto",
                                 }}
                             >
-                                {template.imagem_fundo && (
+                                {template.background_image && (
                                     <div
                                         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
                                         style={{
-                                            backgroundImage: `url(${template.imagem_fundo})`,
+                                            backgroundImage: `url(${template.background_image})`,
                                         }}
                                     />
                                 )}
@@ -548,7 +591,7 @@ export default function GerarDocumentoPage() {
                             </div>
 
                             {/* Unfilled variables warning */}
-                            {variaveis.some((v) => !dados[v]) && (
+                            {variables.some((v) => !dados[v]) && (
                                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                                     <p className="text-sm text-amber-800">
                                         Existem variáveis não preenchidas.
