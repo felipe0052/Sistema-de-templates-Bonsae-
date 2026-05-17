@@ -43,18 +43,7 @@ export function useApiStore() {
     useEffect(() => {
         const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (saved) {
-            const parsed = JSON.parse(saved);
-            const normalized = parsed.map((t: any) => ({
-                id: t.id,
-                template_name: t.template_name || t.nome_template || "",
-                content: t.content || t.conteudo || "",
-                category: t.category || t.categoria || "General",
-                client_id: t.client_id || t.cliente_id || "1",
-                created_at: t.created_at || "",
-                updated_at: t.updated_at || "",
-                background_image: t.background_image || t.imagem_fundo,
-            }));
-            setTemplates(normalized);
+            setTemplates(JSON.parse(saved));
         }
     }, []);
 
@@ -226,16 +215,7 @@ export function useApiStore() {
                         const merged = [...mappedTemplates];
                         prev.forEach((p) => {
                             if (!merged.find((m) => m.id === p.id)) {
-                                merged.push({
-                                    id: p.id,
-                                    template_name: p.template_name || p.nome_template || "",
-                                    content: p.content || p.conteudo || "",
-                                    category: p.category || p.categoria || "General",
-                                    client_id: p.client_id || p.cliente_id || "1",
-                                    created_at: p.created_at || "",
-                                    updated_at: p.updated_at || "",
-                                    background_image: p.background_image || p.imagem_fundo,
-                                });
+                                merged.push(p);
                             }
                         });
                         localStorage.setItem(

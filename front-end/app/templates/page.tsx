@@ -27,8 +27,7 @@ export default function TemplatesPage() {
     );
 
     const filteredTemplates = templates.filter((template) => {
-        const name = template.template_name || "";
-        const matchesSearch = name
+        const matchesSearch = template.template_name
             .toLowerCase()
             .includes(searchQuery.toLowerCase());
         const matchesCategory =
