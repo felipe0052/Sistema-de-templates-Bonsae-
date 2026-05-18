@@ -105,9 +105,8 @@ function renderNode(node: Node, key: string): ReactNode {
   }
 
   const props: {
-    key: string
     style?: CSSProperties
-  } = { key }
+  } = {}
 
   const safeStyle = toReactStyle(element.getAttribute("style") || "")
   if (element.dataset.variablePreview === "pending") {
@@ -120,39 +119,39 @@ function renderNode(node: Node, key: string): ReactNode {
     case "br":
       return <br key={key} />
     case "p":
-      return <p {...props}>{children}</p>
+      return <p key={key} {...props}>{children}</p>
     case "strong":
-      return <strong {...props}>{children}</strong>
+      return <strong key={key} {...props}>{children}</strong>
     case "b":
-      return <b {...props}>{children}</b>
+      return <b key={key} {...props}>{children}</b>
     case "em":
-      return <em {...props}>{children}</em>
+      return <em key={key} {...props}>{children}</em>
     case "i":
-      return <i {...props}>{children}</i>
+      return <i key={key} {...props}>{children}</i>
     case "u":
-      return <u {...props}>{children}</u>
+      return <u key={key} {...props}>{children}</u>
     case "h1":
-      return <h1 {...props}>{children}</h1>
+      return <h1 key={key} {...props}>{children}</h1>
     case "h2":
-      return <h2 {...props}>{children}</h2>
+      return <h2 key={key} {...props}>{children}</h2>
     case "h3":
-      return <h3 {...props}>{children}</h3>
+      return <h3 key={key} {...props}>{children}</h3>
     case "h4":
-      return <h4 {...props}>{children}</h4>
+      return <h4 key={key} {...props}>{children}</h4>
     case "h5":
-      return <h5 {...props}>{children}</h5>
+      return <h5 key={key} {...props}>{children}</h5>
     case "h6":
-      return <h6 {...props}>{children}</h6>
+      return <h6 key={key} {...props}>{children}</h6>
     case "ul":
-      return <ul {...props}>{children}</ul>
+      return <ul key={key} {...props}>{children}</ul>
     case "ol":
-      return <ol {...props}>{children}</ol>
+      return <ol key={key} {...props}>{children}</ol>
     case "li":
-      return <li {...props}>{children}</li>
+      return <li key={key} {...props}>{children}</li>
     case "div":
-      return <div {...props}>{children}</div>
+      return <div key={key} {...props}>{children}</div>
     case "span":
-      return <span {...props}>{children}</span>
+      return <span key={key} {...props}>{children}</span>
     default:
       return <Fragment key={key}>{children}</Fragment>
   }
