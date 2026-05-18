@@ -17,7 +17,7 @@ export default function VisualizarDocumentoPage() {
 
     const searchParams = useSearchParams();
     const { documents, templates, isLoading, renderTemplatePdf } = useStore();
-    const [document, setDocument] = useState<Document | null>(null);
+    const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
     const [template, setTemplate] = useState<Template | null>(null);
 
     useEffect(() => {
@@ -27,7 +27,7 @@ export default function VisualizarDocumentoPage() {
         const foundDoc = documents.find((d) => d.id === docId);
 
         if (foundDoc) {
-            setDocument(foundDoc);
+            setCurrentDocument(foundDoc);
             const foundTemplate = templates.find(
                 (t) => t.id === foundDoc.template_id,
             );
@@ -49,12 +49,12 @@ export default function VisualizarDocumentoPage() {
     };
 
     const handleDownloadPdf = async () => {
-        if (!document || !template) return;
+        if (!currentDocument || !template) return;
 
         try {
             const pdfBlob = await renderTemplatePdf(
                 template.id,
-                document.data_json,
+                currentDocument.data_json,
                 "underline",
             );
 
@@ -64,7 +64,7 @@ export default function VisualizarDocumentoPage() {
             }
 
             const fileNameBase = (
-                document.name ||
+                currentDocument.name ||
                 template.template_name ||
                 "documento"
             )
@@ -90,7 +90,7 @@ export default function VisualizarDocumentoPage() {
 
     if (isLoading) return null;
 
-    if (!document || !template) {
+    if (!currentDocument || !template) {
         return (
             <DashboardLayout title="Documento não encontrado" subtitle="">
                 <div className="text-center py-12">
@@ -109,7 +109,7 @@ export default function VisualizarDocumentoPage() {
     }
 
     return (
-        <DashboardLayout title="Visualizar Documento" subtitle={document.name}>
+        <DashboardLayout title="Visualizar Documento" subtitle={currentDocument.name}>
             <div className="space-y-6">
                 {/* Actions bar */}
                 <div className="flex flex-wrap items-center justify-between gap-4 no-print">
@@ -154,7 +154,7 @@ export default function VisualizarDocumentoPage() {
                                             Data:
                                         </span>{" "}
                                         {new Date(
-                                            document.created_at,
+                                            currentDocument.created_at,
                                         ).toLocaleDateString("pt-BR")}
                                     </p>
                                 </div>
@@ -168,7 +168,7 @@ export default function VisualizarDocumentoPage() {
                     <DocumentPreview
                         content={template.content}
                         letterhead={template.background_image}
-                        data={document.data_json}
+                        data={currentDocument.data_json}
                     />
                 </div>
             </div>

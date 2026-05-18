@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Template;
+use App\Services\TemplateHtmlSanitizer;
 use App\Services\TemplateRenderer;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -11,11 +12,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TemplateController extends Controller
 {
-    protected $renderer;
-
-    public function __construct(TemplateRenderer $renderer)
+    public function __construct(
+        protected TemplateRenderer $renderer,
+        protected TemplateHtmlSanitizer $sanitizer,
+    )
     {
-        $this->renderer = $renderer;
     }
 
     public function index()
@@ -38,6 +39,7 @@ class TemplateController extends Controller
         ]);
 
         $data = $validated;
+        $data["content"] = $this->sanitizer->sanitize($data["content"]);
         $data["created_by"] = auth()->id() ?? 1; // Fallback para ID 1 se não autenticado (teste)
         $data["tenant_id"] = auth()->user()->tenant_id ?? 1; // Garante tenant_id no store
 
@@ -74,6 +76,9 @@ class TemplateController extends Controller
         ]);
 
         $data = $validated;
+        if (array_key_exists("content", $data)) {
+            $data["content"] = $this->sanitizer->sanitize($data["content"]);
+        }
 
         if ($request->hasFile("background_image")) {
             $path = $request

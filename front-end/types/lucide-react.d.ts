@@ -39,6 +39,7 @@ declare module "lucide-react" {
   export const ListOrdered: LucideIcon
   export const Loader2Icon: LucideIcon
   export const Mail: LucideIcon
+  export const MapPin: LucideIcon
   export const Menu: LucideIcon
   export const MinusIcon: LucideIcon
   export const Moon: LucideIcon

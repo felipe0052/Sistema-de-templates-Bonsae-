@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { RichTextEditor } from "@/components/rich-text-editor";
+import { RichTextEditor, type RichTextEditorHandle } from "@/components/rich-text-editor";
 import { VariablePanel } from "@/components/variable-panel";
 import { DocumentPreview } from "@/components/document-preview";
 import { LetterheadUpload } from "@/components/letterhead-upload";
@@ -33,21 +33,28 @@ const categorias = [
 
 import { useStore } from "@/components/store-provider";
 import { toast } from "sonner";
+import { findUnknownVariables } from "@/lib/document-utils";
 
 export default function NovoTemplatePage() {
     const router = useRouter();
-    const { addTemplate } = useStore();
+    const { addTemplate, variables, variableCatalogAvailable } = useStore();
+    const editorRef = useRef<RichTextEditorHandle>(null);
     const [templateName, setTemplateName] = useState("");
     const [category, setCategory] = useState("");
     const [content, setContent] = useState("");
     const [letterhead, setLetterhead] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState("editor");
     const [isSaving, setIsSaving] = useState(false);
+    const unknownVariables = variableCatalogAvailable
+        ? findUnknownVariables(
+              content,
+              variables.map((item) => item.variable_name),
+          )
+        : [];
+    const hasUnknownVariables = unknownVariables.length > 0;
 
     const handleInsertVariable = (variavel: string) => {
-        if ((window as any).insertVariableToEditor) {
-            (window as any).insertVariableToEditor(variavel);
-        }
+        editorRef.current?.insertVariable(variavel);
     };
 
     const handleSave = async () => {
@@ -57,6 +64,10 @@ export default function NovoTemplatePage() {
         }
         if (!content.trim()) {
             toast.error("Por favor, adicione conteúdo ao template.");
+            return;
+        }
+        if (hasUnknownVariables) {
+            toast.error("Existem variáveis inválidas no template. Corrija antes de salvar.");
             return;
         }
 
@@ -162,11 +173,25 @@ export default function NovoTemplatePage() {
                     </TabsList>
 
                     <TabsContent value="editor" className="mt-4">
+                        {hasUnknownVariables && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-sm text-red-800">
+                                    Variáveis não cadastradas:{" "}
+                                    <span className="font-mono">
+                                        {unknownVariables.map((item) => `{{${item}}}`).join(", ")}
+                                    </span>
+                                    . Cadastre em Variáveis ou ajuste o template.
+                                </p>
+                            </div>
+                        )}
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                             <div className="lg:col-span-3">
                                 <RichTextEditor
+                                    ref={editorRef}
                                     value={content}
                                     onChange={setContent}
+                                    availableVariables={variables.map((item) => item.variable_name)}
+                                    variableCatalogAvailable={variableCatalogAvailable}
                                     placeholder="Digite o conteúdo do seu template aqui. Use as variáveis do painel lateral para inserir dados dinâmicos."
                                 />
                             </div>

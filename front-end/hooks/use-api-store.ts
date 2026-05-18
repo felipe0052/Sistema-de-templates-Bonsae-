@@ -13,6 +13,14 @@ import type {
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 const LOCAL_STORAGE_KEY = "bonsae_templates_local";
 
+type LegacyTemplate = Partial<Template> & {
+    nome_template?: string;
+    conteudo?: string;
+    categoria?: string;
+    cliente_id?: string;
+    imagem_fundo?: string;
+};
+
 function getApiBaseUrl(): string {
     return (
         process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || API_BASE_URL
@@ -225,16 +233,17 @@ export function useApiStore() {
                     setTemplates((prev) => {
                         const merged = [...mappedTemplates];
                         prev.forEach((p) => {
+                            const legacyTemplate = p as LegacyTemplate;
                             if (!merged.find((m) => m.id === p.id)) {
                                 merged.push({
-                                    id: p.id,
-                                    template_name: p.template_name || p.nome_template || "",
-                                    content: p.content || p.conteudo || "",
-                                    category: p.category || p.categoria || "General",
-                                    client_id: p.client_id || p.cliente_id || "1",
-                                    created_at: p.created_at || "",
-                                    updated_at: p.updated_at || "",
-                                    background_image: p.background_image || p.imagem_fundo,
+                                    id: legacyTemplate.id || "",
+                                    template_name: legacyTemplate.template_name || legacyTemplate.nome_template || "",
+                                    content: legacyTemplate.content || legacyTemplate.conteudo || "",
+                                    category: legacyTemplate.category || legacyTemplate.categoria || "General",
+                                    client_id: legacyTemplate.client_id || legacyTemplate.cliente_id || "1",
+                                    created_at: legacyTemplate.created_at || "",
+                                    updated_at: legacyTemplate.updated_at || "",
+                                    background_image: legacyTemplate.background_image || legacyTemplate.imagem_fundo,
                                 });
                             }
                         });
