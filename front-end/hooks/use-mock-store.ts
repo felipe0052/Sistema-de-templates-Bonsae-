@@ -1,66 +1,64 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { Template, Documento, Variavel, Cliente } from "@/lib/types"
-import { templatesIniciais, documentosIniciais, variaveisDisponiveis } from "@/lib/store"
+import type { Template, Document, Variable, Client } from "@/lib/types"
+import { initialTemplates, initialDocuments, availableVariables } from "@/lib/store"
 
 const STORAGE_KEYS = {
   TEMPLATES: "bonsae_templates",
-  DOCUMENTOS: "bonsae_documentos",
-  VARIAVEIS: "bonsae_variaveis",
-  CLIENTES: "bonsae_clientes",
+  DOCUMENTS: "bonsae_documents",
+  VARIABLES: "bonsae_variables",
+  CLIENTS: "bonsae_clients",
 }
 
 export function useMockStore() {
   const [templates, setTemplates] = useState<Template[]>([])
-  const [documentos, setDocumentos] = useState<Documento[]>([])
-  const [variaveis, setVariaveis] = useState<Variavel[]>([])
-  const [clientes, setClientes] = useState<Cliente[]>([])
+  const [documents, setDocuments] = useState<Document[]>([])
+  const [variables, setVariables] = useState<Variable[]>([])
+  const [clients, setClients] = useState<Client[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Load data from localStorage or use defaults
     const storedTemplates = localStorage.getItem(STORAGE_KEYS.TEMPLATES)
-    const storedDocumentos = localStorage.getItem(STORAGE_KEYS.DOCUMENTOS)
-    const storedVariaveis = localStorage.getItem(STORAGE_KEYS.VARIAVEIS)
-    const storedClientes = localStorage.getItem(STORAGE_KEYS.CLIENTES)
+    const storedDocuments = localStorage.getItem(STORAGE_KEYS.DOCUMENTS)
+    const storedVariables = localStorage.getItem(STORAGE_KEYS.VARIABLES)
+    const storedClients = localStorage.getItem(STORAGE_KEYS.CLIENTS)
 
     if (storedTemplates) {
       setTemplates(JSON.parse(storedTemplates))
     } else {
-      setTemplates(templatesIniciais)
-      localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(templatesIniciais))
+      setTemplates(initialTemplates)
+      localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(initialTemplates))
     }
 
-    if (storedDocumentos) {
-      setDocumentos(JSON.parse(storedDocumentos))
+    if (storedDocuments) {
+      setDocuments(JSON.parse(storedDocuments))
     } else {
-      setDocumentos(documentosIniciais)
-      localStorage.setItem(STORAGE_KEYS.DOCUMENTOS, JSON.stringify(documentosIniciais))
+      setDocuments(initialDocuments)
+      localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(initialDocuments))
     }
 
-    if (storedVariaveis) {
-      setVariaveis(JSON.parse(storedVariaveis))
+    if (storedVariables) {
+      setVariables(JSON.parse(storedVariables))
     } else {
-      setVariaveis(variaveisDisponiveis)
-      localStorage.setItem(STORAGE_KEYS.VARIAVEIS, JSON.stringify(variaveisDisponiveis))
+      setVariables(availableVariables)
+      localStorage.setItem(STORAGE_KEYS.VARIABLES, JSON.stringify(availableVariables))
     }
 
-    if (storedClientes) {
-      setClientes(JSON.parse(storedClientes))
+    if (storedClients) {
+      setClients(JSON.parse(storedClients))
     } else {
-      const initialClientes: Cliente[] = [
-        { id: "1", nome: "João Silva", email: "joao@email.com", empresa: "Empresa ABC", created_at: new Date().toISOString() },
-        { id: "2", nome: "Maria Santos", email: "maria@email.com", empresa: "Consultoria XYZ", created_at: new Date().toISOString() },
+      const initialClients: Client[] = [
+        { id: "1", name: "João Silva", email: "joao@email.com", organization: "Empresa ABC", created_at: new Date().toISOString() },
+        { id: "2", name: "Maria Santos", email: "maria@email.com", organization: "Consultoria XYZ", created_at: new Date().toISOString() },
       ]
-      setClientes(initialClientes)
-      localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(initialClientes))
+      setClients(initialClients)
+      localStorage.setItem(STORAGE_KEYS.CLIENTS, JSON.stringify(initialClients))
     }
 
     setIsLoading(false)
   }, [])
 
-  // Template Actions
   const addTemplate = (template: Omit<Template, "id" | "created_at" | "updated_at">) => {
     const newTemplate: Template = {
       ...template,
@@ -88,76 +86,73 @@ export function useMockStore() {
     localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(updated))
   }
 
-  // Document Actions
-  const addDocumento = (documento: Omit<Documento, "id" | "created_at">) => {
-    const newDoc: Documento = {
-      ...documento,
+  const addDocument = (doc: Omit<Document, "id" | "created_at">) => {
+    const newDoc: Document = {
+      ...doc,
       id: Math.random().toString(36).substr(2, 9),
       created_at: new Date().toISOString(),
     }
-    const updated = [...documentos, newDoc]
-    setDocumentos(updated)
-    localStorage.setItem(STORAGE_KEYS.DOCUMENTOS, JSON.stringify(updated))
+    const updated = [...documents, newDoc]
+    setDocuments(updated)
+    localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(updated))
     return newDoc
   }
 
-  const deleteDocumento = (id: string) => {
-    const updated = documentos.filter((d) => d.id !== id)
-    setDocumentos(updated)
-    localStorage.setItem(STORAGE_KEYS.DOCUMENTOS, JSON.stringify(updated))
+  const deleteDocument = (id: string) => {
+    const updated = documents.filter((d) => d.id !== id)
+    setDocuments(updated)
+    localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(updated))
   }
 
-  // Variable Actions
-  const addVariavel = (variavel: Omit<Variavel, "id">) => {
-    const newVar: Variavel = {
-      ...variavel,
+  const addVariable = (variable: Omit<Variable, "id">) => {
+    const newVar: Variable = {
+      ...variable,
       id: Math.random().toString(36).substr(2, 9),
     }
-    const updated = [...variaveis, newVar]
-    setVariaveis(updated)
-    localStorage.setItem(STORAGE_KEYS.VARIAVEIS, JSON.stringify(updated))
+    const updated = [...variables, newVar]
+    setVariables(updated)
+    localStorage.setItem(STORAGE_KEYS.VARIABLES, JSON.stringify(updated))
   }
 
-  const deleteVariavel = (id: string) => {
-    const updated = variaveis.filter((v) => v.id !== id)
-    setVariaveis(updated)
-    localStorage.setItem(STORAGE_KEYS.VARIAVEIS, JSON.stringify(updated))
+  const deleteVariable = (id: string) => {
+    const updated = variables.filter((v) => v.id !== id)
+    setVariables(updated)
+    localStorage.setItem(STORAGE_KEYS.VARIABLES, JSON.stringify(updated))
   }
 
-  const updateVariavel = (id: string, updates: Omit<Variavel, "id">) => {
-    const updated = variaveis
+  const updateVariable = (id: string, updates: Omit<Variable, "id">) => {
+    const updated = variables
       .map((v) => (v.id === id ? { ...v, ...updates } : v))
-      .sort((a, b) => a.nome_variavel.localeCompare(b.nome_variavel))
-    setVariaveis(updated)
-    localStorage.setItem(STORAGE_KEYS.VARIAVEIS, JSON.stringify(updated))
+      .sort((a, b) => a.variable_name.localeCompare(b.variable_name))
+    setVariables(updated)
+    localStorage.setItem(STORAGE_KEYS.VARIABLES, JSON.stringify(updated))
   }
 
-  // Cliente Actions
-  const addCliente = (cliente: Omit<Cliente, "id" | "created_at">) => {
-    const newCliente: Cliente = {
-      ...cliente,
+  const addClient = (client: Omit<Client, "id" | "created_at">) => {
+    const newClient: Client = {
+      ...client,
       id: Math.random().toString(36).substr(2, 9),
       created_at: new Date().toISOString(),
     }
-    const updated = [...clientes, newCliente]
-    setClientes(updated)
-    localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(updated))
+    const updated = [...clients, newClient]
+    setClients(updated)
+    localStorage.setItem(STORAGE_KEYS.CLIENTS, JSON.stringify(updated))
   }
 
   return {
     templates,
-    documentos,
-    variaveis,
-    clientes,
+    documents,
+    variables,
+    clients,
     isLoading,
     addTemplate,
     updateTemplate,
     deleteTemplate,
-    addDocumento,
-    deleteDocumento,
-    addVariavel,
-    updateVariavel,
-    deleteVariavel,
-    addCliente,
+    addDocument,
+    deleteDocument,
+    addVariable,
+    updateVariable,
+    deleteVariable,
+    addClient,
   }
 }

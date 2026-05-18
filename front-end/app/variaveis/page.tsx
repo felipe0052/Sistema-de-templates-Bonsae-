@@ -36,15 +36,15 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Search, Plus, Variable, Pencil, Trash2 } from "lucide-react"
+import { Search, Plus, Variable as VariableIcon, Pencil, Trash2 } from "lucide-react"
 import { useStore } from "@/components/store-provider"
 import { toast } from "sonner"
-import type { Variavel } from "@/lib/types"
+import type { Variable } from "@/lib/types"
 
-const emptyVariableForm = { nome_variavel: "", descricao: "", exemplo: "" }
+const emptyVariableForm = { variable_name: "", description: "", example: "" }
 
-export default function VariaveisPage() {
-  const { variaveis, addVariavel, updateVariavel, deleteVariavel, isLoading } = useStore()
+export default function VariablesPage() {
+  const { variables, addVariable, updateVariable, deleteVariable, isLoading } = useStore()
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingVarId, setEditingVarId] = useState<string | null>(null)
@@ -54,10 +54,10 @@ export default function VariaveisPage() {
 
   if (isLoading) return null
 
-  const filteredVariaveis = variaveis.filter(
+  const filteredVariables = variables.filter(
     (v) =>
-      v.nome_variavel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.descricao.toLowerCase().includes(searchQuery.toLowerCase())
+      v.variable_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const resetForm = () => {
@@ -77,22 +77,22 @@ export default function VariaveisPage() {
     setIsDialogOpen(true)
   }
 
-  const handleEditClick = (variavel: Variavel) => {
-    setEditingVarId(variavel.id)
+  const handleEditClick = (variable: Variable) => {
+    setEditingVarId(variable.id)
     setVariableForm({
-      nome_variavel: variavel.nome_variavel,
-      descricao: variavel.descricao,
-      exemplo: variavel.exemplo || "",
+      variable_name: variable.variable_name,
+      description: variable.description,
+      example: variable.example || "",
     })
     setIsDialogOpen(true)
   }
 
   const handleSubmitVar = async () => {
-    if (!variableForm.nome_variavel.trim()) {
+    if (!variableForm.variable_name.trim()) {
       toast.error("O nome da variável é obrigatório.")
       return
     }
-    if (!variableForm.descricao.trim()) {
+    if (!variableForm.description.trim()) {
       toast.error("A descrição da variável é obrigatória.")
       return
     }
@@ -100,16 +100,16 @@ export default function VariaveisPage() {
     setIsSubmitting(true)
     try {
       const payload = {
-        nome_variavel: variableForm.nome_variavel.trim(),
-        descricao: variableForm.descricao.trim(),
-        exemplo: variableForm.exemplo.trim(),
+        variable_name: variableForm.variable_name.trim(),
+        description: variableForm.description.trim(),
+        example: variableForm.example.trim(),
       }
 
       if (editingVarId) {
-        await updateVariavel(editingVarId, payload)
+        await updateVariable(editingVarId, payload)
         toast.success("Variável atualizada com sucesso!")
       } else {
-        await addVariavel(payload)
+        await addVariable(payload)
         toast.success("Variável criada com sucesso!")
       }
 
@@ -124,7 +124,7 @@ export default function VariaveisPage() {
   const handleDeleteVar = async (id: string) => {
     setDeletingId(id)
     try {
-      await deleteVariavel(id)
+      await deleteVariable(id)
       toast.success("Variável excluída com sucesso!")
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível excluir a variável.")
@@ -170,33 +170,33 @@ export default function VariaveisPage() {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nome_variavel">Nome da Variável</Label>
+                  <Label htmlFor="variable_name">Nome da Variável</Label>
                   <Input
-                    id="nome_variavel"
+                    id="variable_name"
                     placeholder="Ex: numero_processo"
-                    value={variableForm.nome_variavel}
-                    onChange={(e) => setVariableForm({ ...variableForm, nome_variavel: e.target.value })}
+                    value={variableForm.variable_name}
+                    onChange={(e) => setVariableForm({ ...variableForm, variable_name: e.target.value })}
                   />
                   <p className="text-xs text-muted-foreground">
                     Use apenas letras minúsculas e underscores
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição</Label>
+                  <Label htmlFor="description">Descrição</Label>
                   <Textarea
-                    id="descricao"
+                    id="description"
                     placeholder="Descreva para que serve esta variável"
-                    value={variableForm.descricao}
-                    onChange={(e) => setVariableForm({ ...variableForm, descricao: e.target.value })}
+                    value={variableForm.description}
+                    onChange={(e) => setVariableForm({ ...variableForm, description: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="exemplo">Exemplo (opcional)</Label>
+                  <Label htmlFor="example">Exemplo (opcional)</Label>
                   <Input
-                    id="exemplo"
+                    id="example"
                     placeholder="Ex: 1234/2024"
-                    value={variableForm.exemplo}
-                    onChange={(e) => setVariableForm({ ...variableForm, exemplo: e.target.value })}
+                    value={variableForm.example}
+                    onChange={(e) => setVariableForm({ ...variableForm, example: e.target.value })}
                   />
                 </div>
               </div>
@@ -217,7 +217,7 @@ export default function VariaveisPage() {
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Variable className="h-5 w-5 text-primary" />
+              <VariableIcon className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground mb-1">
@@ -240,7 +240,7 @@ export default function VariaveisPage() {
         <Card className="bg-card">
           <CardHeader>
             <CardTitle className="text-base">
-              Variáveis Disponíveis ({filteredVariaveis.length})
+              Variáveis Disponíveis ({filteredVariables.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -254,28 +254,28 @@ export default function VariaveisPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVariaveis.map((variavel) => (
-                  <TableRow key={variavel.id}>
+                {filteredVariables.map((variable) => (
+                  <TableRow key={variable.id}>
                     <TableCell>
                       <Badge
                         variant="secondary"
                         className="font-mono text-xs bg-primary/10 text-primary"
                       >
-                        {`{{${variavel.nome_variavel}}}`}
+                        {`{{${variable.variable_name}}}`}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {variavel.descricao}
+                      {variable.description}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {variavel.exemplo || "-"}
+                      {variable.example || "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleEditClick(variavel)}
+                          onClick={() => handleEditClick(variable)}
                         >
                           <Pencil className="h-4 w-4 mr-1" />
                           Editar
@@ -291,16 +291,16 @@ export default function VariaveisPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Excluir variável</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Esta ação removerá a variável {`{{${variavel.nome_variavel}}}`} da lista pública de templates.
+                                Esta ação removerá a variável {`{{${variable.variable_name}}}`} da lista pública de templates.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDeleteVar(variavel.id)}
-                                disabled={deletingId === variavel.id}
+                                onClick={() => handleDeleteVar(variable.id)}
+                                disabled={deletingId === variable.id}
                               >
-                                {deletingId === variavel.id ? "Excluindo..." : "Excluir"}
+                                {deletingId === variable.id ? "Excluindo..." : "Excluir"}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>

@@ -36,7 +36,7 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
   const handleDuplicate = (template: Template) => {
     addTemplate({
       ...template,
-      nome_template: `${template.nome_template} (Cópia)`,
+      template_name: `${template.template_name} (Cópia)`,
     })
     toast.success("Template duplicado com sucesso!")
   }
@@ -70,10 +70,10 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm text-foreground truncate">
-                    {template.nome_template}
+                    {template.template_name}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {template.categoria || "Sem categoria"}
+                    {template.category || "Sem categoria"}
                   </p>
                 </div>
               </Link>
@@ -96,11 +96,11 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
                 </div>
                 <div>
                   <CardTitle className="text-base font-semibold line-clamp-1">
-                    {template.nome_template}
+                    {template.template_name}
                   </CardTitle>
-                  {template.categoria && (
+                  {template.category && (
                     <Badge variant="secondary" className="mt-1 text-xs">
-                      {template.categoria}
+                      {template.category}
                     </Badge>
                   )}
                 </div>

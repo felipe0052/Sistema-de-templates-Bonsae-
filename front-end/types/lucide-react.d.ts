@@ -1,0 +1,71 @@
+declare module "lucide-react" {
+  import type { ComponentType, SVGProps } from "react"
+
+  export type LucideIcon = ComponentType<SVGProps<SVGSVGElement>>
+
+  export const ArrowLeft: LucideIcon
+  export const ArrowRight: LucideIcon
+  export const AlignCenter: LucideIcon
+  export const AlignJustify: LucideIcon
+  export const AlignLeft: LucideIcon
+  export const AlignRight: LucideIcon
+  export const Bell: LucideIcon
+  export const Bold: LucideIcon
+  export const Building: LucideIcon
+  export const Calendar: LucideIcon
+  export const Check: LucideIcon
+  export const CheckIcon: LucideIcon
+  export const ChevronDown: LucideIcon
+  export const ChevronDownIcon: LucideIcon
+  export const ChevronLeftIcon: LucideIcon
+  export const ChevronRight: LucideIcon
+  export const ChevronRightIcon: LucideIcon
+  export const ChevronUpIcon: LucideIcon
+  export const ChevronsUpDown: LucideIcon
+  export const CircleIcon: LucideIcon
+  export const Copy: LucideIcon
+  export const Download: LucideIcon
+  export const Edit: LucideIcon
+  export const Eye: LucideIcon
+  export const FileDown: LucideIcon
+  export const FileImage: LucideIcon
+  export const FileText: LucideIcon
+  export const Filter: LucideIcon
+  export const FolderOpen: LucideIcon
+  export const GripVerticalIcon: LucideIcon
+  export const Image: LucideIcon
+  export const Italic: LucideIcon
+  export const List: LucideIcon
+  export const ListOrdered: LucideIcon
+  export const Loader2Icon: LucideIcon
+  export const Mail: LucideIcon
+  export const MapPin: LucideIcon
+  export const Menu: LucideIcon
+  export const MinusIcon: LucideIcon
+  export const Moon: LucideIcon
+  export const MoreHorizontal: LucideIcon
+  export const MoreHorizontalIcon: LucideIcon
+  export const Palette: LucideIcon
+  export const PanelLeftIcon: LucideIcon
+  export const Pencil: LucideIcon
+  export const Play: LucideIcon
+  export const Plus: LucideIcon
+  export const Printer: LucideIcon
+  export const Save: LucideIcon
+  export const Search: LucideIcon
+  export const SearchIcon: LucideIcon
+  export const Settings: LucideIcon
+  export const Shield: LucideIcon
+  export const Sun: LucideIcon
+  export const Trash2: LucideIcon
+  export const Underline: LucideIcon
+  export const Undo: LucideIcon
+  export const Upload: LucideIcon
+  export const User: LucideIcon
+  export const UserRound: LucideIcon
+  export const Users: LucideIcon
+  export const Variable: LucideIcon
+  export const Redo: LucideIcon
+  export const X: LucideIcon
+  export const XIcon: LucideIcon
+}

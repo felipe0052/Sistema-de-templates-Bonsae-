@@ -15,6 +15,8 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
+// Used to derive the reducer action union.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const actionTypes = {
   ADD_TOAST: 'ADD_TOAST',
   UPDATE_TOAST: 'UPDATE_TOAST',

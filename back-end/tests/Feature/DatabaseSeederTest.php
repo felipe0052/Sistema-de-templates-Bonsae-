@@ -23,6 +23,7 @@ class DatabaseSeederTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('templates', 1);
         $this->assertDatabaseCount('static_variables', 15);
+        $this->assertDatabaseCount('clients', 2);
 
         $tenant = Tenant::query()->firstOrFail();
         $user = User::query()->firstOrFail();
@@ -33,5 +34,10 @@ class DatabaseSeederTest extends TestCase
         $this->assertSame($tenant->id, $template->tenant_id);
         $this->assertSame($user->id, $template->created_by);
         $this->assertSame(15, StaticVariable::query()->count());
+        $this->assertDatabaseHas('clients', [
+            'creator_id' => $user->id,
+            'cpf' => '12345678900',
+            'name' => 'Maria da Silva',
+        ]);
     }
 }

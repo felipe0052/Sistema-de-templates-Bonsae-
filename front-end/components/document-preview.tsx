@@ -1,9 +1,10 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { substituirVariaveis } from "@/lib/store"
-import { normalizeTemplateContent } from "@/lib/document-utils"
+import { replaceVariables } from "@/lib/store"
+import { highlightPendingVariables, normalizeTemplateContent } from "@/lib/document-utils"
 import { FileText } from "lucide-react"
+import { SafeHtmlRenderer } from "@/components/safe-html-renderer"
 
 interface DocumentPreviewProps {
   content: string
@@ -13,21 +14,12 @@ interface DocumentPreviewProps {
 
 export function DocumentPreview({ content, letterhead, data }: DocumentPreviewProps) {
   const normalizedContent = normalizeTemplateContent(content)
-  const processedContent = substituirVariaveis(normalizedContent, {
+  const processedContent = replaceVariables(normalizedContent, {
     ...data,
     data_atual: new Date().toLocaleDateString("pt-BR"),
   })
 
-  // Convert variable spans back to styled text for preview
-  const displayContent = processedContent
-    .replace(
-      /<span[^>]*class="[^"]*bg-primary[^"]*"[^>]*>([^<]*)<\/span>/g,
-      '<span style="background-color: rgb(219 234 254); color: rgb(37 99 235); padding: 0 4px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">$1</span>'
-    )
-    .replace(
-      /{{(\w+)}}/g,
-      '<span style="background-color: rgb(254 226 226); color: rgb(185 28 28); padding: 0 4px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">{{$1}}</span>'
-    )
+  const displayContent = highlightPendingVariables(processedContent)
 
   return (
     <Card className="bg-card">
@@ -58,16 +50,16 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
           )}
 
           {/* Content */}
-          <div
+          <SafeHtmlRenderer
+            html={displayContent}
             className="preview-document relative !text-black"
             style={{
               fontFamily: "Times New Roman, serif",
               fontSize: "12pt",
               lineHeight: "1.7",
-              color: "#000000", // Força preto mesmo se a classe !text-black falhar
+              color: "#000000",
               padding: "3cm 2.5cm 2.5cm 3cm",
             }}
-            dangerouslySetInnerHTML={{ __html: displayContent }}
           />
 
           {/* Empty state */}

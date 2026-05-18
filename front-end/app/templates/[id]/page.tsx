@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { RichTextEditor } from "@/components/rich-text-editor"
+import { RichTextEditor, type RichTextEditorHandle } from "@/components/rich-text-editor"
 import { VariablePanel } from "@/components/variable-panel"
 import { DocumentPreview } from "@/components/document-preview"
 import { LetterheadUpload } from "@/components/letterhead-upload"
@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Save, Eye, FileDown, ArrowLeft, Play } from "lucide-react"
+import { Save, Eye, ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
 import { useStore } from "@/components/store-provider"
 import { toast } from "sonner"
@@ -38,18 +38,19 @@ const categorias = [
 export default function EditarTemplatePage() {
   const params = useParams()
   const router = useRouter()
-  const { templates, updateTemplate, isLoading, variaveis, variableCatalogAvailable } = useStore()
+  const { templates, updateTemplate, isLoading, variables, variableCatalogAvailable } = useStore()
+  const editorRef = useRef<RichTextEditorHandle>(null)
   const [template, setTemplate] = useState<Template | null>(null)
-  const [nomeTemplate, setNomeTemplate] = useState("")
-  const [categoria, setCategoria] = useState("")
-  const [conteudo, setConteudo] = useState("")
+  const [templateName, setTemplateName] = useState("")
+  const [category, setCategory] = useState("")
+  const [content, setContent] = useState("")
   const [letterhead, setLetterhead] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("editor")
   const [isSaving, setIsSaving] = useState(false)
   const unknownVariables = variableCatalogAvailable
     ? findUnknownVariables(
-        conteudo,
-        variaveis.map((item) => item.nome_variavel),
+        content,
+        variables.map((item) => item.variable_name),
       )
     : []
   const hasUnknownVariables = unknownVariables.length > 0
@@ -61,26 +62,24 @@ export default function EditarTemplatePage() {
     const foundTemplate = templates.find((t) => t.id === templateId)
     if (foundTemplate) {
       setTemplate(foundTemplate)
-      setNomeTemplate(foundTemplate.nome_template)
-      setCategoria(foundTemplate.categoria || "")
-      setConteudo(foundTemplate.conteudo)
-      setLetterhead(foundTemplate.imagem_fundo || null)
+      setTemplateName(foundTemplate.template_name)
+      setCategory(foundTemplate.category || "")
+      setContent(foundTemplate.content)
+      setLetterhead(foundTemplate.background_image || null)
     }
   }, [params.id, templates, isLoading])
 
   const handleInsertVariable = (variavel: string) => {
-    if ((window as any).insertVariableToEditor) {
-      (window as any).insertVariableToEditor(variavel)
-    }
+    editorRef.current?.insertVariable(variavel)
   }
 
   const handleSave = async () => {
     if (!template) return
-    if (!nomeTemplate.trim()) {
+    if (!templateName.trim()) {
       toast.error("Por favor, informe o nome do template.")
       return
     }
-    if (!conteudo.trim()) {
+    if (!content.trim()) {
       toast.error("Por favor, adicione conteúdo ao template.")
       return
     }
@@ -92,14 +91,14 @@ export default function EditarTemplatePage() {
     setIsSaving(true)
     try {
       updateTemplate(template.id, {
-        nome_template: nomeTemplate,
-        categoria: categoria,
-        conteudo: conteudo,
-        imagem_fundo: letterhead || undefined,
+        template_name: templateName,
+        category: category,
+        content: content,
+        background_image: letterhead || undefined,
       })
       toast.success("Template atualizado com sucesso!")
       router.push("/templates")
-    } catch (error) {
+    } catch (_error) {
       toast.error("Erro ao atualizar template.")
     } finally {
       setIsSaving(false)
@@ -127,7 +126,7 @@ export default function EditarTemplatePage() {
   return (
     <DashboardLayout
       title="Editar Template"
-      subtitle={template.nome_template}
+      subtitle={template.template_name}
     >
       <div className="space-y-6">
         {/* Header Actions */}
@@ -168,13 +167,13 @@ export default function EditarTemplatePage() {
                 <Input
                   id="nome"
                   placeholder="Ex: Declaração de Residência"
-                  value={nomeTemplate}
-                  onChange={(e) => setNomeTemplate(e.target.value)}
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="categoria">Categoria</Label>
-                <Select value={categoria} onValueChange={setCategoria}>
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
@@ -214,8 +213,11 @@ export default function EditarTemplatePage() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-3">
                 <RichTextEditor
-                  value={conteudo}
-                  onChange={setConteudo}
+                  ref={editorRef}
+                  value={content}
+                  onChange={setContent}
+                  availableVariables={variables.map((item) => item.variable_name)}
+                  variableCatalogAvailable={variableCatalogAvailable}
                   placeholder="Digite o conteúdo do seu template aqui."
                 />
               </div>
@@ -231,7 +233,7 @@ export default function EditarTemplatePage() {
 
           <TabsContent value="preview" className="mt-4">
             <DocumentPreview
-              content={conteudo}
+              content={content}
               letterhead={letterhead}
               data={{}}
             />

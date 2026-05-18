@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Assisted extends Model
 {
     use HasFactory;
 
-    protected $table = 'clients'; // aponta para a tabela existente no banco
+    protected $table = 'clients';
 
     protected $fillable = [
         'creator_id',
@@ -39,4 +41,16 @@ class Assisted extends Model
         'email',
         'email2',
     ];
+
+    protected $with = ['address'];
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(Address::class, 'address_id');
+    }
 }
