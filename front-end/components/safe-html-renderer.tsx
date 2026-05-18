@@ -23,6 +23,8 @@ const ALLOWED_TAGS = new Set([
   "span",
 ])
 
+const STRIP_WITH_CONTENT_TAGS = new Set(["script", "style", "iframe", "object", "embed"])
+
 const ALLOWED_STYLE_PROPS = new Set([
   "text-align",
   "font-weight",
@@ -89,6 +91,11 @@ function renderNode(node: Node, key: string): ReactNode {
 
   const element = node as HTMLElement
   const tagName = element.tagName.toLowerCase()
+
+  if (STRIP_WITH_CONTENT_TAGS.has(tagName)) {
+    return null
+  }
+
   const children = Array.from(element.childNodes).map((child, index) =>
     renderNode(child, `${key}-${index}`),
   )

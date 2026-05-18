@@ -29,6 +29,14 @@ class TemplateHtmlSanitizer
         "span",
     ];
 
+    private const STRIP_WITH_CONTENT_TAGS = [
+        "script",
+        "style",
+        "iframe",
+        "object",
+        "embed",
+    ];
+
     private const ALLOWED_STYLES = [
         "text-align",
         "font-weight",
@@ -89,6 +97,12 @@ class TemplateHtmlSanitizer
                 $tagName = strtolower($child->tagName);
 
                 if (!in_array($tagName, self::ALLOWED_TAGS, true)) {
+                    if (in_array($tagName, self::STRIP_WITH_CONTENT_TAGS, true)) {
+                        $node->removeChild($child);
+                        $child = $next;
+                        continue;
+                    }
+
                     while ($child->firstChild) {
                         $node->insertBefore($child->firstChild, $child);
                     }

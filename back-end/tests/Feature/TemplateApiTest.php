@@ -110,7 +110,7 @@ class TemplateApiTest extends TestCase
 
         $response->assertCreated();
         $this->assertSame(
-            '<p style="text-align: center">Oi</p>alert(1)',
+            '<p style="text-align: center">Oi</p>',
             Template::firstOrFail()->content,
         );
     }
