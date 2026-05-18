@@ -202,7 +202,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
         window.cancelAnimationFrame(frameRef.current)
       }
     }
-  }, [])
+  }, [frameRef])
 
   const execCommand = useCallback((command: string, value?: string) => {
     document.execCommand(command, false, value)
