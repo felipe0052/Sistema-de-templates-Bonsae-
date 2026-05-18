@@ -8,6 +8,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class TemplateRenderer
 {
+    public function __construct(private TemplateHtmlSanitizer $sanitizer)
+    {
+    }
+
     /**
      * Render the template with the provided variables.
      *
@@ -21,13 +25,13 @@ class TemplateRenderer
         array $values,
         string $missingVariableBehavior = "blank",
     ): string {
-        $content = $template->content;
+        $content = $this->sanitizer->sanitize($template->content);
 
         foreach ($this->getAvailableVariables() as $variable) {
             $placeholder = "{{" . $variable . "}}";
-            $replacement =
-                $values[$variable] ??
-                $this->getMissingValue($missingVariableBehavior);
+            $replacement = isset($values[$variable])
+                ? e((string) $values[$variable])
+                : $this->getMissingValue($missingVariableBehavior);
             $content = str_replace($placeholder, $replacement, $content);
         }
 

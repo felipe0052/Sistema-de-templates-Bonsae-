@@ -45,16 +45,32 @@ import {
 import { useStore } from "@/components/store-provider"
 import { toast } from "sonner"
 
+type ClienteView = {
+  id: string
+  nome: string
+  email: string
+  empresa: string
+  created_at: string
+}
+
 export default function ClientesPage() {
-  const { clientes, addCliente, isLoading } = useStore()
+  const { clients, addClient, isLoading } = useStore()
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newCliente, setNewCliente] = useState({ nome: "", email: "", empresa: "" })
 
   if (isLoading) return null
 
+  const clientes: ClienteView[] = clients.map((client) => ({
+    id: client.id,
+    nome: client.name,
+    email: client.email,
+    empresa: client.organization,
+    created_at: client.created_at,
+  }))
+
   const filteredClientes = clientes.filter(
-    (c) =>
+    (c: ClienteView) =>
       c.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.empresa.toLowerCase().includes(searchQuery.toLowerCase())
@@ -65,7 +81,11 @@ export default function ClientesPage() {
       toast.error("Nome e E-mail são obrigatórios.")
       return
     }
-    addCliente(newCliente)
+    addClient({
+      name: newCliente.nome,
+      email: newCliente.email,
+      organization: newCliente.empresa,
+    })
     toast.success("Cliente cadastrado com sucesso!")
     setIsDialogOpen(false)
     setNewCliente({ nome: "", email: "", empresa: "" })
@@ -196,7 +216,7 @@ export default function ClientesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClientes.map((cliente) => (
+                {filteredClientes.map((cliente: ClienteView) => (
                   <TableRow key={cliente.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">

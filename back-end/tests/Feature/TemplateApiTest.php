@@ -98,6 +98,68 @@ class TemplateApiTest extends TestCase
             ->assertJsonPath('html', 'Hello Felipe');
     }
 
+    public function test_template_content_is_sanitized_when_created()
+    {
+        $payload = [
+            'title' => 'Unsafe Template',
+            'content' => '<p onclick="alert(1)" style="text-align: center; background-image: url(javascript:alert(1));">Oi</p><script>alert(1)</script>',
+            'visibility' => 'public',
+        ];
+
+        $response = $this->postJson('/api/templates', $payload);
+
+        $response->assertCreated();
+        $this->assertSame(
+            '<p style="text-align: center">Oi</p>alert(1)',
+            Template::firstOrFail()->content,
+        );
+    }
+
+    public function test_template_content_is_sanitized_when_updated()
+    {
+        $template = Template::create([
+            'tenant_id' => $this->tenant->id,
+            'title' => 'Update Test',
+            'content' => 'Safe',
+            'visibility' => 'public',
+        ]);
+
+        $response = $this->putJson("/api/templates/{$template->id}", [
+            'content' => '<div onmouseover="alert(1)"><iframe src="x"></iframe><strong>Seguro</strong></div>',
+        ]);
+
+        $response->assertOk();
+        $this->assertSame(
+            '<div><strong>Seguro</strong></div>',
+            $template->refresh()->content,
+        );
+    }
+
+    public function test_render_sanitizes_template_and_escapes_variable_values()
+    {
+        StaticVariable::create([
+            'name' => 'assistido_nome',
+            'description' => 'Nome completo da pessoa assistida.',
+            'example' => 'Felipe',
+        ]);
+
+        $template = Template::create([
+            'tenant_id' => $this->tenant->id,
+            'title' => 'Render Sanitized',
+            'content' => '<p onclick="alert(1)">Hello {{assistido_nome}}</p>',
+            'visibility' => 'public',
+        ]);
+
+        $response = $this->postJson("/api/templates/{$template->id}/render", [
+            'variables' => [
+                'assistido_nome' => '<img src=x onerror=alert(1)>',
+            ],
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('html', '<p>Hello &lt;img src=x onerror=alert(1)&gt;</p>');
+    }
+
     public function test_tenant_isolation()
     {
         $otherTenant = Tenant::create(['name' => 'Other Tenant']);

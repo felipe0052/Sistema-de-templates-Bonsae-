@@ -1,5 +1,5 @@
 import type { Template, Document, Variable } from './types'
-import { extractVariableTokens } from './document-utils'
+import { escapeHtml, extractVariableTokens } from './document-utils'
 
 export const availableVariables: Variable[] = [
   { id: '1', variable_name: 'nome', description: 'Full name', example: 'João Silva' },
@@ -106,8 +106,9 @@ export const initialDocuments: Document[] = [
 export function replaceVariables(content: string, data: Record<string, string>): string {
   let result = content
   Object.entries(data).forEach(([key, value]) => {
-    const regex = new RegExp(`{{${key}}}`, 'g')
-    result = result.replace(regex, value || `{{${key}}}`)
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`{{\\s*${escapedKey}\\s*}}`, 'g')
+    result = result.replace(regex, value ? escapeHtml(value) : `{{${key}}}`)
   })
   return result
 }

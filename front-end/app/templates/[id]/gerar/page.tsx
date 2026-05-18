@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,8 @@ import Link from "next/link";
 import { useStore } from "@/components/store-provider";
 import { toast } from "sonner";
 import { extractVariables, replaceVariables } from "@/lib/store";
-import { findUnknownVariables, normalizeTemplateContent } from "@/lib/document-utils";
+import { escapeHtml, findUnknownVariables, highlightPendingVariables, normalizeTemplateContent } from "@/lib/document-utils";
+import { SafeHtmlRenderer } from "@/components/safe-html-renderer";
 import type { Assisted, Template, Address } from "@/lib/types";
 
 const formatValue = (varName: string, value: string) => {
@@ -173,7 +174,6 @@ export default function GerarDocumentoPage() {
         variableCatalogAvailable,
         assisteds,
     } = useStore();
-    const previewRef = useRef<HTMLDivElement>(null);
     const [template, setTemplate] = useState<Template | null>(null);
     const [dados, setDados] = useState<Record<string, string>>({});
     const [variables, setVariables] = useState<string[]>([]);
@@ -339,11 +339,12 @@ export default function GerarDocumentoPage() {
                 return;
             }
 
+            const printTitle = escapeHtml(template?.template_name || "Documento");
             printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>${template?.template_name || "Documento"}</title>
+          <title>${printTitle}</title>
           <style>
             @page {
               size: A4;
@@ -571,8 +572,8 @@ export default function GerarDocumentoPage() {
                                         }}
                                     />
                                 )}
-                                <div
-                                    ref={previewRef}
+                                <SafeHtmlRenderer
+                                    html={highlightPendingVariables(processedContent)}
                                     className="preview-document relative !text-black"
                                     style={{
                                         fontFamily: "Times New Roman, serif",
@@ -580,12 +581,6 @@ export default function GerarDocumentoPage() {
                                         lineHeight: "1.7",
                                         color: "#000000",
                                         padding: "3cm 2.5cm 2.5cm 3cm",
-                                    }}
-                                    dangerouslySetInnerHTML={{
-                                        __html: processedContent.replace(
-                                            /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g,
-                                            '<span style="background-color: #fee2e2; color: #991b1b; padding: 0 4px; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">{{$1}}</span>',
-                                        ),
                                     }}
                                 />
                             </div>

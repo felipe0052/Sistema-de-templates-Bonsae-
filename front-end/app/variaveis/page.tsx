@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Search, Plus, Variable, Pencil, Trash2 } from "lucide-react"
+import { Search, Plus, Variable as VariableIcon, Pencil, Trash2 } from "lucide-react"
 import { useStore } from "@/components/store-provider"
 import { toast } from "sonner"
 import type { Variable } from "@/lib/types"
@@ -217,7 +217,7 @@ export default function VariablesPage() {
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Variable className="h-5 w-5 text-primary" />
+              <VariableIcon className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground mb-1">
