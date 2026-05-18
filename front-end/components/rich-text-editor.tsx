@@ -262,7 +262,8 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     
     editorRef.current.focus()
     emitChange()
-  }, [emitChange])
+    scheduleHighlight()
+  }, [emitChange, scheduleHighlight])
 
   useImperativeHandle(ref, () => ({ insertVariable }), [insertVariable])
 
