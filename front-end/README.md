@@ -46,6 +46,12 @@ Um sistema web robusto desenvolvido com **Next.js** e **React** para criação, 
 
 4. Acesse [http://localhost:3000](http://localhost:3000) no seu navegador para ver o resultado.
 
+## Acesso
+
+- A tela inicial agora é `/login`.
+- Credenciais padrão de demonstração: `admin@instituicao.com` / `password`.
+- Existe também um botão de acesso de demonstração para o modo admin do backend.
+
 ## Scripts Disponíveis
 
 - `npm run dev` - Roda o servidor de desenvolvimento.
@@ -60,5 +66,4 @@ Um sistema web robusto desenvolvido com **Next.js** e **React** para criação, 
 - Validação visual e formatação de máscaras no preenchimento de documentos.
 - Sistema unificado de busca integrado ao cabeçalho.
 - Remoção completa de recursos nativos de geração em PDF, focando na integração orgânica em tela para flexibilidade do fluxo.
-
 

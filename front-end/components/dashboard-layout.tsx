@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Sidebar, SidebarContent } from "@/components/sidebar"
 import { Header } from "@/components/header"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { useStore } from "@/components/store-provider"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -17,11 +18,22 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children, title, subtitle, searchValue, onSearchChange }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { token } = useStore()
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    if (!token) {
+      router.replace("/login")
+    }
+  }, [token, router])
+
+  if (!token) {
+    return null
+  }
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">

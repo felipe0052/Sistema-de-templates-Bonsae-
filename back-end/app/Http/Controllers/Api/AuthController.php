@@ -38,21 +38,32 @@ class AuthController extends Controller
     {
         abort_unless($this->isAdminModeEnabled(), 403, 'Admin mode is disabled.');
 
-        $tenant = Tenant::query()->firstOrCreate(
-            ['domain' => 'instituicao.local'],
-            ['name' => 'Instituição Admin']
-        );
+        $user = User::query()->where('email', 'admin@instituicao.com')->first();
 
-        $user = User::query()->firstOrCreate(
-            ['email' => 'admin@instituicao.com'],
-            [
-                'tenant_id' => $tenant->id,
-                'name' => 'Administrador',
-                'password' => Hash::make('password'),
-            ]
-        );
+        if (! $user) {
+            $tenant = Tenant::query()->firstOrCreate(
+                ['domain' => 'instituicao.local'],
+                ['name' => 'Instituição Admin']
+            );
 
-        if ((int) $user->tenant_id !== (int) $tenant->id) {
+            $user = User::query()->firstOrCreate(
+                ['email' => 'admin@instituicao.com'],
+                [
+                    'tenant_id' => $tenant->id,
+                    'name' => 'Administrador',
+                    'password' => Hash::make('password'),
+                ]
+            );
+        }
+
+        $tenant = Tenant::query()->find($user->tenant_id);
+
+        if (! $tenant) {
+            $tenant = Tenant::query()->firstOrCreate(
+                ['domain' => 'instituicao.local'],
+                ['name' => 'Instituição Admin']
+            );
+
             $user->forceFill(['tenant_id' => $tenant->id])->save();
         }
 
