@@ -12,6 +12,7 @@ import type {
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 const LOCAL_STORAGE_KEY = "bonsae_templates_local";
+const AUTH_TOKEN_KEY = "bonsae_auth_token";
 
 type LegacyTemplate = Partial<Template> & {
     nome_template?: string;
@@ -45,8 +46,29 @@ export function useApiStore() {
     const [isLoading, setIsLoading] = useState(true);
     const [variableCatalogAvailable, setVariableCatalogAvailable] =
         useState(false);
-    const [token, setToken] = useState<string | null>(null);
+    const [token, setTokenState] = useState<string | null>(() => {
+        if (typeof window === "undefined") {
+            return null;
+        }
+
+        return localStorage.getItem(AUTH_TOKEN_KEY);
+    });
     const apiBaseUrl = getApiBaseUrl();
+
+    const setToken = useCallback((value: string | null) => {
+        setTokenState(value);
+
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        if (value) {
+            localStorage.setItem(AUTH_TOKEN_KEY, value);
+            return;
+        }
+
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+    }, []);
 
     useEffect(() => {
         const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -65,50 +87,6 @@ export function useApiStore() {
             setTemplates(normalized);
         }
     }, []);
-
-    useEffect(() => {
-        const login = async () => {
-            const tryLogin = async (path: string, options?: RequestInit) => {
-                const response = await fetch(`${apiBaseUrl}${path}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    ...options,
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Login failed for ${path}`);
-                }
-
-                return response.json();
-            };
-
-            try {
-                const data = await tryLogin("/login", {
-                    body: JSON.stringify({
-                        email: "admin@instituicao.com",
-                        password: "password",
-                    }),
-                });
-
-                if (data.access_token) {
-                    setToken(data.access_token);
-                    return;
-                }
-            } catch (_error) {
-                try {
-                    const adminModeData = await tryLogin("/admin-mode/login");
-
-                    if (adminModeData.access_token) {
-                        setToken(adminModeData.access_token);
-                        return;
-                    }
-                } catch (_adminModeError) {
-                    console.warn("API Login failed, using local mode only.");
-                }
-            }
-        };
-        login();
-    }, [apiBaseUrl]);
 
     const fetchVariables = async (search?: string) => {
         const query = search ? `?search=${encodeURIComponent(search)}` : "";
@@ -626,6 +604,9 @@ export function useApiStore() {
         addVariable,
         updateVariable,
         addDocument,
+        token,
+        setAuthToken: setToken,
+        clearAuthToken: () => setToken(null),
         deleteDocument: async (id: string) => {
             if (!token) return;
             try {

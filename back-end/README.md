@@ -69,7 +69,10 @@ Servidor da API: `http://127.0.0.1:8000`
   - Body: `{"email": "admin@instituicao.com", "password": "password"}`
 - `POST /api/admin-mode/login`: Bootstrap de desenvolvimento para entrar como admin automaticamente.
   - Disponível fora de produção quando `ADMIN_MODE_ENABLED=true` ou `APP_ENV != production`.
-  - Cria/recupera o tenant e o usuário `admin@instituicao.com` e devolve token Bearer.
+  - Usa o usuário admin seedado quando ele já existir; caso contrário, cria um admin de apoio e devolve token Bearer.
+
+### Acesso padrão de demonstração
+- Após `php artisan migrate --seed`, o usuário `admin@instituicao.com` com senha `password` tem acesso ao tenant seedado e aos dados iniciais do banco.
 
 ### Templates
 - `GET /api/templates`: Lista templates da instituição.
