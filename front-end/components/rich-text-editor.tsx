@@ -158,6 +158,66 @@ function applyVariableHighlights(
   })
 }
 
+function isVariableTokenElement(node: Node | null): node is HTMLElement {
+  return node instanceof HTMLElement && node.hasAttribute("data-variable-token")
+}
+
+function isSpacing(value: string) {
+  return /^[\s\u00A0]*$/.test(value)
+}
+
+function getVariableTokenNearRange(range: Range, root: HTMLElement, key: string): HTMLElement | null {
+  if (!range.collapsed || !root.contains(range.startContainer)) return null
+
+  const container = range.startContainer
+  const offset = range.startOffset
+
+  if (container.nodeType === Node.TEXT_NODE) {
+    const text = container.textContent || ""
+
+    if (key === "Backspace" && offset === 0) {
+      return isVariableTokenElement(container.previousSibling) ? container.previousSibling : null
+    }
+
+    if (key === "Backspace" && isSpacing(text.slice(0, offset))) {
+      return isVariableTokenElement(container.previousSibling) ? container.previousSibling : null
+    }
+
+    if (key === "Delete" && offset === text.length) {
+      return isVariableTokenElement(container.nextSibling) ? container.nextSibling : null
+    }
+
+    if (key === "Delete" && isSpacing(text.slice(offset))) {
+      return isVariableTokenElement(container.nextSibling) ? container.nextSibling : null
+    }
+
+    return null
+  }
+
+  if (container.nodeType !== Node.ELEMENT_NODE) return null
+
+  const element = container as Element
+  const targetNode = key === "Backspace"
+    ? element.childNodes.item(offset - 1)
+    : element.childNodes.item(offset)
+
+  return isVariableTokenElement(targetNode) ? targetNode : null
+}
+
+function unlockVariableToken(token: HTMLElement, placeCursor: "start" | "end") {
+  const selection = window.getSelection()
+  if (!selection) return
+
+  const textNode = document.createTextNode(token.textContent || "")
+  token.replaceWith(textNode)
+
+  const range = document.createRange()
+  range.setStart(textNode, placeCursor === "start" ? 0 : textNode.length)
+  range.collapse(true)
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
 export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(function RichTextEditor({
   value,
   onChange,
@@ -214,6 +274,22 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     emitChange()
     scheduleHighlight()
   }, [emitChange, scheduleHighlight])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Backspace" && e.key !== "Delete") return
+    if (!editorRef.current) return
+
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return
+
+    const range = selection.getRangeAt(0)
+    const token = getVariableTokenNearRange(range, editorRef.current, e.key)
+    if (!token) return
+
+    e.preventDefault()
+    unlockVariableToken(token, e.key === "Backspace" ? "end" : "start")
+    emitChange()
+  }, [emitChange])
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault()
@@ -318,6 +394,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
         contentEditable
         suppressContentEditableWarning
         className="editor-document min-h-[400px] outline-none focus:ring-2 focus:ring-ring focus:ring-inset break-words whitespace-pre-wrap bg-white !text-black shadow-inner mx-auto"
+        onKeyDown={handleKeyDown}
         onInput={handleInput}
         onPaste={handlePaste}
         onCompositionStart={() => {
