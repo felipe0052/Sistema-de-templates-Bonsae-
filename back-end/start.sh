@@ -7,9 +7,9 @@ touch database/database.sqlite
 # 1. Provisionar um serviço MySQL no Railway e vincular ao serviço
 # 2. Adicionar DB_CONNECTION=mysql e demais variáveis de ambiente
 # 3. Remover o 'touch database/database.sqlite' acima
-# 4. O comando abaixo roda as migrations sem seed (seguro para produção)
+# 4. O --seed é seguro porque o DatabaseSeeder usa updateOrInsert
 
-php artisan migrate --force
+php artisan migrate --seed --force
 
 php artisan config:cache
 php artisan route:cache
