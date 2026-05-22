@@ -229,6 +229,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
   const editorRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<number | null>(null)
   const isComposingRef = useRef(false)
+  const isUnlockingRef = useRef(false)
   const availableSet = useMemo(() => new Set(availableVariables), [availableVariables])
 
   const emitChange = useCallback(() => {
@@ -271,6 +272,10 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
   }, [emitChange, scheduleHighlight])
 
   const handleInput = useCallback(() => {
+    if (isUnlockingRef.current) {
+      isUnlockingRef.current = false
+      return
+    }
     emitChange()
     scheduleHighlight()
   }, [emitChange, scheduleHighlight])
@@ -288,6 +293,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
 
     e.preventDefault()
     unlockVariableToken(token, e.key === "Backspace" ? "end" : "start")
+    isUnlockingRef.current = true
     emitChange()
   }, [emitChange])
 
