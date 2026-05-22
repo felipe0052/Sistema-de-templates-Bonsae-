@@ -93,12 +93,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
-
       - name: Deploy to Vercel
         run: |
-          npx vercel deploy --prebuilt --prod --yes \
+          npx vercel deploy --prod --yes \
             --token=${{ secrets.VERCEL_TOKEN }}
 
   deploy-backend:
@@ -115,7 +112,5 @@ jobs:
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway link humble-learning
-          railway up --service bonsae-api --detach
+        run: railway up --service bonsae-api --detach
         working-directory: back-end
