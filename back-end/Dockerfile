@@ -1,5 +1,8 @@
 FROM php:8.4-cli AS base
 
+ENV APP_ENV=production \
+    APP_DEBUG=false
+
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
     sqlite3 libsqlite3-dev \
