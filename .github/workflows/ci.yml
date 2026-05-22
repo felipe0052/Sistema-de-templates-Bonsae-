@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: back-end
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: sqlite3, pdo_sqlite, mbstring, xml, gd
+          tools: composer
+
+      - name: Validate composer.json
+        run: composer validate
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: back-end/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('back-end/composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install --no-progress
+
+      - name: Create SQLite database
+        run: touch database/database.sqlite
+
+      - name: PHP Lint (Pint)
+        run: ./vendor/bin/pint --test || true
+
+      - name: Run tests
+        run: php artisan test
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front-end
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: front-end/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build

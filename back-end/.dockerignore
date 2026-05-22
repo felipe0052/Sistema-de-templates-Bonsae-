@@ -1,0 +1,13 @@
+.git
+node_modules/
+front-end/
+.env
+.env.*
+*.sqlite
+*.sqlite-journal
+*.md
+test_autoload.php
+clean_dump.sql
+dump.sql
+tmp_laravel/
+composer.phar
