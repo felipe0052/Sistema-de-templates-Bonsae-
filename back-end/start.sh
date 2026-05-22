@@ -3,7 +3,13 @@ set -e
 
 touch database/database.sqlite
 
-php artisan migrate --seed --force
+# NOTA: Se migrar para MySQL no futuro:
+# 1. Provisionar um serviço MySQL no Railway e vincular ao serviço
+# 2. Adicionar DB_CONNECTION=mysql e demais variáveis de ambiente
+# 3. Remover o 'touch database/database.sqlite' acima
+# 4. O comando abaixo roda as migrations sem seed (seguro para produção)
+
+php artisan migrate --force
 
 php artisan config:cache
 php artisan route:cache

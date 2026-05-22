@@ -34,6 +34,10 @@ return [
 
         'sqlite' => [
             'driver' => 'sqlite',
+            // NOTA: Para migrar para MySQL em produção, descomente a conexão
+            // 'mysql' abaixo, mude DB_CONNECTION para 'mysql' nas variáveis
+            // de ambiente do Railway, e remova este bloco 'sqlite' (além do
+            // 'touch database/database.sqlite' em start.sh).
             'url' => env('DB_URL'),
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
