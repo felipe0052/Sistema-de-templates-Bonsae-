@@ -1,4 +1,4 @@
-FROM php:8.2-cli AS base
+FROM php:8.4-cli AS base
 
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
