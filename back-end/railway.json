@@ -1,6 +1,9 @@
 {
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "./Dockerfile"
+  },
   "deploy": {
-    "image": "ghcr.io/DevAntonioJorge/bonsae-api:latest",
     "startCommand": "/start.sh",
     "restartPolicyType": "ON_FAILURE"
   }
