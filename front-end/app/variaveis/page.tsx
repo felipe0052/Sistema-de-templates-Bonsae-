@@ -295,7 +295,7 @@ export default function VariablesPage() {
                             size="sm"
                             onClick={() => handleEditClick(variable)}
                             disabled={isNotEditable}
-                            title={isNotEditable ? `Variáveis ${sourceLabel.toLowerCase()} não podem ser editadas` : ""}
+                            title={isNotEditable ? "Somente variáveis manuais podem ser editadas" : ""}
                           >
                             <Pencil className="h-4 w-4 mr-1" />
                             Editar
