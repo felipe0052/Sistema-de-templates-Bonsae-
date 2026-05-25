@@ -5,7 +5,7 @@ RUN apt-get update \
       git unzip libzip4 libpng16-16 libonig5 libxml2 libsqlite3-0 \
       libjpeg62-turbo libfreetype6 \
     && apt-get install -y --no-install-recommends \
-      git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
+      libzip-dev libpng-dev libonig-dev libxml2-dev \
       libsqlite3-dev libjpeg62-turbo-dev libfreetype6-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
