@@ -553,7 +553,7 @@ export default function GerarDocumentoPage() {
                                                 key={varName}
                                                 className="space-y-2"
                                             >
-                                                <Label className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2">
                                                     <span className="font-mono text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
                                                         {`{{${varName}}}`}
                                                     </span>
@@ -563,7 +563,7 @@ export default function GerarDocumentoPage() {
                                                     <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                                                         automático
                                                     </span>
-                                                </Label>
+                                                </div>
                                                 <div className="h-9 px-3 py-1.5 text-sm rounded-md border border-border bg-muted/30 text-muted-foreground">
                                                     {dados[varName] || (varName === 'endereco' ? 'Selecione um assistido para preencher automaticamente' : '')}
                                                 </div>
