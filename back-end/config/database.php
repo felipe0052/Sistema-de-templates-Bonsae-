@@ -107,6 +107,20 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        'bonsae' => [
+            'driver' => env('BONSAE_DB_DRIVER', 'mysql'),
+            'host' => env('BONSAE_DB_HOST', '127.0.0.1'),
+            'port' => env('BONSAE_DB_PORT', '3306'),
+            'database' => env('BONSAE_DB_DATABASE', 'bonsae_legacy'),
+            'username' => env('BONSAE_DB_USERNAME', 'root'),
+            'password' => env('BONSAE_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

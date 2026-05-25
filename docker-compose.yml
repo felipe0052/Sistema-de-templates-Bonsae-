@@ -22,53 +22,60 @@ services:
     build:
       context: ./back-end
       dockerfile: Dockerfile
+    container_name: bonsae-backend
     restart: unless-stopped
     ports:
-      - "8000:8080"
-    environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
-      PORT: "8080"
-      APP_KEY: "${APP_KEY:?Defina APP_KEY no .env da raiz}"
-      APP_URL: "http://localhost:8000"
-      FRONTEND_URL: "http://localhost:3000"
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: "3306"
-      DB_DATABASE: "${MYSQL_DATABASE:-bonsae}"
-      DB_USERNAME: "${MYSQL_USER}"
-      DB_PASSWORD: "${MYSQL_PASSWORD}"
-      SESSION_DRIVER: file
-      CACHE_STORE: array
-      QUEUE_CONNECTION: sync
-    depends_on:
-      mysql:
-        condition: service_healthy
+      - "8000:8000"
     volumes:
       - ./back-end:/app
-      - backend_vendor:/app/vendor
-    command: ["/start.sh"]
+      - ./back-end/storage:/app/storage
+    env_file:
+      - ./back-end/.env
+    depends_on:
+      - db
+    networks:
+      - bonsae-network
 
+  # Front-end Next.js
   frontend:
     build:
       context: ./front-end
       dockerfile: Dockerfile
-      target: dev
+    container_name: bonsae-frontend
     restart: unless-stopped
-    working_dir: /app
-    command: sh -c "npm ci && npm run dev -- -H 0.0.0.0"
     ports:
       - "3000:3000"
-    environment:
-      WATCHPACK_POLLING: "true"
-      NEXT_PUBLIC_API_BASE_URL: "http://localhost:8000/api"
-    depends_on:
-      - backend
     volumes:
       - ./front-end:/app
       - /app/node_modules
       - /app/.next
+    env_file:
+      - ./front-end/.env
+    depends_on:
+      - backend
+    networks:
+      - bonsae-network
+
+  # Database MySQL
+  db:
+    image: mysql:8.0
+    container_name: bonsae-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-bonsae}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-root}
+    volumes:
+      - bonsae-db-data:/var/lib/mysql
+    networks:
+      - bonsae-network
+
+networks:
+  bonsae-network:
+    driver: bridge
 
 volumes:
-  mysql_data:
-  backend_vendor:
+  bonsae-db-data:
