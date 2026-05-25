@@ -256,9 +256,17 @@ export default function VariablesPage() {
               </TableHeader>
               <TableBody>
                 {filteredVariables.map((variable) => {
-                  const isNotEditable = variable.source !== 'manual';
-                  const sourceLabel = variable.source === 'auto' ? 'Automática' : (variable.source === 'alias' ? 'Alias' : (variable.source === 'system' ? 'Sistema' : 'Manual'));
-                  const sourceVariant = variable.source === 'manual' ? 'default' : 'outline';
+                  const source = variable.source ?? "manual"
+                  const isNotEditable = source !== "manual"
+                  const sourceLabel =
+                    source === "auto"
+                      ? "Automática"
+                      : source === "alias"
+                        ? "Alias"
+                        : source === "system"
+                          ? "Sistema"
+                          : "Manual"
+                  const sourceVariant = source === "manual" ? "default" : "outline"
                   return (
                     <TableRow key={variable.id}>
                       <TableCell>
