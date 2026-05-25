@@ -67,7 +67,7 @@ export interface Variable {
   variable_name: string
   description: string
   example?: string
-  source?: 'auto' | 'manual'
+  source?: 'auto' | 'manual' | 'alias' | 'system'
 }
 
 export interface StaticVariableApiResponse {
@@ -75,7 +75,7 @@ export interface StaticVariableApiResponse {
   name: string
   description: string
   example?: string | null
-  source?: 'auto' | 'manual'
+  source?: 'auto' | 'manual' | 'alias' | 'system'
   created_at?: string
   updated_at?: string
 }

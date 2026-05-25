@@ -52,13 +52,31 @@ class AssistedVariableService
         'state' => ['estado', 'Estado'],
     ];
 
+    protected array $aliases = [
+        'assistido_nome' => [
+            'target' => 'nome',
+            'description' => 'Nome completo (alias para {{nome}})',
+        ],
+    ];
+
+    protected array $systemVariables = [
+        'data_atual' => [
+            'description' => 'Data atual no momento da geração do documento',
+            'example' => '01/01/2025',
+        ],
+        'endereco' => [
+            'description' => 'Endereço completo do assistido (rua, número, bairro, cidade, CEP)',
+            'example' => 'Rua das Flores, 123 - Centro, São Paulo/SP - CEP: 01234-567',
+        ],
+    ];
+
     protected array $excludedColumns = [
         'id', 'creator_id', 'address_id', 'ethnicity_id', 'gender_id',
         'id_number_internal', 'id_old_bonsae', 'id_audora',
         'filename', 'created_at', 'updated_at',
     ];
 
-    public function getAutoVariables(): array
+    public function getAllVariables(): array
     {
         if ($this->cachedVariables !== null) {
             return $this->cachedVariables;
@@ -77,7 +95,7 @@ class AssistedVariableService
                     'field' => $column,
                     'description' => $description,
                     'example' => '',
-                    'table' => 'clients',
+                    'source' => 'auto',
                 ];
             }
         }
@@ -93,9 +111,27 @@ class AssistedVariableService
                     'field' => 'address.' . $column,
                     'description' => $description,
                     'example' => '',
-                    'table' => 'addresses',
+                    'source' => 'auto',
                 ];
             }
+        }
+
+        foreach ($this->aliases as $aliasName => $alias) {
+            $variables[$aliasName] = [
+                'field' => $alias['target'],
+                'description' => $alias['description'],
+                'example' => '',
+                'source' => 'alias',
+            ];
+        }
+
+        foreach ($this->systemVariables as $sysName => $sys) {
+            $variables[$sysName] = [
+                'field' => null,
+                'description' => $sys['description'],
+                'example' => $sys['example'],
+                'source' => 'system',
+            ];
         }
 
         ksort($variables);
@@ -107,7 +143,13 @@ class AssistedVariableService
 
     public function getAllVariableNames(): array
     {
-        return array_keys($this->getAutoVariables());
+        return array_keys($this->getAllVariables());
+    }
+
+    public function getAutoVariableNames(): array
+    {
+        $vars = $this->getAllVariables();
+        return array_keys(array_filter($vars, fn ($v) => $v['source'] === 'auto'));
     }
 
     protected function getExistingColumns(string $table): array
