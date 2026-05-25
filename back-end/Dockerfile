@@ -1,24 +1,31 @@
-FROM php:8.4-cli AS base
+FROM php:8.4-cli-alpine AS base
 
-ENV APP_ENV=production \
-    APP_DEBUG=false
-
-RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    sqlite3 libsqlite3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN docker-php-ext-install pdo_mysql pdo_sqlite zip bcmath gd exif pcntl
+RUN apk add --no-cache git unzip libzip libpng oniguruma libxml2 sqlite-libs \
+      libjpeg-turbo freetype \
+    && apk add --no-cache --virtual .build-deps \
+      libzip-dev libpng-dev oniguruma-dev libxml2-dev sqlite-dev \
+      libjpeg-turbo-dev freetype-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+      pdo_mysql pdo_sqlite zip bcmath gd exif pcntl \
+    && apk del .build-deps
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+FROM base AS vendor
 
 WORKDIR /app
 
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --no-progress --optimize-autoloader
 
+FROM base AS runner
+
+WORKDIR /app
+
+COPY --from=vendor /app/vendor ./vendor
+
 COPY . .
-RUN php artisan storage:link
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh

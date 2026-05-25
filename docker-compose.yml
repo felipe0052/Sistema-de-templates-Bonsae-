@@ -1,0 +1,71 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: bonsae
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+      target: runner
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: "base64:gqjS5fjhkhiFrjGVoOvI6mFUqkOjD23qiDtSPDTYc4E="
+      APP_URL: "http://localhost:8000"
+      FRONTEND_URL: "http://localhost:3000"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: bonsae
+      DB_USERNAME: root
+      DB_PASSWORD: ""
+      SESSION_DRIVER: file
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./back-end:/app
+      - backend_vendor:/app/vendor
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+      target: dev
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- -H 0.0.0.0"
+    ports:
+      - "3000:3000"
+    environment:
+      WATCHPACK_POLLING: "true"
+      NEXT_PUBLIC_API_BASE_URL: "http://localhost:8000/api"
+    depends_on:
+      - backend
+    volumes:
+      - ./front-end:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  mysql_data:
+  backend_vendor:
