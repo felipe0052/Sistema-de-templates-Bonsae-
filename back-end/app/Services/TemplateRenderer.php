@@ -25,6 +25,8 @@ class TemplateRenderer
         array $values,
         string $missingVariableBehavior = "blank",
     ): string {
+        $values['data_atual'] ??= now()->format('d/m/Y');
+
         $content = $this->sanitizer->sanitize($template->content);
 
         foreach ($this->getAvailableVariables() as $variable) {

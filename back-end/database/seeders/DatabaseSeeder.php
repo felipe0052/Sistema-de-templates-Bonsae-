@@ -102,21 +102,6 @@ class DatabaseSeeder extends Seeder
     {
         return [
             [
-                'name' => 'assistido_nome',
-                'description' => 'Nome completo da pessoa assistida (alias para {{nome}}).',
-                'example' => 'Maria da Silva',
-            ],
-            [
-                'name' => 'endereco',
-                'description' => 'Endereço completo (rua, número, bairro, cidade, CEP).',
-                'example' => 'Rua das Flores, 123 - Centro, São Paulo/SP - CEP: 01234-567',
-            ],
-            [
-                'name' => 'data_atual',
-                'description' => 'Data atual no momento da geração do documento.',
-                'example' => now()->format('d/m/Y'),
-            ],
-            [
                 'name' => 'numero_documento',
                 'description' => 'Número identificador do documento.',
                 'example' => 'DOC-2024-001',
