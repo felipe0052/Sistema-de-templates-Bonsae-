@@ -250,65 +250,78 @@ export default function VariablesPage() {
                   <TableHead>Variável</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Exemplo</TableHead>
+                  <TableHead>Origem</TableHead>
                   <TableHead className="w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVariables.map((variable) => (
-                  <TableRow key={variable.id}>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className="font-mono text-xs bg-primary/10 text-primary"
-                      >
-                        {`{{${variable.variable_name}}}`}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {variable.description}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {variable.example || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditClick(variable)}
+                {filteredVariables.map((variable) => {
+                  const isAuto = variable.source === 'auto'
+                  return (
+                    <TableRow key={variable.id}>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className="font-mono text-xs bg-primary/10 text-primary"
                         >
-                          <Pencil className="h-4 w-4 mr-1" />
-                          Editar
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Excluir
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Excluir variável</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação removerá a variável {`{{${variable.variable_name}}}`} da lista pública de templates.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteVar(variable.id)}
-                                disabled={deletingId === variable.id}
-                              >
-                                {deletingId === variable.id ? "Excluindo..." : "Excluir"}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {`{{${variable.variable_name}}}`}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {variable.description}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {variable.example || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={isAuto ? "outline" : "default"} className="text-xs">
+                          {isAuto ? "Automática" : "Manual"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditClick(variable)}
+                            disabled={isAuto}
+                            title={isAuto ? "Variáveis automáticas não podem ser editadas" : ""}
+                          >
+                            <Pencil className="h-4 w-4 mr-1" />
+                            Editar
+                          </Button>
+                          {!isAuto && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Excluir
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Excluir variável</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta ação removerá a variável {`{{${variable.variable_name}}}`} da lista pública de templates.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteVar(variable.id)}
+                                    disabled={deletingId === variable.id}
+                                  >
+                                    {deletingId === variable.id ? "Excluindo..." : "Excluir"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           </CardContent>

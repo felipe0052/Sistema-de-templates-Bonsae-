@@ -2,18 +2,9 @@ import type { Template, Document, Variable } from './types'
 import { escapeHtml, extractVariableTokens } from './document-utils'
 
 export const availableVariables: Variable[] = [
-  { id: '1', variable_name: 'nome', description: 'Full name', example: 'João Silva' },
-  { id: '2', variable_name: 'cpf', description: 'Beneficiary CPF', example: '123.456.789-00' },
-  { id: '3', variable_name: 'rg', description: 'Beneficiary RG', example: '12.345.678-9' },
-  { id: '4', variable_name: 'data_nascimento', description: 'Birth date', example: '01/01/1990' },
-  { id: '5', variable_name: 'endereco', description: 'Full address', example: 'Rua das Flores, 123' },
-  { id: '6', variable_name: 'cidade', description: 'City', example: 'São Paulo' },
-  { id: '7', variable_name: 'estado', description: 'State', example: 'SP' },
-  { id: '8', variable_name: 'cep', description: 'ZIP code', example: '01234-567' },
-  { id: '9', variable_name: 'telefone', description: 'Phone', example: '(11) 99999-9999' },
-  { id: '10', variable_name: 'email', description: 'Email', example: 'joao@email.com' },
-  { id: '11', variable_name: 'data_atual', description: 'Current date', example: new Date().toLocaleDateString('pt-BR') },
-  { id: '12', variable_name: 'numero_documento', description: 'Document number', example: 'DOC-2024-001' },
+  { id: 'endereco', variable_name: 'endereco', description: 'Endereço completo (rua, número, bairro, cidade, CEP)', example: 'Rua das Flores, 123 - Centro, São Paulo/SP - CEP: 01234-567', source: 'manual' },
+  { id: 'data_atual', variable_name: 'data_atual', description: 'Data atual no momento da geração do documento', example: new Date().toLocaleDateString('pt-BR'), source: 'manual' },
+  { id: 'numero_documento', variable_name: 'numero_documento', description: 'Número identificador do documento', example: 'DOC-2024-001', source: 'manual' },
 ]
 
 export const initialTemplates: Template[] = [
