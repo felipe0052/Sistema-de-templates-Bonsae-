@@ -256,7 +256,9 @@ export default function VariablesPage() {
               </TableHeader>
               <TableBody>
                 {filteredVariables.map((variable) => {
-                  const isAuto = variable.source === 'auto'
+                  const isNotEditable = variable.source !== 'manual';
+                  const sourceLabel = variable.source === 'auto' ? 'Automática' : (variable.source === 'alias' ? 'Alias' : (variable.source === 'system' ? 'Sistema' : 'Manual'));
+                  const sourceVariant = variable.source === 'manual' ? 'default' : 'outline';
                   return (
                     <TableRow key={variable.id}>
                       <TableCell>
@@ -274,8 +276,8 @@ export default function VariablesPage() {
                         {variable.example || "-"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={isAuto ? "outline" : "default"} className="text-xs">
-                          {isAuto ? "Automática" : "Manual"}
+                        <Badge variant={sourceVariant} className="text-xs">
+                          {sourceLabel}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -284,13 +286,13 @@ export default function VariablesPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEditClick(variable)}
-                            disabled={isAuto}
-                            title={isAuto ? "Variáveis automáticas não podem ser editadas" : ""}
+                            disabled={isNotEditable}
+                            title={isNotEditable ? `Variáveis ${sourceLabel.toLowerCase()} não podem ser editadas` : ""}
                           >
                             <Pencil className="h-4 w-4 mr-1" />
                             Editar
                           </Button>
-                          {!isAuto && (
+                          {!isNotEditable && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">

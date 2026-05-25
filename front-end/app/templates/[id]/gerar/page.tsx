@@ -542,9 +542,35 @@ export default function GerarDocumentoPage() {
                                             Dados de {selectedAssistido.name} aplicados. Revise e edite os campos abaixo antes de gerar o documento.
                                         </p>
                                     )}
-                                </div>
+                                        </div>
                                 {variables.map((varName) => {
                                     const info = getVariableInfo(varName);
+                                    const isSystem = info?.source === 'system';
+
+                                    if (isSystem) {
+                                        return (
+                                            <div
+                                                key={varName}
+                                                className="space-y-2"
+                                            >
+                                                <Label className="flex items-center gap-2">
+                                                    <span className="font-mono text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                                        {`{{${varName}}}`}
+                                                    </span>
+                                                    <span>
+                                                        {info?.description || varName}
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                                        automático
+                                                    </span>
+                                                </Label>
+                                                <div className="h-9 px-3 py-1.5 text-sm rounded-md border border-border bg-muted/30 text-muted-foreground">
+                                                    {dados[varName] || (varName === 'endereco' ? 'Selecione um assistido para preencher automaticamente' : '')}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
                                     return (
                                         <div
                                             key={varName}

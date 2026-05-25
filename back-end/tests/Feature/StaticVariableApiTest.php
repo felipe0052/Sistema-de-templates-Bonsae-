@@ -35,20 +35,30 @@ class StaticVariableApiTest extends TestCase
 
         $data = $response->json('data');
 
-        $this->assertGreaterThan(4, count($data));
+        $this->assertGreaterThan(30, count($data));
 
-        $manualNames = array_map(fn ($v) => $v['name'], array_filter($data, fn ($v) => $v['source'] === 'manual'));
-        $autoEntries = array_filter($data, fn ($v) => $v['source'] === 'auto');
+        $bySource = function (string $source) use ($data) {
+            return array_map(fn ($v) => $v['name'], array_filter($data, fn ($v) => $v['source'] === $source));
+        };
 
-        $this->assertContains('assistido_nome', $manualNames);
-        $this->assertContains('endereco', $manualNames);
-        $this->assertContains('data_atual', $manualNames);
+        $manualNames = $bySource('manual');
+        $autoNames = $bySource('auto');
+        $aliasNames = $bySource('alias');
+        $systemNames = $bySource('system');
+
         $this->assertContains('numero_documento', $manualNames);
-        $this->assertCount(4, $manualNames);
+        $this->assertContains('assistido_nome', $aliasNames);
+        $this->assertContains('data_atual', $systemNames);
+        $this->assertContains('endereco', $systemNames);
 
-        $this->assertNotEmpty($autoEntries);
-        foreach ($autoEntries as $entry) {
-            $this->assertStringStartsWith('auto_', $entry['id']);
+        $this->assertNotEmpty($autoNames);
+        $this->assertNotEmpty($aliasNames);
+        $this->assertNotEmpty($systemNames);
+
+        foreach ($data as $entry) {
+            if ($entry['source'] === 'auto') {
+                $this->assertStringStartsWith('auto_', $entry['id']);
+            }
         }
     }
 
@@ -137,10 +147,14 @@ class StaticVariableApiTest extends TestCase
     {
         Sanctum::actingAs($this->user);
 
-        $variable = StaticVariable::query()->where('name', 'assistido_nome')->firstOrFail();
+        $variable = StaticVariable::query()->create([
+            'name' => 'numero_processo',
+            'description' => 'Número do processo.',
+            'example' => '1234/2024',
+        ]);
 
         $response = $this->putJson("/api/variables/{$variable->id}", [
-            'name' => 'CPF',
+            'name' => 'cpf',
             'description' => 'Tentativa duplicada.',
             'example' => '123.456.789-00',
         ]);

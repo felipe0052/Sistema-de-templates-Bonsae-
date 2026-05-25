@@ -2,8 +2,6 @@ import type { Template, Document, Variable } from './types'
 import { escapeHtml, extractVariableTokens } from './document-utils'
 
 export const availableVariables: Variable[] = [
-  { id: 'endereco', variable_name: 'endereco', description: 'Endereço completo (rua, número, bairro, cidade, CEP)', example: 'Rua das Flores, 123 - Centro, São Paulo/SP - CEP: 01234-567', source: 'manual' },
-  { id: 'data_atual', variable_name: 'data_atual', description: 'Data atual no momento da geração do documento', example: new Date().toLocaleDateString('pt-BR'), source: 'manual' },
   { id: 'numero_documento', variable_name: 'numero_documento', description: 'Número identificador do documento', example: 'DOC-2024-001', source: 'manual' },
 ]
 

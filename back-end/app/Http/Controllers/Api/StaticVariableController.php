@@ -34,23 +34,31 @@ class StaticVariableController extends Controller
             ]);
 
         $autoService = app(AssistedVariableService::class);
-        $autoVariables = collect($autoService->getAutoVariables())
+        $generatedVariables = collect($autoService->getAllVariables())
             ->map(function ($meta, $varName) use ($search) {
                 if ($search !== '' && !str_contains($varName, $search) && !str_contains($meta['description'], $search)) {
                     return null;
                 }
+
+                $id = match ($meta['source']) {
+                    'auto' => 'auto_' . ($meta['field'] ?? $varName),
+                    'alias' => 'alias_' . $varName,
+                    'system' => 'sys_' . $varName,
+                    default => 'gen_' . $varName,
+                };
+
                 return [
-                    'id' => 'auto_' . $meta['field'],
+                    'id' => $id,
                     'name' => $varName,
                     'description' => $meta['description'],
-                    'example' => '',
-                    'source' => 'auto',
+                    'example' => $meta['example'] ?? '',
+                    'source' => $meta['source'],
                 ];
             })
             ->filter()
             ->values();
 
-        $merged = $staticVariables->concat($autoVariables)
+        $merged = $staticVariables->concat($generatedVariables)
             ->keyBy('name')
             ->sortKeys()
             ->values();
@@ -119,7 +127,7 @@ class StaticVariableController extends Controller
         $autoNames = app(AssistedVariableService::class)->getAllVariableNames();
         if (in_array($normalizedName, $autoNames)) {
             throw ValidationException::withMessages([
-                'name' => ['This name conflicts with an auto-generated variable from the clients table.'],
+                'name' => ['This name conflicts with an existing auto-generated or system variable.'],
             ]);
         }
 
