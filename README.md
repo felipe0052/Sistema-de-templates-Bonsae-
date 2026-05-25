@@ -81,6 +81,25 @@ O front-end ficara em `http://localhost:3000`.
 
 Se a API nao estiver no ar, o front entra em modo local para parte dos dados.
 
+### 5. Execucao com Docker Compose
+
+O `docker-compose.yml` le as variaveis da raiz do repositorio. Antes de subir os containers, defina pelo menos:
+
+```env
+APP_KEY=base64:gere_sua_chave_aqui
+MYSQL_DATABASE=bonsae
+MYSQL_ROOT_PASSWORD=defina-uma-senha-forte
+MYSQL_USER=bonsae
+MYSQL_PASSWORD=defina-outra-senha-forte
+```
+
+Para gerar a `APP_KEY`, use:
+
+```bash
+cd back-end
+php artisan key:generate --show
+```
+
 ## Funcionalidades Principais
 
 - CRUD de templates: Criar, editar e excluir modelos de documentos.
@@ -93,4 +112,3 @@ Se a API nao estiver no ar, o front entra em modo local para parte dos dados.
 
 - `/front-end`: Aplicacao Next.js.
 - `/back-end`: API Laravel com SQLite.
-

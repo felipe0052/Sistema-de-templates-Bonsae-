@@ -1,24 +1,36 @@
-FROM php:8.4-cli AS base
+FROM php:8.4-cli-bookworm AS base
 
-ENV APP_ENV=production \
-    APP_DEBUG=false
-
-RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    sqlite3 libsqlite3-dev \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+      git unzip libzip4 libpng16-16 libonig5 libxml2 libsqlite3-0 \
+      libjpeg62-turbo libfreetype6 \
+    && apt-get install -y --no-install-recommends \
+      libzip-dev libpng-dev libonig-dev libxml2-dev \
+      libsqlite3-dev libjpeg62-turbo-dev libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+      pdo_mysql pdo_sqlite zip bcmath gd exif pcntl \
+    && apt-get purge -y --auto-remove \
+      libzip-dev libpng-dev libonig-dev libxml2-dev libsqlite3-dev \
+      libjpeg62-turbo-dev libfreetype6-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install pdo_mysql pdo_sqlite zip bcmath gd exif pcntl
+COPY --from=composer:2.8.8 /usr/bin/composer /usr/bin/composer
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+FROM base AS vendor
 
 WORKDIR /app
 
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --no-progress --optimize-autoloader
 
+FROM base AS runner
+
+WORKDIR /app
+
+COPY --from=vendor /app/vendor ./vendor
+
 COPY . .
-RUN php artisan storage:link
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
