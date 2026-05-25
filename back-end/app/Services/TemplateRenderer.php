@@ -64,6 +64,10 @@ class TemplateRenderer
 
     public function getAvailableVariables(): array
     {
-        return StaticVariable::query()->orderBy("name")->pluck("name")->all();
+        $staticVariables = StaticVariable::query()->orderBy("name")->pluck("name")->all();
+        $autoVariables = app(AssistedVariableService::class)->getAllVariableNames();
+        $merged = array_unique(array_merge($staticVariables, $autoVariables));
+        sort($merged);
+        return $merged;
     }
 }

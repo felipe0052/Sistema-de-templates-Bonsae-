@@ -67,13 +67,15 @@ export interface Variable {
   variable_name: string
   description: string
   example?: string
+  source?: 'auto' | 'manual'
 }
 
 export interface StaticVariableApiResponse {
-  id: number
+  id: number | string
   name: string
   description: string
   example?: string | null
+  source?: 'auto' | 'manual'
   created_at?: string
   updated_at?: string
 }

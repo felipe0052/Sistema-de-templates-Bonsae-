@@ -9,6 +9,7 @@ import type {
     Assisted,
     StaticVariableApiResponse,
 } from "@/lib/types";
+import { availableVariables as fallbackVariables } from "@/lib/store";
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 const LOCAL_STORAGE_KEY = "bonsae_templates_local";
@@ -34,6 +35,7 @@ function mapApiVariable(variable: StaticVariableApiResponse): Variable {
         variable_name: variable.name,
         description: variable.description,
         example: variable.example || "",
+        source: variable.source || "manual",
     };
 }
 
@@ -118,6 +120,10 @@ export function useApiStore() {
                 const message =
                     error instanceof Error ? error.message : String(error);
                 console.warn(`Variables sync skipped: ${message}`);
+
+                if (variables.length === 0) {
+                    setVariables(fallbackVariables);
+                }
             } finally {
                 setIsLoading(false);
             }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\StaticVariable;
+use App\Services\AssistedVariableService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
@@ -14,7 +15,7 @@ class StaticVariableController extends Controller
     {
         $search = trim((string) $request->query('search', ''));
 
-        $variables = StaticVariable::query()
+        $staticVariables = StaticVariable::query()
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery
@@ -23,10 +24,39 @@ class StaticVariableController extends Controller
                 });
             })
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(fn ($v) => [
+                'id' => (string) $v->id,
+                'name' => $v->name,
+                'description' => $v->description,
+                'example' => $v->example ?? '',
+                'source' => 'manual',
+            ]);
+
+        $autoService = app(AssistedVariableService::class);
+        $autoVariables = collect($autoService->getAutoVariables())
+            ->map(function ($meta, $varName) use ($search) {
+                if ($search !== '' && !str_contains($varName, $search) && !str_contains($meta['description'], $search)) {
+                    return null;
+                }
+                return [
+                    'id' => 'auto_' . $meta['field'],
+                    'name' => $varName,
+                    'description' => $meta['description'],
+                    'example' => '',
+                    'source' => 'auto',
+                ];
+            })
+            ->filter()
+            ->values();
+
+        $merged = $staticVariables->concat($autoVariables)
+            ->keyBy('name')
+            ->sortKeys()
+            ->values();
 
         return response()->json([
-            'data' => $variables,
+            'data' => $merged,
         ]);
     }
 
@@ -83,6 +113,13 @@ class StaticVariableController extends Controller
         if ($exists) {
             throw ValidationException::withMessages([
                 'name' => ['The name has already been taken.'],
+            ]);
+        }
+
+        $autoNames = app(AssistedVariableService::class)->getAllVariableNames();
+        if (in_array($normalizedName, $autoNames)) {
+            throw ValidationException::withMessages([
+                'name' => ['This name conflicts with an auto-generated variable from the clients table.'],
             ]);
         }
 
