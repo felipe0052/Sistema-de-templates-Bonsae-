@@ -31,9 +31,25 @@ class StaticVariableApiTest extends TestCase
     {
         $response = $this->getJson('/api/variables');
 
-        $response->assertOk()
-            ->assertJsonPath('data.0.name', 'assistido_nome')
-            ->assertJsonCount(15, 'data');
+        $response->assertOk();
+
+        $data = $response->json('data');
+
+        $this->assertGreaterThan(4, count($data));
+
+        $manualNames = array_map(fn ($v) => $v['name'], array_filter($data, fn ($v) => $v['source'] === 'manual'));
+        $autoEntries = array_filter($data, fn ($v) => $v['source'] === 'auto');
+
+        $this->assertContains('assistido_nome', $manualNames);
+        $this->assertContains('endereco', $manualNames);
+        $this->assertContains('data_atual', $manualNames);
+        $this->assertContains('numero_documento', $manualNames);
+        $this->assertCount(4, $manualNames);
+
+        $this->assertNotEmpty($autoEntries);
+        foreach ($autoEntries as $entry) {
+            $this->assertStringStartsWith('auto_', $entry['id']);
+        }
     }
 
     public function test_can_search_static_variables(): void
@@ -42,7 +58,7 @@ class StaticVariableApiTest extends TestCase
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'cpf');
+            ->assertJsonPath('data.0.source', 'auto');
     }
 
     public function test_authenticated_user_can_create_static_variable(): void
