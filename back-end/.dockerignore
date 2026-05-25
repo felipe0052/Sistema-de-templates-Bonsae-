@@ -11,3 +11,6 @@ clean_dump.sql
 dump.sql
 tmp_laravel/
 composer.phar
+tests/
+phpunit.xml
+.phpunit.result.cache
