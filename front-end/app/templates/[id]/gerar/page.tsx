@@ -542,7 +542,7 @@ export default function GerarDocumentoPage() {
                                             Dados de {selectedAssistido.name} aplicados. Revise e edite os campos abaixo antes de gerar o documento.
                                         </p>
                                     )}
-                                        </div>
+                                </div>
                                 {variables.map((varName) => {
                                     const info = getVariableInfo(varName);
                                     const isSystem = info?.source === 'system';

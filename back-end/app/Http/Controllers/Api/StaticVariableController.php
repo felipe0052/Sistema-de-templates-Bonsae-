@@ -113,17 +113,6 @@ class StaticVariableController extends Controller
 
         $normalizedName = strtolower($validated['name']);
 
-        $exists = StaticVariable::query()
-            ->whereRaw('LOWER(name) = ?', [$normalizedName])
-            ->when($variable, fn ($query) => $query->whereKeyNot($variable->id))
-            ->exists();
-
-        if ($exists) {
-            throw ValidationException::withMessages([
-                'name' => ['The name has already been taken.'],
-            ]);
-        }
-
         $autoNames = app(AssistedVariableService::class)->getAllVariableNames();
         if (in_array($normalizedName, $autoNames)) {
             throw ValidationException::withMessages([

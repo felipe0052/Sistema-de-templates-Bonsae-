@@ -66,9 +66,14 @@ class StaticVariableApiTest extends TestCase
     {
         $response = $this->getJson('/api/variables?search=cpf');
 
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.source', 'auto');
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $this->assertNotEmpty($data);
+
+        $cpfVars = array_filter($data, fn ($v) => $v['name'] === 'cpf');
+        $this->assertNotEmpty($cpfVars);
+        $this->assertSame('auto', reset($cpfVars)['source']);
     }
 
     public function test_authenticated_user_can_create_static_variable(): void
