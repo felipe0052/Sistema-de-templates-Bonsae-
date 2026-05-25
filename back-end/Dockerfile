@@ -15,7 +15,7 @@ RUN apt-get update \
       libjpeg62-turbo-dev libfreetype6-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.8.8 /usr/bin/composer /usr/bin/composer
 
 FROM base AS vendor
 
