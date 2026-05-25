@@ -116,7 +116,7 @@ class StaticVariableController extends Controller
         $autoNames = app(AssistedVariableService::class)->getAllVariableNames();
         if (in_array($normalizedName, $autoNames)) {
             throw ValidationException::withMessages([
-                'name' => ['This name conflicts with an existing auto-generated or system variable.'],
+                'name' => ['This name conflicts with an existing generated variable.'],
             ]);
         }
 
