@@ -20,7 +20,7 @@ class EnsureUserHasTenant
         $user = auth()->user();
         
         $tenantId = null;
-        if ($user->currentAccessToken()) {
+        if ($user->currentAccessToken() && is_iterable($user->currentAccessToken()->abilities)) {
             foreach ($user->currentAccessToken()->abilities as $ability) {
                 if (str_starts_with($ability, 'tenant:')) {
                     $tenantId = str_replace('tenant:', '', $ability);
