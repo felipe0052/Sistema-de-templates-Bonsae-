@@ -23,10 +23,10 @@ function VariableNodeComponent({
     <NodeViewWrapper
       as="span"
       data-variable-token={name}
-      className={`px-1.5 py-0.5 rounded font-mono text-sm mx-0.5 inline-flex items-center cursor-default select-none transition-colors ${
+      className={`rounded-sm px-0.5 transition-colors cursor-default ${
         selected
-          ? "bg-primary/30 text-primary ring-1 ring-primary/40"
-          : "bg-primary/15 text-primary hover:bg-primary/25"
+          ? "bg-primary/20 text-primary"
+          : "bg-primary/10 text-primary"
       }`}
       contentEditable={false}
       draggable={false}
@@ -121,7 +121,7 @@ export const VariableNode = Node.create({
         if (!selection.empty) return false
 
         const $pos = selection.$anchor
-        if ($pos.parentOffset <= 0) return false
+        if ($pos.parentOffset <= 0 || $pos.parentOffset - 1 >= $pos.parent.childCount) return false
 
         const nodeBefore = $pos.parent.child($pos.parentOffset - 1)
 

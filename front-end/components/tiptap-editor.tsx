@@ -296,6 +296,10 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
             margin: 0 0 6pt 0;
           }
 
+          .tiptap-editor-content div[data-node-view-wrapper] {
+            display: inline;
+          }
+
           .tiptap-editor-content .tiptap .is-editor-empty:first-child::before {
             content: attr(data-placeholder);
             float: left;

@@ -159,7 +159,7 @@ export default function NovoTemplatePage() {
 
                 {/* Editor Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-3 max-w-md">
+                    <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
                         <TabsTrigger value="editor">Editor</TabsTrigger>
                         <TabsTrigger value="letterhead">
                             Papel Timbrado
@@ -179,17 +179,15 @@ export default function NovoTemplatePage() {
                                 </p>
                             </div>
                         )}
-                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                            <div className="lg:col-span-3">
-                                <TipTapEditor
-                                    ref={editorRef}
-                                    value={content}
-                                    onChange={setContent}
-                                    availableVariables={variables.map((item) => item.variable_name)}
-                                    variableCatalogAvailable={variableCatalogAvailable}
-                                    placeholder="Digite o conteúdo do template. Use {{ para inserir variáveis."
-                                />
-                            </div>
+                        <div className="max-w-4xl mx-auto">
+                            <TipTapEditor
+                                ref={editorRef}
+                                value={content}
+                                onChange={setContent}
+                                availableVariables={variables.map((item) => item.variable_name)}
+                                variableCatalogAvailable={variableCatalogAvailable}
+                                placeholder="Digite o conteúdo do template. Use {{ para inserir variáveis."
+                            />
                         </div>
                     </TabsContent>
 

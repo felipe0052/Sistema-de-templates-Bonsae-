@@ -6,7 +6,7 @@ import {
   SuggestionKeyDownProps,
   SuggestionProps,
 } from "@tiptap/suggestion"
-import { useCallback, useEffect, useState, forwardRef } from "react"
+import { useCallback, useEffect, useState, useImperativeHandle, useRef, forwardRef } from "react"
 
 interface VariableItem {
   name: string
@@ -18,9 +18,10 @@ interface VariableListProps {
   command: (item: VariableItem) => void
 }
 
-const VariableList = forwardRef<HTMLDivElement, VariableListProps>(
+const VariableList = forwardRef<{ onKeyDown: (props: { event: KeyboardEvent }) => boolean }, VariableListProps>(
   function VariableList({ items, command }, ref) {
     const [selectedIndex, setSelectedIndex] = useState(0)
+    const innerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
       setSelectedIndex(0)
@@ -34,34 +35,31 @@ const VariableList = forwardRef<HTMLDivElement, VariableListProps>(
       [items, command],
     )
 
-    useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "ArrowUp") {
-          e.preventDefault()
+    useImperativeHandle(ref, () => ({
+      onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+        if (event.key === "ArrowUp") {
+          event.preventDefault()
           setSelectedIndex((prev) => (prev + items.length - 1) % items.length)
           return true
         }
-        if (e.key === "ArrowDown") {
-          e.preventDefault()
+        if (event.key === "ArrowDown") {
+          event.preventDefault()
           setSelectedIndex((prev) => (prev + 1) % items.length)
           return true
         }
-        if (e.key === "Enter") {
-          e.preventDefault()
+        if (event.key === "Enter") {
+          event.preventDefault()
           selectItem(selectedIndex)
           return true
         }
         return false
-      }
-
-      document.addEventListener("keydown", handleKeyDown)
-      return () => document.removeEventListener("keydown", handleKeyDown)
-    }, [items, selectedIndex, selectItem])
+      },
+    }), [items, selectedIndex, selectItem])
 
     if (items.length === 0) {
       return (
         <div
-          ref={ref}
+          ref={innerRef}
           className="bg-popover border border-border rounded-lg shadow-lg p-3 text-sm text-muted-foreground"
         >
           Nenhuma variável encontrada.
@@ -71,7 +69,7 @@ const VariableList = forwardRef<HTMLDivElement, VariableListProps>(
 
     return (
       <div
-        ref={ref}
+        ref={innerRef}
         className="bg-popover border border-border rounded-lg shadow-lg overflow-hidden min-w-[240px] max-h-[300px] overflow-y-auto"
       >
         {items.map((item, index) => (
