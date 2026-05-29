@@ -2,8 +2,7 @@
 
 import { useRef, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { RichTextEditor, type RichTextEditorHandle } from "@/components/rich-text-editor";
-import { VariablePanel } from "@/components/variable-panel";
+import { TipTapEditor, type TipTapEditorHandle } from "@/components/tiptap-editor";
 import { DocumentPreview } from "@/components/document-preview";
 import { LetterheadUpload } from "@/components/letterhead-upload";
 import { Button } from "@/components/ui/button";
@@ -38,7 +37,7 @@ import { findUnknownVariables } from "@/lib/document-utils";
 export default function NovoTemplatePage() {
     const router = useRouter();
     const { addTemplate, variables, variableCatalogAvailable } = useStore();
-    const editorRef = useRef<RichTextEditorHandle>(null);
+    const editorRef = useRef<TipTapEditorHandle>(null);
     const [templateName, setTemplateName] = useState("");
     const [category, setCategory] = useState("");
     const [content, setContent] = useState("");
@@ -52,10 +51,6 @@ export default function NovoTemplatePage() {
           )
         : [];
     const hasUnknownVariables = unknownVariables.length > 0;
-
-    const handleInsertVariable = (variavel: string) => {
-        editorRef.current?.insertVariable(variavel);
-    };
 
     const handleSave = async () => {
         if (!templateName.trim()) {
@@ -186,18 +181,13 @@ export default function NovoTemplatePage() {
                         )}
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                             <div className="lg:col-span-3">
-                                <RichTextEditor
+                                <TipTapEditor
                                     ref={editorRef}
                                     value={content}
                                     onChange={setContent}
                                     availableVariables={variables.map((item) => item.variable_name)}
                                     variableCatalogAvailable={variableCatalogAvailable}
-                                    placeholder="Digite o conteúdo do seu template aqui. Use as variáveis do painel lateral para inserir dados dinâmicos."
-                                />
-                            </div>
-                            <div className="lg:col-span-1">
-                                <VariablePanel
-                                    onInsertVariable={handleInsertVariable}
+                                    placeholder="Digite o conteúdo do template. Use {{ para inserir variáveis."
                                 />
                             </div>
                         </div>

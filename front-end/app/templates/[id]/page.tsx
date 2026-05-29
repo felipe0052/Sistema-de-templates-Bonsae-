@@ -3,8 +3,7 @@
 import { useRef, useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { RichTextEditor, type RichTextEditorHandle } from "@/components/rich-text-editor"
-import { VariablePanel } from "@/components/variable-panel"
+import { TipTapEditor, type TipTapEditorHandle } from "@/components/tiptap-editor"
 import { DocumentPreview } from "@/components/document-preview"
 import { LetterheadUpload } from "@/components/letterhead-upload"
 import { Button } from "@/components/ui/button"
@@ -39,7 +38,7 @@ export default function EditarTemplatePage() {
   const params = useParams()
   const router = useRouter()
   const { templates, updateTemplate, isLoading, variables, variableCatalogAvailable } = useStore()
-  const editorRef = useRef<RichTextEditorHandle>(null)
+  const editorRef = useRef<TipTapEditorHandle>(null)
   const [template, setTemplate] = useState<Template | null>(null)
   const [templateName, setTemplateName] = useState("")
   const [category, setCategory] = useState("")
@@ -68,10 +67,6 @@ export default function EditarTemplatePage() {
       setLetterhead(foundTemplate.background_image || null)
     }
   }, [params.id, templates, isLoading])
-
-  const handleInsertVariable = (variavel: string) => {
-    editorRef.current?.insertVariable(variavel)
-  }
 
   const handleSave = async () => {
     if (!template) return
@@ -212,17 +207,14 @@ export default function EditarTemplatePage() {
             )}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-3">
-                <RichTextEditor
+                <TipTapEditor
                   ref={editorRef}
                   value={content}
                   onChange={setContent}
                   availableVariables={variables.map((item) => item.variable_name)}
                   variableCatalogAvailable={variableCatalogAvailable}
-                  placeholder="Digite o conteúdo do seu template aqui."
+                  placeholder="Digite o conteúdo do template. Use {{ para inserir variáveis."
                 />
-              </div>
-              <div className="lg:col-span-1">
-                <VariablePanel onInsertVariable={handleInsertVariable} />
               </div>
             </div>
           </TabsContent>

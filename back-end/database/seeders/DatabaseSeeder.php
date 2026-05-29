@@ -54,7 +54,7 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Modelo de Procuração',
             ],
             [
-                'content' => '<h1>PROCURAÇÃO</h1><p>Eu, <strong>{{assistido_nome}}</strong>, portador do CPF <strong>{{cpf}}</strong>, nascido em {{data_nascimento}}, filho de {{nome_pai}} e {{nome_mae}}, residente em {{endereco}}, {{cidade}}, nomeio meu procurador...</p><p>Data: {{data_atual}}</p>',
+                'content' => '<h1>PROCURAÇÃO</h1><p>Eu, <strong><span data-variable-token="assistido_nome">{{assistido_nome}}</span></strong>, portador do CPF <strong><span data-variable-token="cpf">{{cpf}}</span></strong>, nascido em <span data-variable-token="data_nascimento">{{data_nascimento}}</span>, filho de <span data-variable-token="nome_pai">{{nome_pai}}</span> e <span data-variable-token="nome_mae">{{nome_mae}}</span>, residente em <span data-variable-token="endereco">{{endereco}}</span>, <span data-variable-token="cidade">{{cidade}}</span>, nomeio meu procurador...</p><p>Data: <span data-variable-token="data_atual">{{data_atual}}</span></p>',
                 'variables' => json_encode([
                     'assistido_nome',
                     'cpf',

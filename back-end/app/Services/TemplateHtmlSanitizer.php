@@ -138,6 +138,10 @@ class TemplateHtmlSanitizer
                 continue;
             }
 
+            if ($name === "data-variable-token") {
+                continue;
+            }
+
             $element->removeAttribute($attribute->name);
         }
     }
