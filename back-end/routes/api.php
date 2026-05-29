@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UnifiedAuthController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\StaticVariableController;
 use App\Http\Controllers\Api\TemplateController;
@@ -9,11 +9,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AssistedController;
 
-// Rota de Login para obter o token de teste
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/admin-mode/login', [AuthController::class, 'adminModeLogin']);
+// Rota de Login para obter o token de teste (Mantida para comp. mas com Unified Auth Controller)
+Route::post('/auth/identify', [UnifiedAuthController::class, 'identify']);
+Route::post('/auth/login', [UnifiedAuthController::class, 'login']);
+Route::post('/auth/activate', [UnifiedAuthController::class, 'activate']);
+Route::middleware('auth:sanctum')->post('/auth/select-tenant', [UnifiedAuthController::class, 'selectTenant']);
 
-// Variáveis disponíveis (tornada pública para fácil visualização de teste)
+// Rota antiga para retrocompatibilidade do front end enquanto mudamos
+Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
+Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
+Route::post('/admin-mode/login', [\App\Http\Controllers\Api\AuthController::class, 'adminModeLogin']);
+
+// Variáveis disponíveis
 Route::get('/variables', [StaticVariableController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -35,14 +42,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/variables/{variable}', [StaticVariableController::class, 'update']);
         Route::delete('/variables/{variable}', [StaticVariableController::class, 'destroy']);
 
-        // Renderização de Templates
         Route::post('templates/{template}/render', [TemplateController::class, 'render'])->name('api.templates.render');
         
-        // Geração Assíncrona (exemplo de status)
         Route::get('templates/render-status/{jobId}', function ($jobId) {
             return response()->json([
                 'job_id' => $jobId,
-                'status' => 'processing', // Mock
+                'status' => 'processing',
                 'message' => 'Your document is being processed.'
             ]);
         })->name('api.templates.render-status');

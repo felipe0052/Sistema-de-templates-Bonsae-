@@ -44,9 +44,10 @@ class TemplateController extends Controller
         $data["tenant_id"] = auth()->user()->tenant_id ?? 1; // Garante tenant_id no store
 
         if ($request->hasFile("background_image")) {
+            $disk = config("filesystems.template_background_disk", "public");
             $path = $request
                 ->file("background_image")
-                ->store("templates/backgrounds", "public");
+                ->store("templates/backgrounds", $disk);
             $data["background_image_url"] = asset("storage/" . $path);
         }
 
@@ -81,9 +82,10 @@ class TemplateController extends Controller
         }
 
         if ($request->hasFile("background_image")) {
+            $disk = config("filesystems.template_background_disk", "public");
             $path = $request
                 ->file("background_image")
-                ->store("templates/backgrounds", "public");
+                ->store("templates/backgrounds", $disk);
             $data["background_image_url"] = asset("storage/" . $path);
         }
 

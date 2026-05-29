@@ -46,7 +46,8 @@ class TemplateApiTest extends TestCase
 
     public function test_can_create_template_with_image()
     {
-        Storage::fake('public');
+        config(['filesystems.template_background_disk' => 'template-backgrounds-test']);
+        Storage::fake('template-backgrounds-test');
 
         $payload = [
             'title' => 'New Template',
@@ -68,7 +69,7 @@ class TemplateApiTest extends TestCase
         
         // Check if file was uploaded to the configured public disk
         $path = 'templates/backgrounds/' . $payload['background_image']->hashName();
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('template-backgrounds-test')->assertExists($path);
     }
 
     public function test_can_render_template()
