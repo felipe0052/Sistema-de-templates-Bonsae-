@@ -32,6 +32,11 @@ class User extends Authenticatable
         return $this->belongsTo(Tenant::class);
     }
 
+    public function tenants()
+    {
+        return $this->belongsToMany(Tenant::class);
+    }
+
     public function createdTemplates()
     {
         return $this->hasMany(Template::class, 'created_by');
