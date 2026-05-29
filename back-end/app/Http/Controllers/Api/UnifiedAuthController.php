@@ -8,10 +8,12 @@ use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Throwable;
 
 class UnifiedAuthController extends Controller
 {
@@ -34,12 +36,24 @@ class UnifiedAuthController extends Controller
                 ['token' => Hash::make($token), 'created_at' => Carbon::now()]
             );
 
-            // Simular envio de e-mail (Log)
             $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
             $activationLink = "{$frontendUrl}/ativar-conta?token={$token}&email=" . urlencode($user->email);
-            
-            // In a real app we would use Mail::to($user->email)->send(...)
-            \Log::info("E-mail de Ativação NPJ: {$activationLink}");
+
+            try {
+                Mail::raw(
+                    "Olá, {$user->name}.\n\nAcesse o link abaixo para ativar sua conta no NPJ:\n{$activationLink}\n\nEste link expira em 15 minutos.",
+                    function ($message) use ($user) {
+                        $message->to($user->email, $user->name)
+                            ->subject('Ativação de conta NPJ');
+                    }
+                );
+            } catch (Throwable $exception) {
+                Log::warning('Falha ao enviar e-mail de ativação NPJ; link registrado no log.', [
+                    'email' => $user->email,
+                    'error' => $exception->getMessage(),
+                ]);
+                Log::info("E-mail de Ativação NPJ: {$activationLink}");
+            }
 
             return response()->json([
                 'status' => 'needs_activation',

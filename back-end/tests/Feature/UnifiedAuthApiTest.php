@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -26,6 +27,8 @@ class UnifiedAuthApiTest extends TestCase
 
     public function test_identify_with_existing_email_without_password_returns_needs_activation_and_stores_token(): void
     {
+        Mail::fake();
+
         $tenant = Tenant::query()->create(['name' => 'Tenant 1']);
         $user = User::query()->create([
             'tenant_id' => $tenant->id,
@@ -210,5 +213,33 @@ class UnifiedAuthApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('tenant_id', $tenant2->id)
             ->assertJsonStructure(['access_token', 'user']);
+    }
+
+    public function test_select_tenant_token_cannot_access_tenant_protected_user_route(): void
+    {
+        $tenant1 = Tenant::query()->create(['name' => 'Tenant 1']);
+        $tenant2 = Tenant::query()->create(['name' => 'Tenant 2']);
+
+        $user = User::query()->create([
+            'tenant_id' => $tenant1->id,
+            'name' => 'Multi Tenant',
+            'email' => 'multi-protected@example.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $user->tenants()->attach([$tenant1->id, $tenant2->id]);
+
+        $loginResponse = $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'password123',
+        ]);
+
+        $tempToken = $loginResponse->json('access_token');
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $tempToken)
+            ->getJson('/api/user');
+
+        $response->assertStatus(403)
+            ->assertJsonPath('code', 'TENANT_SELECTION_REQUIRED');
     }
 }

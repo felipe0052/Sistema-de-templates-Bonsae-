@@ -18,15 +18,22 @@ class EnsureUserHasTenant
         }
 
         $user = auth()->user();
+        $abilities = $user->currentAccessToken()?->abilities ?? [];
+        $abilities = is_array($abilities) ? $abilities : iterator_to_array($abilities);
         
         $tenantId = null;
-        if ($user->currentAccessToken() && is_iterable($user->currentAccessToken()->abilities)) {
-            foreach ($user->currentAccessToken()->abilities as $ability) {
-                if (str_starts_with($ability, 'tenant:')) {
-                    $tenantId = str_replace('tenant:', '', $ability);
-                    break;
-                }
+        foreach ($abilities as $ability) {
+            if (str_starts_with($ability, 'tenant:')) {
+                $tenantId = str_replace('tenant:', '', $ability);
+                break;
             }
+        }
+
+        if (!$tenantId && in_array('select-tenant', $abilities, true)) {
+            return response()->json([
+                'code' => 'TENANT_SELECTION_REQUIRED',
+                'message' => 'Select a tenant before accessing this resource.',
+            ], 403);
         }
 
         if (!$tenantId && !$user->tenant_id) {

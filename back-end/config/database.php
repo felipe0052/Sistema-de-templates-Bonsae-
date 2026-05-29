@@ -3,9 +3,9 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
-$sslCaOption = defined(Mysql::class . '::ATTR_SSL_CA')
+$sslCaOption = PHP_VERSION_ID >= 80400
     ? Mysql::ATTR_SSL_CA
-    : (defined('PDO::MYSQL_ATTR_SSL_CA') ? constant('PDO::MYSQL_ATTR_SSL_CA') : null);
+    : constant('PDO::MYSQL_ATTR_SSL_CA');
 
 return [
 
