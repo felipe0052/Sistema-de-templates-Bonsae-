@@ -16,7 +16,11 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, FileDown, Eye, Printer, Save, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useStore } from "@/components/store-provider";
+import { useTemplates } from "@/hooks/use-templates";
+import { useDocuments } from "@/hooks/use-documents";
+import { useVariables } from "@/hooks/use-variables";
+import { useAssisteds } from "@/hooks/use-assisteds";
+import { useRenderTemplate } from "@/hooks/use-render-template";
 import { toast } from "sonner";
 import { extractVariables, replaceVariables } from "@/lib/store";
 import { escapeHtml, findUnknownVariables, highlightPendingVariables, normalizeTemplateContent, stripVariableTokens } from "@/lib/document-utils";
@@ -204,16 +208,12 @@ const getAssistidoValueForVariable = (
 export default function GerarDocumentoPage() {
     const params = useParams();
     const router = useRouter();
-    const {
-        templates,
-        variables: variablesStore,
-        addDocument,
-        isLoading,
-        renderTemplatePdf,
-        renderTemplate,
-        variableCatalogAvailable,
-        assisteds,
-    } = useStore();
+    const { templates, isLoading: templatesLoading } = useTemplates();
+    const { variables: variablesStore, variableCatalogAvailable } = useVariables();
+    const { addDocument } = useDocuments();
+    const { assisteds } = useAssisteds();
+    const { renderTemplate, renderTemplatePdf } = useRenderTemplate();
+    const isLoading = templatesLoading;
     const [template, setTemplate] = useState<Template | null>(null);
     const [dados, setDados] = useState<Record<string, string>>({});
     const [variables, setVariables] = useState<string[]>([]);

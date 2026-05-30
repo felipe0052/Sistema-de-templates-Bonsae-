@@ -43,11 +43,11 @@ import {
   Eye,
   MapPin,
 } from "lucide-react"
-import { useStore } from "@/components/store-provider"
+import { useAssisteds } from "@/hooks/use-assisteds"
 import { toast } from "sonner"
 
 export default function ClientsPage() {
-  const { clients, addClient, isLoading, fetchAssisteds } = useStore()
+  const { clients, addAssisted, isLoading, fetchAssisteds } = useAssisteds()
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newClient, setNewClient] = useState({ name: "", email: "", organization: "" })
@@ -74,7 +74,7 @@ export default function ClientsPage() {
       toast.error("Name and Email are required.")
       return
     }
-    addClient(newClient)
+    addAssisted(newClient)
     toast.success("Client registered successfully!")
     setIsDialogOpen(false)
     setNewClient({ name: "", email: "", organization: "" })
