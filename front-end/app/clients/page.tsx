@@ -69,15 +69,19 @@ export default function ClientsPage() {
 
   if (isLoading) return null
 
-  const handleCreateClient = () => {
+  const handleCreateClient = async () => {
     if (!newClient.name || !newClient.email) {
       toast.error("Name and Email are required.")
       return
     }
-    addAssisted(newClient)
-    toast.success("Client registered successfully!")
-    setIsDialogOpen(false)
-    setNewClient({ name: "", email: "", organization: "" })
+    try {
+      await addAssisted(newClient)
+      toast.success("Client registered successfully!")
+      setIsDialogOpen(false)
+      setNewClient({ name: "", email: "", organization: "" })
+    } catch {
+      toast.error("Failed to register client.")
+    }
   }
 
   const formatDate = (dateString: string) => {

@@ -87,7 +87,7 @@ export default function EditarTemplatePage() {
 
     setIsSaving(true)
     try {
-      updateTemplate(template.id, {
+      await updateTemplate(template.id, {
         template_name: templateName,
         category: category,
         content: content,

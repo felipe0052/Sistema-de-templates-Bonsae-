@@ -76,19 +76,23 @@ export default function ClientesPage() {
       c.empresa.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleCreateCliente = () => {
+  const handleCreateCliente = async () => {
     if (!newCliente.nome || !newCliente.email) {
       toast.error("Nome e E-mail são obrigatórios.")
       return
     }
-    addAssisted({
-      name: newCliente.nome,
-      email: newCliente.email,
-      organization: newCliente.empresa,
-    })
-    toast.success("Cliente cadastrado com sucesso!")
-    setIsDialogOpen(false)
-    setNewCliente({ nome: "", email: "", empresa: "" })
+    try {
+      await addAssisted({
+        name: newCliente.nome,
+        email: newCliente.email,
+        organization: newCliente.empresa,
+      })
+      toast.success("Cliente cadastrado com sucesso!")
+      setIsDialogOpen(false)
+      setNewCliente({ nome: "", email: "", empresa: "" })
+    } catch {
+      toast.error("Erro ao cadastrar cliente.")
+    }
   }
 
   const formatDate = (dateString: string) => {

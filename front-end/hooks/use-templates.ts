@@ -24,7 +24,7 @@ function useTemplateQueryKey(token: string | null) {
 
 export function useTemplates() {
   const queryClient = useQueryClient()
-  const { token, clearAuthToken } = useAuth()
+  const { token } = useAuth()
   const queryKey = useTemplateQueryKey(token)
 
   const templatesQuery = useQuery({
