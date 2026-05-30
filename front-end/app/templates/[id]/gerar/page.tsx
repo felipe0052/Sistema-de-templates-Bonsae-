@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useStore } from "@/components/store-provider";
 import { toast } from "sonner";
 import { extractVariables, replaceVariables } from "@/lib/store";
-import { escapeHtml, findUnknownVariables, highlightPendingVariables, normalizeTemplateContent } from "@/lib/document-utils";
+import { escapeHtml, findUnknownVariables, highlightPendingVariables, normalizeTemplateContent, stripVariableTokens } from "@/lib/document-utils";
 import { SafeHtmlRenderer } from "@/components/safe-html-renderer";
 import type { Assisted, Template, Address } from "@/lib/types";
 
@@ -390,29 +390,63 @@ export default function GerarDocumentoPage() {
           <style>
             @page {
               size: A4;
-              margin: 20mm;
+              margin: 0;
             }
-            body {
-              font-family: "Times New Roman", serif;
-              font-size: 12pt;
-              line-height: 1.6;
-              color: #000;
+            html, body {
               margin: 0;
               padding: 0;
+              font-family: "Times New Roman", Times, serif;
+              font-size: 12pt;
+              line-height: 1.7;
+              color: #000;
+              background: #fff;
             }
-            .document-content {
-              max-width: 170mm;
+            * {
+              box-sizing: border-box;
+            }
+            .print-page {
+              width: 100%;
+              max-width: 210mm;
+              min-height: 297mm;
               margin: 0 auto;
+              padding: 3cm 2.5cm 2.5cm 2.5cm;
+              box-sizing: border-box;
+            }
+            p {
+              margin: 0 0 12pt 0;
+              text-indent: 1.25cm;
+            }
+            p[style*="text-align"] {
+              text-indent: 0;
+            }
+            h1, h2, h3, h4, h5, h6 {
+              margin: 0 0 12pt 0;
+              text-indent: 0;
+              text-align: center;
+            }
+            ul, ol {
+              margin: 0 0 12pt 1.2cm;
+              padding: 0;
+              text-indent: 0;
+            }
+            ul {
+              list-style: disc outside;
+            }
+            ol {
+              list-style: decimal outside;
+            }
+            li {
+              margin: 0 0 6pt 0;
             }
           </style>
         </head>
         <body>
-          <div class="document-content">
-            ${renderedHtml}
-          </div>
+          <div class="print-page">${renderedHtml}</div>
           <script>
             window.onload = function() {
-              window.print();
+              setTimeout(function() {
+                window.print();
+              }, 500);
               window.onafterprint = function() {
                 window.close();
               }
@@ -432,6 +466,10 @@ export default function GerarDocumentoPage() {
     const processedContent = template
         ? replaceVariables(normalizeTemplateContent(template.content), dados)
         : "";
+
+    const previewHtml = highlightPendingVariables(
+        stripVariableTokens(processedContent),
+    );
 
     if (!template) {
         return (
@@ -624,14 +662,15 @@ export default function GerarDocumentoPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div
-                                className="relative mx-auto bg-white shadow-lg rounded-sm overflow-hidden border border-border"
-                                style={{
-                                    width: "100%",
-                                    maxHeight: "600px",
-                                    overflowY: "auto",
-                                }}
-                            >
+                                <div
+                                    className="relative mx-auto bg-white shadow-lg rounded-sm overflow-hidden border border-border"
+                                    style={{
+                                        width: "100%",
+                                        maxWidth: "210mm",
+                                        maxHeight: "600px",
+                                        overflowY: "auto",
+                                    }}
+                                >
                                 {template.background_image && (
                                     <div
                                         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
@@ -641,14 +680,14 @@ export default function GerarDocumentoPage() {
                                     />
                                 )}
                                 <SafeHtmlRenderer
-                                    html={highlightPendingVariables(processedContent)}
+                                    html={previewHtml}
                                     className="preview-document relative !text-black"
                                     style={{
                                         fontFamily: "Times New Roman, serif",
                                         fontSize: "12pt",
                                         lineHeight: "1.7",
                                         color: "#000000",
-                                        padding: "3cm 2.5cm 2.5cm 3cm",
+                                        padding: "3cm 2.5cm 2.5cm 2.5cm",
                                     }}
                                 />
                             </div>
@@ -683,6 +722,16 @@ export default function GerarDocumentoPage() {
                         text-indent: 1.25cm;
                     }
 
+                    :global(.preview-document) {
+                        box-sizing: border-box;
+                        max-width: 210mm;
+                        margin: 0 auto;
+                    }
+
+                    :global(.preview-document p[style*="text-align"]) {
+                        text-indent: 0;
+                    }
+
                     :global(.preview-document h1),
                     :global(.preview-document h2),
                     :global(.preview-document h3),
@@ -711,6 +760,39 @@ export default function GerarDocumentoPage() {
 
                     :global(.preview-document li) {
                         margin: 0 0 6pt 0;
+                    }
+                `}</style>
+                <style jsx global>{`
+                    @media print {
+                        html, body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        aside, header, nav, button, .no-print, .dashboard-sidebar, .dashboard-header {
+                            display: none !important;
+                        }
+                        .preview-document {
+                            position: absolute !important;
+                            top: 0;
+                            left: 0;
+                            width: 100% !important;
+                            max-width: none !important;
+                            padding: 3cm 2.5cm 2.5cm 2.5cm !important;
+                            box-shadow: none !important;
+                            border: none !important;
+                            min-height: auto !important;
+                        }
+                        .preview-document p {
+                            margin: 0 0 12pt 0;
+                            text-indent: 1.25cm;
+                        }
+                        .preview-document p[style*="text-align"] {
+                            text-indent: 0;
+                        }
+                        @page {
+                            margin: 0;
+                            size: A4;
+                        }
                     }
                 `}</style>
             </div>

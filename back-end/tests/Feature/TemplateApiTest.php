@@ -178,4 +178,44 @@ class TemplateApiTest extends TestCase
 
         $response->assertStatus(404); // Scoped by global scope
     }
+
+    public function test_variable_token_attribute_is_preserved()
+    {
+        $payload = [
+            'title' => 'Variable Test',
+            'content' => '<p>Oi <span data-variable-token="nome">{{nome}}</span></p>',
+            'visibility' => 'public',
+        ];
+
+        $response = $this->postJson('/api/templates', $payload);
+
+        $response->assertCreated();
+        $this->assertStringContainsString(
+            'data-variable-token="nome"',
+            Template::firstOrFail()->content
+        );
+    }
+
+    public function test_variable_token_survives_render()
+    {
+        StaticVariable::create([
+            'name' => 'assistido_nome',
+            'description' => 'Nome completo.',
+            'example' => 'Felipe',
+        ]);
+
+        $template = Template::create([
+            'tenant_id' => $this->tenant->id,
+            'title' => 'Render Variable Token',
+            'content' => '<p>Olá <span data-variable-token="assistido_nome">{{assistido_nome}}</span></p>',
+            'visibility' => 'public',
+        ]);
+
+        $response = $this->postJson("/api/templates/{$template->id}/render", [
+            'variables' => ['assistido_nome' => 'Felipe'],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('html', '<p>Olá <span data-variable-token="assistido_nome">Felipe</span></p>');
+    }
 }
