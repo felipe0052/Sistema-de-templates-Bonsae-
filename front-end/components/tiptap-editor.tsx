@@ -6,6 +6,7 @@ import {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from "react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
@@ -29,6 +30,7 @@ import {
 import { cn } from "@/lib/utils"
 import { VariableNode } from "@/lib/tiptap-extensions/variable-node"
 import { createVariableSuggestionExtension } from "@/lib/tiptap-extensions/variable-suggestion"
+import { IndentExtension } from "@/lib/tiptap-extensions/indent-extension"
 import {
   Tooltip,
   TooltipContent,
@@ -45,7 +47,7 @@ interface TipTapEditorProps {
   onChange: (value: string) => void
   placeholder?: string
   className?: string
-  availableVariables?: string[]
+  availableVariables?: Array<{ variable_name: string; description?: string }>
   variableCatalogAvailable?: boolean
 }
 
@@ -61,15 +63,18 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
     },
     ref,
   ) {
+    const variableItemsRef = useRef<Array<{ variable_name: string; description: string }>>([])
+
+    useEffect(() => {
+      variableItemsRef.current = availableVariables.map((v) => ({
+        variable_name: v.variable_name,
+        description: v.description || v.variable_name,
+      }))
+    }, [availableVariables])
+
     const VariableSuggestionExt = useMemo(
-      () =>
-        createVariableSuggestionExtension(
-          availableVariables.map((name) => ({
-            variable_name: name,
-            description: name,
-          })),
-        ),
-      [availableVariables],
+      () => createVariableSuggestionExtension(variableItemsRef),
+      [],
     )
 
     const editor = useEditor({
@@ -87,6 +92,7 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
         }),
         VariableNode,
         VariableSuggestionExt,
+        IndentExtension,
       ],
       content: value || "",
       onUpdate: ({ editor: e }) => {
@@ -251,11 +257,12 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
             outline: none;
             width: 100%;
             max-width: 210mm;
+            box-sizing: border-box;
             color: #000000;
             font-family: "Times New Roman", Times, serif;
             font-size: 12pt;
             line-height: 1.7;
-            padding: 3cm 2.5cm 2.5cm 3cm;
+            padding: 3cm 2.5cm 2.5cm 2.5cm;
           }
 
           .tiptap-editor-content .tiptap:focus {
@@ -265,6 +272,10 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
           .tiptap-editor-content .tiptap p {
             margin: 0 0 12pt 0;
             text-indent: 1.25cm;
+          }
+
+          .tiptap-editor-content .tiptap p[style*="text-align"] {
+            text-indent: 0;
           }
 
           .tiptap-editor-content .tiptap h1,

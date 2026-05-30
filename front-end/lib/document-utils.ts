@@ -43,3 +43,7 @@ export function highlightPendingVariables(content: string): string {
       `<span data-variable-preview="pending">{{${variableName}}}</span>`,
   )
 }
+
+export function stripVariableTokens(html: string): string {
+  return html.replace(/\s*data-variable-token="[^"]*"/g, "")
+}

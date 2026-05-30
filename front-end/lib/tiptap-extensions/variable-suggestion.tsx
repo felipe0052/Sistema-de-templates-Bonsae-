@@ -96,7 +96,7 @@ const VariableList = forwardRef<{ onKeyDown: (props: { event: KeyboardEvent }) =
 )
 
 function createSuggestionConfig(
-  availableVariables: Array<{ variable_name: string; description: string }>,
+  variableItemsRef: { current: Array<{ variable_name: string; description: string }> },
 ) {
   return {
     char: "{{",
@@ -104,7 +104,7 @@ function createSuggestionConfig(
 
     items: ({ query }: { query: string }) => {
       const lower = query.toLowerCase()
-      return availableVariables
+      return variableItemsRef.current
         .filter(
           (v) =>
             v.variable_name.toLowerCase().includes(lower) ||
@@ -179,9 +179,9 @@ function createSuggestionConfig(
 }
 
 export function createVariableSuggestionExtension(
-  availableVariables: Array<{ variable_name: string; description: string }>,
+  variableItemsRef: { current: Array<{ variable_name: string; description: string }> },
 ) {
-  const config = createSuggestionConfig(availableVariables)
+  const config = createSuggestionConfig(variableItemsRef)
 
   return Extension.create({
     name: "variableSuggestion",

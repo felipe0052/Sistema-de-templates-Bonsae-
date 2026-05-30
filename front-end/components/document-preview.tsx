@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { replaceVariables } from "@/lib/store"
-import { highlightPendingVariables, normalizeTemplateContent } from "@/lib/document-utils"
+import { highlightPendingVariables, normalizeTemplateContent, stripVariableTokens } from "@/lib/document-utils"
 import { FileText } from "lucide-react"
 import { SafeHtmlRenderer } from "@/components/safe-html-renderer"
 
@@ -19,7 +19,7 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
     data_atual: new Date().toLocaleDateString("pt-BR"),
   })
 
-  const displayContent = highlightPendingVariables(processedContent)
+  const displayContent = highlightPendingVariables(stripVariableTokens(processedContent))
 
   return (
     <Card className="bg-card">
@@ -58,7 +58,7 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
               fontSize: "12pt",
               lineHeight: "1.7",
               color: "#000000",
-              padding: "3cm 2.5cm 2.5cm 3cm",
+              padding: "3cm 2.5cm 2.5cm 2.5cm",
             }}
           />
 
@@ -89,6 +89,16 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
           :global(.preview-document p) {
             margin: 0 0 12pt 0;
             text-indent: 1.25cm;
+          }
+
+          :global(.preview-document) {
+            box-sizing: border-box;
+            max-width: 210mm;
+            margin: 0 auto;
+          }
+
+          :global(.preview-document p[style*="text-align"]) {
+            text-indent: 0;
           }
 
           :global(.preview-document h1),
