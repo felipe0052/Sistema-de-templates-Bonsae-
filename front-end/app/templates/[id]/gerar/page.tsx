@@ -388,11 +388,11 @@ export default function GerarDocumentoPage() {
           <style>
             @page {
               size: A4;
-              margin: 3cm 2.5cm 2.5cm 3cm;
+              margin: 0;
             }
             html, body {
               margin: 0;
-              padding: 0;
+              padding: 3cm 2.5cm 2.5cm 3cm;
               font-family: "Times New Roman", Times, serif;
               font-size: 12pt;
               line-height: 1.7;
@@ -434,7 +434,9 @@ export default function GerarDocumentoPage() {
           ${renderedHtml}
           <script>
             window.onload = function() {
-              window.print();
+              setTimeout(function() {
+                window.print();
+              }, 500);
               window.onafterprint = function() {
                 window.close();
               }
@@ -737,6 +739,39 @@ export default function GerarDocumentoPage() {
 
                     :global(.preview-document li) {
                         margin: 0 0 6pt 0;
+                    }
+                `}</style>
+                <style jsx global>{`
+                    @media print {
+                        html, body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        aside, header, nav, button, .no-print, .dashboard-sidebar, .dashboard-header {
+                            display: none !important;
+                        }
+                        .preview-document {
+                            position: absolute !important;
+                            top: 0;
+                            left: 0;
+                            width: 100% !important;
+                            max-width: none !important;
+                            padding: 3cm 2.5cm 2.5cm 3cm !important;
+                            box-shadow: none !important;
+                            border: none !important;
+                            min-height: auto !important;
+                        }
+                        .preview-document p {
+                            margin: 0 0 12pt 0;
+                            text-indent: 1.25cm;
+                        }
+                        .preview-document p[style*="text-align"] {
+                            text-indent: 0;
+                        }
+                        @page {
+                            margin: 0;
+                            size: A4;
+                        }
                     }
                 `}</style>
             </div>
