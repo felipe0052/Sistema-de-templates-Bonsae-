@@ -43,11 +43,11 @@ import {
   Eye,
   MapPin,
 } from "lucide-react"
-import { useStore } from "@/components/store-provider"
+import { useAssisteds } from "@/hooks/use-assisteds"
 import { toast } from "sonner"
 
 export default function ClientsPage() {
-  const { clients, addClient, isLoading, fetchAssisteds } = useStore()
+  const { clients, addAssisted, isLoading, fetchAssisteds } = useAssisteds()
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newClient, setNewClient] = useState({ name: "", email: "", organization: "" })
@@ -69,15 +69,19 @@ export default function ClientsPage() {
 
   if (isLoading) return null
 
-  const handleCreateClient = () => {
+  const handleCreateClient = async () => {
     if (!newClient.name || !newClient.email) {
       toast.error("Name and Email are required.")
       return
     }
-    addClient(newClient)
-    toast.success("Client registered successfully!")
-    setIsDialogOpen(false)
-    setNewClient({ name: "", email: "", organization: "" })
+    try {
+      await addAssisted(newClient)
+      toast.success("Client registered successfully!")
+      setIsDialogOpen(false)
+      setNewClient({ name: "", email: "", organization: "" })
+    } catch {
+      toast.error("Failed to register client.")
+    }
   }
 
   const formatDate = (dateString: string) => {

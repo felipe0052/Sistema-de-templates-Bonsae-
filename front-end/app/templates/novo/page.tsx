@@ -30,13 +30,15 @@ const categorias = [
     "Outros",
 ];
 
-import { useStore } from "@/components/store-provider";
+import { useTemplates } from "@/hooks/use-templates";
+import { useVariables } from "@/hooks/use-variables";
 import { toast } from "sonner";
 import { findUnknownVariables } from "@/lib/document-utils";
 
 export default function NovoTemplatePage() {
     const router = useRouter();
-    const { addTemplate, variables, variableCatalogAvailable } = useStore();
+    const { addTemplate } = useTemplates();
+    const { variables, variableCatalogAvailable } = useVariables();
     const editorRef = useRef<TipTapEditorHandle>(null);
     const [templateName, setTemplateName] = useState("");
     const [category, setCategory] = useState("");

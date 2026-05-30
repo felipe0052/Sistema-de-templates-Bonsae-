@@ -32,7 +32,8 @@ import {
   Calendar,
   Filter,
 } from "lucide-react"
-import { useStore } from "@/components/store-provider"
+import { useDocuments } from "@/hooks/use-documents"
+import { useTemplates } from "@/hooks/use-templates"
 import { toast } from "sonner"
 import {
   Select,
@@ -43,7 +44,8 @@ import {
 } from "@/components/ui/select"
 
 export default function DocumentosPage() {
-  const { documents, templates, deleteDocument, isLoading } = useStore()
+  const { documents, deleteDocument, isLoading } = useDocuments()
+  const { templates } = useTemplates()
   const [searchQuery, setSearchQuery] = useState("")
   const [templateFilter, setTemplateFilter] = useState("all")
 

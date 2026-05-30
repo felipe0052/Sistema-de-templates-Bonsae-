@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Download, Printer, FileText } from "lucide-react";
 import Link from "next/link";
-import { useStore } from "@/components/store-provider";
+import { useDocuments } from "@/hooks/use-documents";
+import { useTemplates } from "@/hooks/use-templates";
+import { useRenderTemplate } from "@/hooks/use-render-template";
 import { toast } from "sonner";
 import type { Document, Template } from "@/lib/types";
 
@@ -16,7 +18,9 @@ export default function VisualizarDocumentoPage() {
     const params = useParams();
 
     const searchParams = useSearchParams();
-    const { documents, templates, isLoading, renderTemplatePdf } = useStore();
+    const { documents, isLoading } = useDocuments();
+    const { templates } = useTemplates();
+    const { renderTemplatePdf } = useRenderTemplate();
     const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
     const [template, setTemplate] = useState<Template | null>(null);
 

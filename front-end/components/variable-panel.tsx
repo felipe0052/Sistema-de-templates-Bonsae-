@@ -13,7 +13,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Check, ChevronsUpDown, Variable } from "lucide-react"
 import { useState } from "react"
-import { useStore } from "@/components/store-provider"
+import { useVariables } from "@/hooks/use-variables"
 import { cn } from "@/lib/utils"
 
 interface VariablePanelProps {
@@ -22,7 +22,7 @@ interface VariablePanelProps {
 
 export function VariablePanel({ onInsertVariable }: VariablePanelProps) {
   const [open, setOpen] = useState(false)
-  const { variables } = useStore()
+  const { variables } = useVariables()
 
   const handleSelect = (value: string) => {
     onInsertVariable(value)

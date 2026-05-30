@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { LoaderCircle, LockKeyhole, Mail } from "lucide-react"
 import { toast } from "sonner"
 
-import { useStore } from "@/components/store-provider"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,7 +17,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
 function ActivationForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { setAuthToken } = useStore()
+  const { setAuthToken } = useAuth()
   
   const emailParam = searchParams.get("email") || ""
   const tokenParam = searchParams.get("token") || ""
