@@ -42,7 +42,7 @@ import {
   Trash2,
   Eye,
 } from "lucide-react"
-import { useStore } from "@/components/store-provider"
+import { useAssisteds } from "@/hooks/use-assisteds"
 import { toast } from "sonner"
 
 type ClienteView = {
@@ -54,7 +54,7 @@ type ClienteView = {
 }
 
 export default function ClientesPage() {
-  const { clients, addClient, isLoading } = useStore()
+  const { clients, addAssisted, isLoading } = useAssisteds()
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newCliente, setNewCliente] = useState({ nome: "", email: "", empresa: "" })
@@ -76,19 +76,23 @@ export default function ClientesPage() {
       c.empresa.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleCreateCliente = () => {
+  const handleCreateCliente = async () => {
     if (!newCliente.nome || !newCliente.email) {
       toast.error("Nome e E-mail são obrigatórios.")
       return
     }
-    addClient({
-      name: newCliente.nome,
-      email: newCliente.email,
-      organization: newCliente.empresa,
-    })
-    toast.success("Cliente cadastrado com sucesso!")
-    setIsDialogOpen(false)
-    setNewCliente({ nome: "", email: "", empresa: "" })
+    try {
+      await addAssisted({
+        name: newCliente.nome,
+        email: newCliente.email,
+        organization: newCliente.empresa,
+      })
+      toast.success("Cliente cadastrado com sucesso!")
+      setIsDialogOpen(false)
+      setNewCliente({ nome: "", email: "", empresa: "" })
+    } catch {
+      toast.error("Erro ao cadastrar cliente.")
+    }
   }
 
   const formatDate = (dateString: string) => {

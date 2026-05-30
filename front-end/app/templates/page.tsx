@@ -12,11 +12,11 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Plus, Filter } from "lucide-react";
-import { useStore } from "@/components/store-provider";
+import { useTemplates } from "@/hooks/use-templates";
 import Link from "next/link";
 
 export default function TemplatesPage() {
-    const { templates, isLoading } = useStore();
+    const { templates, isLoading } = useTemplates();
     const [searchQuery, setSearchQuery] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
 

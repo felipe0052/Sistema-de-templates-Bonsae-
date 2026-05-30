@@ -11,14 +11,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { Document } from "@/lib/types"
 import Link from "next/link"
-import { useStore } from "@/components/store-provider"
+import { useTemplates } from "@/hooks/use-templates"
 
 interface RecentDocumentsProps {
   documents: Document[]
 }
 
 export function RecentDocuments({ documents }: RecentDocumentsProps) {
-  const { templates, isLoading } = useStore()
+  const { templates, isLoading } = useTemplates()
 
   if (isLoading) return null
 

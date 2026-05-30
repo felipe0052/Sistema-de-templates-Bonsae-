@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { LoaderCircle, LockKeyhole, Mail, Building } from "lucide-react"
 import { toast } from "sonner"
 
-import { useStore } from "@/components/store-provider"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,7 @@ const API_BASE_URL =
 
 export default function LoginPage() {
   const router = useRouter()
-  const { token, setAuthToken } = useStore()
+  const { token, setAuthToken } = useAuth()
   
   const [step, setStep] = useState<"login" | "activation" | "tenant_selection">("login")
   

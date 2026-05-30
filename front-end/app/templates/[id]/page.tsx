@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/select"
 import { Save, Eye, ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
-import { useStore } from "@/components/store-provider"
+import { useTemplates } from "@/hooks/use-templates"
+import { useVariables } from "@/hooks/use-variables"
 import { toast } from "sonner"
 import { findUnknownVariables } from "@/lib/document-utils"
 import type { Template } from "@/lib/types"
@@ -37,7 +38,8 @@ const categorias = [
 export default function EditarTemplatePage() {
   const params = useParams()
   const router = useRouter()
-  const { templates, updateTemplate, isLoading, variables, variableCatalogAvailable } = useStore()
+  const { templates, updateTemplate, isLoading } = useTemplates()
+  const { variables, variableCatalogAvailable } = useVariables()
   const editorRef = useRef<TipTapEditorHandle>(null)
   const [template, setTemplate] = useState<Template | null>(null)
   const [templateName, setTemplateName] = useState("")
@@ -85,7 +87,7 @@ export default function EditarTemplatePage() {
 
     setIsSaving(true)
     try {
-      updateTemplate(template.id, {
+      await updateTemplate(template.id, {
         template_name: templateName,
         category: category,
         content: content,

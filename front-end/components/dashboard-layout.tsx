@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Sidebar, SidebarContent } from "@/components/sidebar"
 import { Header } from "@/components/header"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
-import { useStore } from "@/components/store-provider"
+import { useAuth } from "@/hooks/use-auth"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -20,7 +20,7 @@ export function DashboardLayout({ children, title, subtitle, searchValue, onSear
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const { token } = useStore()
+  const { token } = useAuth()
 
   useEffect(() => {
     setMounted(true)

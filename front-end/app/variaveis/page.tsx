@@ -37,14 +37,14 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Search, Plus, Variable as VariableIcon, Pencil, Trash2 } from "lucide-react"
-import { useStore } from "@/components/store-provider"
+import { useVariables } from "@/hooks/use-variables"
 import { toast } from "sonner"
 import type { Variable } from "@/lib/types"
 
 const emptyVariableForm = { variable_name: "", description: "", example: "" }
 
 export default function VariablesPage() {
-  const { variables, addVariable, updateVariable, deleteVariable, isLoading } = useStore()
+  const { variables, addVariable, updateVariable, deleteVariable, isLoading } = useVariables()
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingVarId, setEditingVarId] = useState<string | null>(null)

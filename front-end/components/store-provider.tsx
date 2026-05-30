@@ -1,25 +1,27 @@
 "use client"
 
-import React, { createContext, useContext } from "react"
-import { useApiStore } from "@/hooks/use-api-store"
-
-type StoreContextType = ReturnType<typeof useApiStore>
-
-const StoreContext = createContext<StoreContextType | undefined>(undefined)
+import React, { useState } from "react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { AuthProvider } from "@/hooks/use-auth"
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const store = useApiStore()
-  return (
-    <StoreContext.Provider value={store}>
-      {children}
-    </StoreContext.Provider>
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: 2,
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
   )
-}
 
-export function useStore() {
-  const context = useContext(StoreContext)
-  if (context === undefined) {
-    throw new Error("useStore must be used within a StoreProvider")
-  }
-  return context
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+    </QueryClientProvider>
+  )
 }

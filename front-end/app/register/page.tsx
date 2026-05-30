@@ -7,7 +7,7 @@ import Link from "next/link"
 import { LoaderCircle, LockKeyhole, Mail, User, Building } from "lucide-react"
 import { toast } from "sonner"
 
-import { useStore } from "@/components/store-provider"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,7 @@ const API_BASE_URL =
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { token, setAuthToken } = useStore()
+  const { token, setAuthToken } = useAuth()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
