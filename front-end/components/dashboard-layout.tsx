@@ -17,21 +17,26 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, title, subtitle, searchValue, onSearchChange }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const { token } = useStore()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     setIsMobileMenuOpen(false)
   }, [pathname])
 
   useEffect(() => {
-    if (!token) {
+    if (mounted && !token) {
       router.replace("/login")
     }
-  }, [token, router])
+  }, [token, router, mounted])
 
-  if (!token) {
+  if (!mounted || !token) {
     return null
   }
 

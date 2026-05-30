@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4;
-            margin: 3cm 2.5cm 2.5cm 3cm;
+            margin: 0;
         }
 
         html,
@@ -26,8 +26,8 @@
 
         .page {
             position: relative;
-            width: 100%;
             min-height: 100%;
+            padding: 3cm 2.5cm 2.5cm 2.5cm;
         }
 
         .background {
@@ -49,9 +49,6 @@
             position: relative;
             z-index: 1;
             width: 100%;
-            padding-left: 0.6cm;
-            padding-right: 0.6cm;
-            text-align: justify;
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
@@ -59,6 +56,10 @@
         p {
             margin: 0 0 12pt 0;
             text-indent: 1.25cm;
+        }
+
+        p[style*="text-align"] {
+            text-indent: 0;
         }
 
         h1, h2, h3, h4, h5, h6 {
