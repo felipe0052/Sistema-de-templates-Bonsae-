@@ -388,26 +388,50 @@ export default function GerarDocumentoPage() {
           <style>
             @page {
               size: A4;
-              margin: 20mm;
+              margin: 3cm 2.5cm 2.5cm 3cm;
             }
-            body {
-              font-family: "Times New Roman", serif;
-              font-size: 12pt;
-              line-height: 1.6;
-              color: #000;
+            html, body {
               margin: 0;
               padding: 0;
+              font-family: "Times New Roman", Times, serif;
+              font-size: 12pt;
+              line-height: 1.7;
+              color: #000;
+              background: #fff;
             }
-            .document-content {
-              max-width: 170mm;
-              margin: 0 auto;
+            * {
+              box-sizing: border-box;
+            }
+            p {
+              margin: 0 0 12pt 0;
+              text-indent: 1.25cm;
+            }
+            p[style*="text-align"] {
+              text-indent: 0;
+            }
+            h1, h2, h3, h4, h5, h6 {
+              margin: 0 0 12pt 0;
+              text-indent: 0;
+              text-align: center;
+            }
+            ul, ol {
+              margin: 0 0 12pt 1.2cm;
+              padding: 0;
+              text-indent: 0;
+            }
+            ul {
+              list-style: disc outside;
+            }
+            ol {
+              list-style: decimal outside;
+            }
+            li {
+              margin: 0 0 6pt 0;
             }
           </style>
         </head>
         <body>
-          <div class="document-content">
-            ${renderedHtml}
-          </div>
+          ${renderedHtml}
           <script>
             window.onload = function() {
               window.print();
@@ -679,6 +703,10 @@ export default function GerarDocumentoPage() {
                     :global(.preview-document p) {
                         margin: 0 0 12pt 0;
                         text-indent: 1.25cm;
+                    }
+
+                    :global(.preview-document p[style*="text-align"]) {
+                        text-indent: 0;
                     }
 
                     :global(.preview-document h1),

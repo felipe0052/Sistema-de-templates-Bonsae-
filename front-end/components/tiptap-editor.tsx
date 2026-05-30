@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils"
 import { VariableNode } from "@/lib/tiptap-extensions/variable-node"
 import { createVariableSuggestionExtension } from "@/lib/tiptap-extensions/variable-suggestion"
+import { IndentExtension } from "@/lib/tiptap-extensions/indent-extension"
 import {
   Tooltip,
   TooltipContent,
@@ -87,6 +88,7 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
         }),
         VariableNode,
         VariableSuggestionExt,
+        IndentExtension,
       ],
       content: value || "",
       onUpdate: ({ editor: e }) => {
@@ -265,6 +267,10 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
           .tiptap-editor-content .tiptap p {
             margin: 0 0 12pt 0;
             text-indent: 1.25cm;
+          }
+
+          .tiptap-editor-content .tiptap p[style*="text-align"] {
+            text-indent: 0;
           }
 
           .tiptap-editor-content .tiptap h1,

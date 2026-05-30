@@ -91,6 +91,10 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
             text-indent: 1.25cm;
           }
 
+          :global(.preview-document p[style*="text-align"]) {
+            text-indent: 0;
+          }
+
           :global(.preview-document h1),
           :global(.preview-document h2),
           :global(.preview-document h3),
