@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4;
-            margin: 3cm 2.5cm 2.5cm 3cm;
+            margin: 0;
         }
 
         html,
@@ -26,8 +26,8 @@
 
         .page {
             position: relative;
-            width: 100%;
             min-height: 100%;
+            padding: 3cm 2.5cm 2.5cm 2.5cm;
         }
 
         .background {
@@ -49,7 +49,6 @@
             position: relative;
             z-index: 1;
             width: 100%;
-            text-align: justify;
             word-wrap: break-word;
             overflow-wrap: break-word;
         }

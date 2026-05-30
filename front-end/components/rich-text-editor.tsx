@@ -420,7 +420,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
           fontFamily: '"Times New Roman", Times, serif',
           fontSize: "12pt",
           lineHeight: "1.7",
-          padding: "3cm 2.5cm 2.5cm 3cm",
+          padding: "3cm 2.5cm 2.5cm 2.5cm",
         }}
       />
       <style jsx>{`

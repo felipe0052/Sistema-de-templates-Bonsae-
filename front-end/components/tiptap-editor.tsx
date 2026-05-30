@@ -253,11 +253,12 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
             outline: none;
             width: 100%;
             max-width: 210mm;
+            box-sizing: border-box;
             color: #000000;
             font-family: "Times New Roman", Times, serif;
             font-size: 12pt;
             line-height: 1.7;
-            padding: 3cm 2.5cm 2.5cm 3cm;
+            padding: 3cm 2.5cm 2.5cm 2.5cm;
           }
 
           .tiptap-editor-content .tiptap:focus {
