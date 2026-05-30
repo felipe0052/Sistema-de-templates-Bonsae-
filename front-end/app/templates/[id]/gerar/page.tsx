@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useStore } from "@/components/store-provider";
 import { toast } from "sonner";
 import { extractVariables, replaceVariables } from "@/lib/store";
-import { escapeHtml, findUnknownVariables, highlightPendingVariables, normalizeTemplateContent } from "@/lib/document-utils";
+import { escapeHtml, findUnknownVariables, highlightPendingVariables, normalizeTemplateContent, stripVariableTokens } from "@/lib/document-utils";
 import { SafeHtmlRenderer } from "@/components/safe-html-renderer";
 import type { Assisted, Template, Address } from "@/lib/types";
 
@@ -465,6 +465,10 @@ export default function GerarDocumentoPage() {
         ? replaceVariables(normalizeTemplateContent(template.content), dados)
         : "";
 
+    const previewHtml = highlightPendingVariables(
+        stripVariableTokens(processedContent),
+    );
+
     if (!template) {
         return (
             <DashboardLayout title="Template não encontrado" subtitle="">
@@ -674,7 +678,7 @@ export default function GerarDocumentoPage() {
                                     />
                                 )}
                                 <SafeHtmlRenderer
-                                    html={highlightPendingVariables(processedContent)}
+                                    html={previewHtml}
                                     className="preview-document relative !text-black"
                                     style={{
                                         fontFamily: "Times New Roman, serif",

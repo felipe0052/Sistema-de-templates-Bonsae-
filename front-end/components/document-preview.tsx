@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { replaceVariables } from "@/lib/store"
-import { highlightPendingVariables, normalizeTemplateContent } from "@/lib/document-utils"
+import { highlightPendingVariables, normalizeTemplateContent, stripVariableTokens } from "@/lib/document-utils"
 import { FileText } from "lucide-react"
 import { SafeHtmlRenderer } from "@/components/safe-html-renderer"
 
@@ -19,7 +19,7 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
     data_atual: new Date().toLocaleDateString("pt-BR"),
   })
 
-  const displayContent = highlightPendingVariables(processedContent)
+  const displayContent = highlightPendingVariables(stripVariableTokens(processedContent))
 
   return (
     <Card className="bg-card">

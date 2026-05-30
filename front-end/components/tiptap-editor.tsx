@@ -6,6 +6,7 @@ import {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from "react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
@@ -46,7 +47,7 @@ interface TipTapEditorProps {
   onChange: (value: string) => void
   placeholder?: string
   className?: string
-  availableVariables?: string[]
+  availableVariables?: Array<{ variable_name: string; description?: string }>
   variableCatalogAvailable?: boolean
 }
 
@@ -62,15 +63,18 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
     },
     ref,
   ) {
+    const variableItemsRef = useRef<Array<{ variable_name: string; description: string }>>([])
+
+    useEffect(() => {
+      variableItemsRef.current = availableVariables.map((v) => ({
+        variable_name: v.variable_name,
+        description: v.description || v.variable_name,
+      }))
+    }, [availableVariables])
+
     const VariableSuggestionExt = useMemo(
-      () =>
-        createVariableSuggestionExtension(
-          availableVariables.map((name) => ({
-            variable_name: name,
-            description: name,
-          })),
-        ),
-      [availableVariables],
+      () => createVariableSuggestionExtension(variableItemsRef),
+      [],
     )
 
     const editor = useEditor({

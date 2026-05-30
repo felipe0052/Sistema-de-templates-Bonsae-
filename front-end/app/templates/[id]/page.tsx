@@ -210,7 +210,7 @@ export default function EditarTemplatePage() {
                 ref={editorRef}
                 value={content}
                 onChange={setContent}
-                availableVariables={variables.map((item) => item.variable_name)}
+                                availableVariables={variables.map((item) => ({ variable_name: item.variable_name, description: item.description }))}
                 variableCatalogAvailable={variableCatalogAvailable}
                 placeholder="Digite o conteúdo do template. Use {{ para inserir variáveis."
               />
