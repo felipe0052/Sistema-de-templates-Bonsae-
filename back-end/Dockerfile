@@ -11,14 +11,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 COPY . .
 
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
 COPY Caddyfile /etc/frankenphp/Caddyfile
-
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
 
 RUN chown -R nobody:nobody /app/storage /app/bootstrap/cache
 
