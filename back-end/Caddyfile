@@ -5,6 +5,22 @@
 :8080 {
 	root * /app/public
 	encode zstd br gzip
+
+	header {
+		Access-Control-Allow-Origin "{env.FRONTEND_URL}"
+		Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+		Access-Control-Allow-Credentials "true"
+		Access-Control-Max-Age "86400"
+	}
+
+	@preflight {
+		method OPTIONS
+	}
+	handle @preflight {
+		respond 204
+	}
+
 	php_server {
 		try_files {path} index.php
 	}
