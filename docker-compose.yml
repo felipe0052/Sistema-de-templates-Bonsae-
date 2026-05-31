@@ -22,13 +22,13 @@ services:
     build:
       context: ./back-end
       dockerfile: Dockerfile
-      target: runner
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8000:8080"
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
+      PORT: "8080"
       APP_KEY: "${APP_KEY:?Defina APP_KEY no .env da raiz}"
       APP_URL: "http://localhost:8000"
       FRONTEND_URL: "http://localhost:3000"
@@ -47,6 +47,7 @@ services:
     volumes:
       - ./back-end:/app
       - backend_vendor:/app/vendor
+    command: ["/start.sh"]
 
   frontend:
     build:

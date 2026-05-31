@@ -1,40 +1,23 @@
-FROM php:8.4-cli-bookworm AS base
+FROM dunglas/frankenphp:8.4-alpine
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-      git unzip libzip4 libpng16-16 libonig5 libxml2 libsqlite3-0 \
-      libjpeg62-turbo libfreetype6 \
-    && apt-get install -y --no-install-recommends \
-      libzip-dev libpng-dev libonig-dev libxml2-dev \
-      libsqlite3-dev libjpeg62-turbo-dev libfreetype6-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-      pdo_mysql pdo_sqlite zip bcmath gd exif pcntl \
-    && apt-get purge -y --auto-remove \
-      libzip-dev libpng-dev libonig-dev libxml2-dev libsqlite3-dev \
-      libjpeg62-turbo-dev libfreetype6-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=composer:2.8.8 /usr/bin/composer /usr/bin/composer
-
-FROM base AS vendor
+RUN install-php-extensions pdo_mysql zip gd bcmath exif pcntl opcache intl
 
 WORKDIR /app
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --no-progress --optimize-autoloader
-
-FROM base AS runner
-
-WORKDIR /app
-
-COPY --from=vendor /app/vendor ./vendor
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 COPY . .
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-EXPOSE 8000
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
 
-CMD ["/start.sh"]
+RUN chown -R unit:unit /app/storage /app/bootstrap/cache
+
+EXPOSE 8080
+
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
