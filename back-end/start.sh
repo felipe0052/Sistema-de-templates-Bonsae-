@@ -14,4 +14,4 @@ if [ "$APP_ENV" = "production" ]; then
     php artisan view:cache
 fi
 
-php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+frankenphp run --config /etc/frankenphp/Caddyfile
