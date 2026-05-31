@@ -11,10 +11,13 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 COPY . .
 
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 COPY Caddyfile /etc/frankenphp/Caddyfile
 
 RUN chown -R nobody:nobody /app/storage /app/bootstrap/cache
 
 EXPOSE 8080
 
-CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]
+CMD ["/start.sh"]

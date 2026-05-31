@@ -4,7 +4,6 @@
     "builder": "RAILPACK"
   },
   "deploy": {
-    "preDeployCommand": "echo 'DB_HOST='$DB_HOST' MYSQLHOST='$MYSQLHOST' DB_CONNECTION='$DB_CONNECTION && php artisan config:clear && php artisan storage:link --force && php artisan config:cache && php artisan migrate --seed --force && php artisan route:cache && php artisan view:cache",
     "restartPolicyType": "ON_FAILURE"
   }
 }
