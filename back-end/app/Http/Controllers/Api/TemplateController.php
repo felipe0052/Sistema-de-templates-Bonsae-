@@ -123,6 +123,7 @@ class TemplateController extends Controller
             $pdf = $this->renderer->generatePdf(
                 $renderedContent,
                 $template->background_image_url,
+                $request->user()->preferences ?? [],
             );
 
             return response($pdf, Response::HTTP_OK, [

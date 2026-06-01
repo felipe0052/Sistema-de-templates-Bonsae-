@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <title>Documento Gerado</title>
     <style>
-        @page {
-            size: A4;
-            margin: 0;
-        }
-
         html,
         body {
             margin: 0;
@@ -22,27 +17,6 @@
 
         * {
             box-sizing: border-box;
-        }
-
-        .page {
-            position: relative;
-            min-height: 100%;
-            padding: 3cm 2.5cm 2.5cm 2.5cm;
-        }
-
-        .background {
-            position: fixed;
-            top: -2.5cm;
-            right: -2.5cm;
-            bottom: -2.5cm;
-            left: -2.5cm;
-            z-index: -1;
-        }
-
-        .background img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
         }
 
         .content {
@@ -108,16 +82,8 @@
     </style>
 </head>
 <body>
-    <div class="page">
-        @if(!empty($backgroundImage))
-            <div class="background">
-                <img src="{{ $backgroundImage }}" alt="">
-            </div>
-        @endif
-
-        <div class="content">
-            {!! $content !!}
-        </div>
+    <div class="content">
+        {!! $content !!}
     </div>
 </body>
 </html>

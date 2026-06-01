@@ -41,6 +41,7 @@ class TemplateHtmlSanitizer
         "text-align",
         "font-weight",
         "font-style",
+        "font-family",
         "text-decoration",
         "font-size",
         "line-height",
