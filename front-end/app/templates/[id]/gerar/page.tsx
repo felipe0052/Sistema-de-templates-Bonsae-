@@ -275,6 +275,8 @@ export default function GerarDocumentoPage() {
     const selectedAssistido = assisteds.find(
         (item) => item.id === selectedAssistidoId,
     );
+    const assistidoName = selectedAssistido?.name || dados.nome || dados.nome_completo || dados.assistido_nome || "Novo Documento";
+
 
     const availableVariableNames = variablesStore.map((item) => item.variable_name);
     const unknownVariables = template && variableCatalogAvailable
@@ -286,7 +288,7 @@ export default function GerarDocumentoPage() {
         if (!template) return null;
         return await addDocument({
             template_id: template.id,
-            name: `${template.template_name} - ${dados.nome || "Novo Documento"}`,
+            name: `${template.template_name} - ${assistidoName}`,
             data_json: dados,
         });
     };
@@ -329,7 +331,7 @@ export default function GerarDocumentoPage() {
             }
 
             const fileNameBase =
-                `${template.template_name}-${dados.nome || "documento"}`
+                `${template.template_name}-${assistidoName}`
                     .toLowerCase()
                     .replace(/[^a-z0-9-_]+/g, "-")
                     .replace(/-+/g, "-")
