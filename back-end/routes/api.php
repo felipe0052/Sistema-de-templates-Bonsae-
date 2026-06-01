@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\UnifiedAuthController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\StaticVariableController;
 use App\Http\Controllers\Api\TemplateController;
@@ -29,9 +30,8 @@ Route::get('/variables', [StaticVariableController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(EnsureUserHasTenant::class)->group(function () {
-        Route::get('/user', function (Request $request) {
-            return $request->user();
-        });
+        Route::get('/user', [UserController::class, 'show']);
+        Route::put('/user', [UserController::class, 'update']);
 
         // CRUD de Templates
         Route::apiResource('templates', TemplateController::class);

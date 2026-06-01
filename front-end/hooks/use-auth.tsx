@@ -1,13 +1,29 @@
 "use client"
 
-import React, { createContext, useCallback, useContext, useState } from "react"
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
+import { apiFetch } from "@/lib/api-client"
 
 const AUTH_TOKEN_KEY = "bonsae_auth_token"
 
+export type User = {
+  id: number
+  name: string
+  email: string
+  preferences: {
+    pdf_default_format?: string
+    pdf_margin_top?: number
+    pdf_margin_bottom?: number
+    pdf_margin_left?: number
+    pdf_margin_right?: number
+  }
+}
+
 type AuthContextType = {
   token: string | null
+  user: User | null
   setAuthToken: (value: string | null) => void
   clearAuthToken: () => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -19,6 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     return localStorage.getItem(AUTH_TOKEN_KEY)
   })
+
+  const [user, setUser] = useState<User | null>(null)
 
   const setAuthToken = useCallback((value: string | null) => {
     setTokenState(value)
@@ -32,10 +50,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearAuthToken = useCallback(() => {
     setAuthToken(null)
+    setUser(null)
   }, [setAuthToken])
 
+  const refreshUser = useCallback(async () => {
+    const currentToken = localStorage.getItem(AUTH_TOKEN_KEY)
+    if (!currentToken) return
+    try {
+      const data = await apiFetch<User>("/user", { token: currentToken })
+      setUser(data)
+    } catch {
+      setUser(null)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (token) {
+      refreshUser()
+    }
+  }, [token, refreshUser])
+
   return (
-    <AuthContext.Provider value={{ token, setAuthToken, clearAuthToken }}>
+    <AuthContext.Provider value={{ token, user, setAuthToken, clearAuthToken, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )
