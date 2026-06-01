@@ -22,6 +22,11 @@ function useTemplateQueryKey(token: string | null) {
   return ["templates", token] as const
 }
 
+function serializeBackgroundImage(value: string | null | undefined) {
+  if (value === null) return null
+  return value?.startsWith("data:image/") ? value : undefined
+}
+
 export function useTemplates() {
   const queryClient = useQueryClient()
   const { token } = useAuth()
@@ -47,6 +52,7 @@ export function useTemplates() {
           content: template.content,
           visibility: "public",
           metadata: { category: template.category },
+          background_image_url: serializeBackgroundImage(template.background_image),
         }),
       })
       return mapTemplate(data.data ?? data)
@@ -72,7 +78,7 @@ export function useTemplates() {
           title: updates.template_name,
           content: updates.content,
           metadata: updates.category ? { category: updates.category } : undefined,
-          background_image_url: updates.background_image,
+          background_image_url: serializeBackgroundImage(updates.background_image),
         }),
       })
     },

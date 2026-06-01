@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\StaticVariable;
 use App\Models\Template;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TemplateRenderer
 {
@@ -53,10 +55,25 @@ class TemplateRenderer
     ) {
         $html = view("templates.render_pdf", [
             "content" => $htmlContent,
-            "backgroundImage" => $backgroundImageUrl,
+            "backgroundImage" => $this->resolveBackgroundImage($backgroundImageUrl),
         ])->render();
 
         return Pdf::loadHTML($html)->setPaper("a4")->output();
+    }
+
+    protected function resolveBackgroundImage(?string $backgroundImageUrl): ?string
+    {
+        if (empty($backgroundImageUrl) || Str::startsWith($backgroundImageUrl, ['http://', 'https://', 'data:'])) {
+            return $backgroundImageUrl;
+        }
+
+        $disk = Storage::disk(config("filesystems.template_background_disk", "public"));
+        if (!$disk->exists($backgroundImageUrl)) {
+            return null;
+        }
+
+        $mimeType = $disk->mimeType($backgroundImageUrl) ?: "image/png";
+        return "data:" . $mimeType . ";base64," . base64_encode($disk->get($backgroundImageUrl));
     }
 
     protected function getMissingValue(string $behavior): string

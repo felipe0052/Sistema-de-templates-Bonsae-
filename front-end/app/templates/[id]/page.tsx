@@ -91,7 +91,7 @@ export default function EditarTemplatePage() {
         template_name: templateName,
         category: category,
         content: content,
-        background_image: letterhead || undefined,
+        background_image: letterhead,
       })
       toast.success("Template atualizado com sucesso!")
       router.push("/templates")
