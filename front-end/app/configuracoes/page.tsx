@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,12 +23,70 @@ import {
   Shield,
   Save,
 } from "lucide-react"
-
 import { toast } from "sonner"
+import { useUser, useUserPreferences, useUpdateUser } from "@/hooks/use-user"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function ConfiguracoesPage() {
-  const handleSave = () => {
-    toast.success("Configurações salvas com sucesso!")
+  const { token } = useAuth()
+  const { data: user } = useUser()
+  const prefs = useUserPreferences()
+  const updateUser = useUpdateUser()
+
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [pdfFormat, setPdfFormat] = useState("a4")
+  const [marginTop, setMarginTop] = useState("20")
+  const [marginBottom, setMarginBottom] = useState("20")
+  const [marginLeft, setMarginLeft] = useState("25")
+  const [marginRight, setMarginRight] = useState("25")
+
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "")
+      setEmail(user.email || "")
+      setPdfFormat(prefs?.pdf_default_format || "a4")
+      setMarginTop(String(prefs?.pdf_margin_top ?? 20))
+      setMarginBottom(String(prefs?.pdf_margin_bottom ?? 20))
+      setMarginLeft(String(prefs?.pdf_margin_left ?? 25))
+      setMarginRight(String(prefs?.pdf_margin_right ?? 25))
+    }
+  }, [user, prefs])
+
+  const handleSaveProfile = async () => {
+    if (!token) return
+    setSaving(true)
+    try {
+      await updateUser.mutateAsync({ name, email })
+      toast.success("Perfil atualizado com sucesso!")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar perfil")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSavePdf = async () => {
+    if (!token) return
+    setSaving(true)
+    try {
+      await updateUser.mutateAsync({
+        preferences: {
+          pdf_default_format: pdfFormat,
+          pdf_margin_top: Number(marginTop),
+          pdf_margin_bottom: Number(marginBottom),
+          pdf_margin_left: Number(marginLeft),
+          pdf_margin_right: Number(marginRight),
+        },
+      })
+      toast.success("Configurações de PDF salvas com sucesso!")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar configurações de PDF")
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -36,7 +95,6 @@ export default function ConfiguracoesPage() {
       subtitle="Gerencie as configurações do sistema"
     >
       <div className="space-y-6 max-w-4xl">
-        {/* Profile Settings */}
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -51,25 +109,20 @@ export default function ConfiguracoesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome</Label>
-                <Input id="nome" defaultValue="Usuário Demo" />
+                <Input id="nome" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" defaultValue="usuario@bonsae.com" />
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="empresa">Empresa/Instituição</Label>
-              <Input id="empresa" defaultValue="Bonsae" />
-            </div>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSaveProfile} disabled={saving}>
               <Save className="h-4 w-4 mr-2" />
-              Salvar Alterações
+              {saving ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Notification Settings */}
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -113,7 +166,6 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
-        {/* Appearance Settings */}
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -154,7 +206,6 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
-        {/* PDF Settings */}
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -168,7 +219,7 @@ export default function ConfiguracoesPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Formato padrão</Label>
-              <Select defaultValue="a4">
+              <Select value={pdfFormat} onValueChange={setPdfFormat}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Selecione o formato" />
                 </SelectTrigger>
@@ -182,28 +233,31 @@ export default function ConfiguracoesPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="margin-top">Margem Superior</Label>
-                <Input id="margin-top" defaultValue="20" />
+                <Input id="margin-top" type="number" value={marginTop} onChange={(e) => setMarginTop(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="margin-bottom">Margem Inferior</Label>
-                <Input id="margin-bottom" defaultValue="20" />
+                <Input id="margin-bottom" type="number" value={marginBottom} onChange={(e) => setMarginBottom(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="margin-left">Margem Esquerda</Label>
-                <Input id="margin-left" defaultValue="25" />
+                <Input id="margin-left" type="number" value={marginLeft} onChange={(e) => setMarginLeft(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="margin-right">Margem Direita</Label>
-                <Input id="margin-right" defaultValue="25" />
+                <Input id="margin-right" type="number" value={marginRight} onChange={(e) => setMarginRight(e.target.value)} />
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
               As margens são definidas em milímetros (mm)
             </p>
+            <Button onClick={handleSavePdf} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? "Salvando..." : "Salvar Preferências de PDF"}
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Security Settings */}
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center gap-2">

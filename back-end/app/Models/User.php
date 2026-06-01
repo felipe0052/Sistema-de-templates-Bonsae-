@@ -16,6 +16,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'preferences',
     ];
 
     protected $hidden = [
@@ -25,6 +26,11 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'preferences' => 'array',
+    ];
+
+    protected $attributes = [
+        'preferences' => '{}',
     ];
 
     public function tenant()
