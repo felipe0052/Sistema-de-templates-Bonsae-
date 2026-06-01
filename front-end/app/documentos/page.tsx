@@ -34,6 +34,17 @@ import {
 } from "lucide-react"
 import { useDocuments } from "@/hooks/use-documents"
 import { useTemplates } from "@/hooks/use-templates"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import {
   Select,
@@ -48,6 +59,7 @@ export default function DocumentosPage() {
   const { templates } = useTemplates()
   const [searchQuery, setSearchQuery] = useState("")
   const [templateFilter, setTemplateFilter] = useState("all")
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   if (isLoading) return null
 
@@ -65,10 +77,15 @@ export default function DocumentosPage() {
     return template?.template_name || "Template desconhecido"
   }
 
-  const handleDelete = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este documento?")) {
-      deleteDocument(id)
+  const handleDelete = async (id: string) => {
+    setDeletingId(id)
+    try {
+      await deleteDocument(id)
       toast.success("Documento excluído com sucesso!")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível excluir o documento.")
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -232,10 +249,31 @@ export default function DocumentosPage() {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(doc.id)}>
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir documento</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(doc.id)}
+                                  disabled={deletingId === doc.id}
+                                >
+                                  {deletingId === doc.id ? "Excluindo..." : "Excluir"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
