@@ -1,5 +1,5 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+set -euo pipefail
 
 if [ ! -f "vendor/autoload.php" ]; then
     composer install --no-interaction --no-progress

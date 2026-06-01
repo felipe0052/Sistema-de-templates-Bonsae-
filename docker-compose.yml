@@ -26,11 +26,15 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    volumes:
-      - ./back-end:/app
-      - ./back-end/storage:/app/storage
     env_file:
       - ./back-end/.env
+    environment:
+      BONSAE_DB_DRIVER: mysql
+      BONSAE_DB_HOST: db
+      BONSAE_DB_PORT: 3306
+      BONSAE_DB_DATABASE: ${DB_DATABASE:-bonsae}
+      BONSAE_DB_USERNAME: ${DB_USERNAME:-bonsae}
+      BONSAE_DB_PASSWORD: ${DB_PASSWORD:-bonsae}
     depends_on:
       - db
     networks:
@@ -45,12 +49,6 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    volumes:
-      - ./front-end:/app
-      - /app/node_modules
-      - /app/.next
-    env_file:
-      - ./front-end/.env
     depends_on:
       - backend
     networks:
@@ -61,13 +59,11 @@ services:
     image: mysql:8.0
     container_name: bonsae-db
     restart: unless-stopped
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-bonsae}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
-      MYSQL_USER: ${DB_USERNAME:-root}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-bonsae}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-bonsae}
     volumes:
       - bonsae-db-data:/var/lib/mysql
     networks:
