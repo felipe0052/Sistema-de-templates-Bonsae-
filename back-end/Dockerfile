@@ -1,6 +1,6 @@
 FROM dunglas/frankenphp:1-php8.4-alpine
 
-RUN install-php-extensions pdo_mysql zip gd bcmath exif pcntl opcache intl
+RUN install-php-extensions pdo_mysql zip gd bcmath exif pcntl opcache intl mbstring
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

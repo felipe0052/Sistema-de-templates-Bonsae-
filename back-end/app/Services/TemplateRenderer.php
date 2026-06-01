@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\StaticVariable;
 use App\Models\Template;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Mpdf\Mpdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -47,18 +47,54 @@ class TemplateRenderer
      *
      * @param string $htmlContent
      * @param string|null $backgroundImageUrl
-     * @return mixed
+     * @param array|null $preferences
+     * @return string
      */
     public function generatePdf(
         string $htmlContent,
         ?string $backgroundImageUrl = null,
-    ) {
+        ?array $preferences = null,
+    ): string {
+        ini_set("pcre.backtrack_limit", "2000000");
+
+        $format = $preferences['pdf_default_format'] ?? 'A4';
+        $mL = (int) ($preferences['pdf_margin_left'] ?? 20);
+        $mR = (int) ($preferences['pdf_margin_right'] ?? 20);
+        $mT = (int) ($preferences['pdf_margin_top'] ?? 20);
+        $mB = (int) ($preferences['pdf_margin_bottom'] ?? 20);
+
+        $formatMap = [
+            'a4'     => 'A4',
+            'letter' => 'LETTER',
+            'legal'  => [216, 356],
+        ];
+        $pageFormat = $formatMap[$format] ?? 'A4';
+
+        $mpdf = new Mpdf([
+            'format'        => $pageFormat,
+            'margin_left'   => $mL,
+            'margin_right'  => $mR,
+            'margin_top'    => $mT,
+            'margin_bottom' => $mB,
+            'default_font'  => 'times',
+        ]);
+
+        $bgUrl = $this->resolveBackgroundImage($backgroundImageUrl);
+
+        if ($bgUrl) {
+            $mpdf->SetWatermarkImage($bgUrl, 1, [$mpdf->fw, $mpdf->fh], 'P');
+            $mpdf->showWatermarkImage = true;
+            $mpdf->watermarkImgBehind = true;
+        }
+
         $html = view("templates.render_pdf", [
             "content" => $htmlContent,
-            "backgroundImage" => $this->resolveBackgroundImage($backgroundImageUrl),
         ])->render();
 
-        return Pdf::loadHTML($html)->setPaper("a4")->output();
+        $html = preg_replace('/@import\s+url\s*\(/i', '/* @import disabled */', $html);
+
+        $mpdf->WriteHTML($html);
+        return $mpdf->Output('', 'S');
     }
 
     protected function resolveBackgroundImage(?string $backgroundImageUrl): ?string
