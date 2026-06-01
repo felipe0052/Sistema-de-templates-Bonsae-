@@ -20,6 +20,10 @@ Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']
 Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
 Route::post('/admin-mode/login', [\App\Http\Controllers\Api\AuthController::class, 'adminModeLogin']);
 
+Route::get('templates/{template}/background', [TemplateController::class, 'background'])
+    ->middleware('signed')
+    ->name('api.templates.background');
+
 // Variáveis disponíveis
 Route::get('/variables', [StaticVariableController::class, 'index']);
 

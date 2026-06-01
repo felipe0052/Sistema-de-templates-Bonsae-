@@ -56,7 +56,7 @@ export interface Template {
   client_id: string
   template_name: string
   content: string
-  background_image?: string
+  background_image?: string | null
   category?: string
   created_at: string
   updated_at: string
