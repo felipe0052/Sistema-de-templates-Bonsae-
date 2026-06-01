@@ -73,7 +73,7 @@ export function SidebarContent() {
       <div className="p-4 border-t border-sidebar-border shrink-0">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-medium text-sm shrink-0">
-            {user ? user.name.charAt(0).toUpperCase() : "U"}
+            {user?.name?.charAt(0)?.toUpperCase() || "U"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-sidebar-foreground truncate">
@@ -85,6 +85,7 @@ export function SidebarContent() {
           </div>
           <Link
             href="/configuracoes"
+            aria-label="Configurações"
             className="h-8 w-8 rounded-lg flex items-center justify-center text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
           >
             <Settings className="h-4 w-4" />

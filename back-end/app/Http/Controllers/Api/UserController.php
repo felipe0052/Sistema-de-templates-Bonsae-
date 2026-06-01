@@ -35,9 +35,11 @@ class UserController extends Controller
             $user->email = $validated['email'];
         }
         if (isset($validated['preferences'])) {
+            $allowed = ['pdf_default_format', 'pdf_margin_top', 'pdf_margin_bottom', 'pdf_margin_left', 'pdf_margin_right'];
+            $sanitized = array_intersect_key($validated['preferences'], array_flip($allowed));
             $user->preferences = array_merge(
                 $user->preferences ?? [],
-                $validated['preferences']
+                $sanitized
             );
         }
 
