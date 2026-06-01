@@ -36,7 +36,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Search, Plus, Variable as VariableIcon, Pencil, Trash2 } from "lucide-react"
+import { Search, Plus, Variable as VariableIcon, Pencil, Trash2, MoreHorizontal } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useVariables } from "@/hooks/use-variables"
 import { toast } from "sonner"
 import type { Variable } from "@/lib/types"
@@ -250,23 +257,12 @@ export default function VariablesPage() {
                   <TableHead>Variável</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Exemplo</TableHead>
-                  <TableHead>Origem</TableHead>
-                  <TableHead className="w-[100px]">Ações</TableHead>
+                  <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredVariables.map((variable) => {
-                  const source = variable.source ?? "manual"
-                  const isNotEditable = source !== "manual"
-                  const sourceLabel =
-                    source === "auto"
-                      ? "Automática"
-                      : source === "alias"
-                        ? "Alias"
-                        : source === "system"
-                          ? "Sistema"
-                          : "Manual"
-                  const sourceVariant = source === "manual" ? "default" : "outline"
+                  const isNotEditable = (variable.source ?? "manual") !== "manual"
                   return (
                     <TableRow key={variable.id}>
                       <TableCell>
@@ -284,50 +280,55 @@ export default function VariablesPage() {
                         {variable.example || "-"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={sourceVariant} className="text-xs">
-                          {sourceLabel}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditClick(variable)}
-                            disabled={isNotEditable}
-                            title={isNotEditable ? "Somente variáveis manuais podem ser editadas" : ""}
-                          >
-                            <Pencil className="h-4 w-4 mr-1" />
-                            Editar
-                          </Button>
-                          {!isNotEditable && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                                  <Trash2 className="h-4 w-4 mr-1" />
-                                  Excluir
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Excluir variável</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Esta ação removerá a variável {`{{${variable.variable_name}}}`} da lista pública de templates.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteVar(variable.id)}
-                                    disabled={deletingId === variable.id}
-                                  >
-                                    {deletingId === variable.id ? "Excluindo..." : "Excluir"}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(variable)}
+                              disabled={isNotEditable}
+                            >
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {!isNotEditable ? (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Excluir variável</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Esta ação removerá a variável {`{{${variable.variable_name}}}`} da lista pública de templates.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteVar(variable.id)}
+                                      disabled={deletingId === variable.id}
+                                    >
+                                      {deletingId === variable.id ? "Excluindo..." : "Excluir"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            ) : (
+                              <DropdownMenuItem className="text-destructive" disabled>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   )
