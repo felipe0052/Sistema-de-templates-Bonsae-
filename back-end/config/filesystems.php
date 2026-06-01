@@ -15,6 +15,8 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'template_background_disk' => env('TEMPLATE_BACKGROUND_DISK', 'public'),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
