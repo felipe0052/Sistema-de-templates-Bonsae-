@@ -24,11 +24,14 @@ import {
   Save,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useUser, useUserPreferences, useUpdateUser } from "@/hooks/use-user"
 import { useAuth } from "@/hooks/use-auth"
-import { apiFetch } from "@/lib/api-client"
 
 export default function ConfiguracoesPage() {
-  const { user, token, refreshUser } = useAuth()
+  const { token } = useAuth()
+  const { data: user } = useUser()
+  const prefs = useUserPreferences()
+  const updateUser = useUpdateUser()
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -44,24 +47,19 @@ export default function ConfiguracoesPage() {
     if (user) {
       setName(user.name || "")
       setEmail(user.email || "")
-      setPdfFormat(user.preferences?.pdf_default_format || "a4")
-      setMarginTop(String(user.preferences?.pdf_margin_top ?? 20))
-      setMarginBottom(String(user.preferences?.pdf_margin_bottom ?? 20))
-      setMarginLeft(String(user.preferences?.pdf_margin_left ?? 25))
-      setMarginRight(String(user.preferences?.pdf_margin_right ?? 25))
+      setPdfFormat(prefs?.pdf_default_format || "a4")
+      setMarginTop(String(prefs?.pdf_margin_top ?? 20))
+      setMarginBottom(String(prefs?.pdf_margin_bottom ?? 20))
+      setMarginLeft(String(prefs?.pdf_margin_left ?? 25))
+      setMarginRight(String(prefs?.pdf_margin_right ?? 25))
     }
-  }, [user])
+  }, [user, prefs])
 
   const handleSaveProfile = async () => {
     if (!token) return
     setSaving(true)
     try {
-      await apiFetch("/user", {
-        method: "PUT",
-        token,
-        body: JSON.stringify({ name, email }),
-      })
-      await refreshUser()
+      await updateUser.mutateAsync({ name, email })
       toast.success("Perfil atualizado com sucesso!")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar perfil")
@@ -74,20 +72,15 @@ export default function ConfiguracoesPage() {
     if (!token) return
     setSaving(true)
     try {
-      await apiFetch("/user", {
-        method: "PUT",
-        token,
-        body: JSON.stringify({
-          preferences: {
-            pdf_default_format: pdfFormat,
-            pdf_margin_top: Number(marginTop),
-            pdf_margin_bottom: Number(marginBottom),
-            pdf_margin_left: Number(marginLeft),
-            pdf_margin_right: Number(marginRight),
-          },
-        }),
+      await updateUser.mutateAsync({
+        preferences: {
+          pdf_default_format: pdfFormat,
+          pdf_margin_top: Number(marginTop),
+          pdf_margin_bottom: Number(marginBottom),
+          pdf_margin_left: Number(marginLeft),
+          pdf_margin_right: Number(marginRight),
+        },
       })
-      await refreshUser()
       toast.success("Configurações de PDF salvas com sucesso!")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar configurações de PDF")

@@ -10,7 +10,7 @@ import {
   Variable,
   Settings,
 } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useUser } from "@/hooks/use-user"
 
 const menuItems = [
   {
@@ -32,7 +32,7 @@ const menuItems = [
 
 export function SidebarContent() {
   const pathname = usePathname()
-  const { user } = useAuth()
+  const { data: user } = useUser()
 
   return (
     <div className="flex flex-col h-full bg-sidebar rounded-r-2xl overflow-hidden">
