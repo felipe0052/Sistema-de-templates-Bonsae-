@@ -19,7 +19,7 @@ export default function VisualizarDocumentoPage() {
 
     const searchParams = useSearchParams();
     const { documents, isLoading } = useDocuments();
-    const { templates } = useTemplates();
+    const { templates, isLoading: templatesLoading } = useTemplates();
     const { renderTemplatePdf } = useRenderTemplate();
     const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
     const [template, setTemplate] = useState<Template | null>(null);
@@ -92,7 +92,7 @@ export default function VisualizarDocumentoPage() {
         }
     };
 
-    if (isLoading) {
+    if (isLoading || templatesLoading) {
       return (
         <DashboardLayout title="Visualizar Documento" subtitle="">
           <div className="space-y-6">
