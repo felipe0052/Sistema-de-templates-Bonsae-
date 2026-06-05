@@ -19,7 +19,7 @@ export default function VisualizarDocumentoPage() {
 
     const searchParams = useSearchParams();
     const { documents, isLoading } = useDocuments();
-    const { templates } = useTemplates();
+    const { templates, isLoading: templatesLoading } = useTemplates();
     const { renderTemplatePdf } = useRenderTemplate();
     const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
     const [template, setTemplate] = useState<Template | null>(null);
@@ -92,7 +92,35 @@ export default function VisualizarDocumentoPage() {
         }
     };
 
-    if (isLoading) return null;
+    if (isLoading || templatesLoading) {
+      return (
+        <DashboardLayout title="Visualizar Documento" subtitle="">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="h-10 w-24 bg-muted rounded-md animate-pulse" />
+              <div className="flex gap-2">
+                <div className="h-10 w-24 bg-muted rounded-md animate-pulse" />
+                <div className="h-10 w-32 bg-muted rounded-md animate-pulse" />
+              </div>
+            </div>
+            <div className="rounded-xl border bg-card shadow animate-pulse">
+              <div className="p-6 space-y-3">
+                <div className="h-5 w-1/3 bg-muted rounded" />
+                <div className="h-4 w-1/2 bg-muted rounded" />
+              </div>
+            </div>
+            <div className="rounded-xl border bg-card shadow animate-pulse">
+              <div className="p-6 space-y-4">
+                <div className="h-4 w-full bg-muted rounded" />
+                <div className="h-4 w-5/6 bg-muted rounded" />
+                <div className="h-4 w-4/6 bg-muted rounded" />
+                <div className="h-4 w-3/6 bg-muted rounded" />
+              </div>
+            </div>
+          </div>
+        </DashboardLayout>
+      )
+    }
 
     if (!currentDocument || !template) {
         return (

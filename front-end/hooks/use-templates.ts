@@ -18,9 +18,7 @@ function mapTemplate(template: any): Template {
   }
 }
 
-function useTemplateQueryKey(token: string | null) {
-  return ["templates", token] as const
-}
+const queryKey = ["templates"] as const
 
 function serializeBackgroundImage(value: string | null | undefined) {
   if (value === null) return null
@@ -30,9 +28,9 @@ function serializeBackgroundImage(value: string | null | undefined) {
 export function useTemplates() {
   const queryClient = useQueryClient()
   const { token } = useAuth()
-  const queryKey = useTemplateQueryKey(token)
 
   const templatesQuery = useQuery({
+    staleTime: 30_000,
     queryKey,
     queryFn: async () => {
       const templatesData = await apiFetch<{ data?: any[] }>("/templates", { token })
