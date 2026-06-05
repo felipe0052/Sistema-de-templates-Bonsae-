@@ -30,6 +30,7 @@ export function useVariables() {
       }
     },
     staleTime: 5 * 60 * 1000,
+    enabled: !!token,
   })
 
   const addVariableMutation = useMutation({

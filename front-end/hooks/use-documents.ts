@@ -5,6 +5,8 @@ import { apiFetch } from "@/lib/api-client"
 import type { Document } from "@/lib/types"
 import { useAuth } from "./use-auth"
 
+const queryKey = ["documents"] as const
+
 function mapDocument(document: any): Document {
   return {
     id: String(document.id),
@@ -16,14 +18,9 @@ function mapDocument(document: any): Document {
   }
 }
 
-function useDocumentQueryKey(token: string | null) {
-  return ["documents", token] as const
-}
-
 export function useDocuments() {
   const queryClient = useQueryClient()
   const { token } = useAuth()
-  const queryKey = useDocumentQueryKey(token)
 
   const documentsQuery = useQuery({
     queryKey,
@@ -32,6 +29,7 @@ export function useDocuments() {
       return (documentsData.data || []).map(mapDocument)
     },
     enabled: !!token,
+    staleTime: 30_000,
   })
 
   const addDocumentMutation = useMutation({

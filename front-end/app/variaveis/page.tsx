@@ -59,7 +59,29 @@ export default function VariablesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  if (isLoading) return null
+  if (isLoading) {
+    return (
+      <DashboardLayout title="Variáveis" subtitle="Gerencie as variáveis disponíveis para os templates">
+        <div className="space-y-6">
+          <div className="flex gap-4">
+            <div className="h-10 w-[250px] bg-muted rounded-md animate-pulse" />
+            <div className="h-10 w-[130px] bg-muted rounded-md animate-pulse" />
+          </div>
+          <div className="rounded-xl border bg-card shadow animate-pulse">
+            <div className="p-6 space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="h-4 w-1/4 bg-muted rounded" />
+                  <div className="h-4 w-2/4 bg-muted rounded" />
+                  <div className="h-4 w-1/4 bg-muted rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   const filteredVariables = variables.filter(
     (v) =>

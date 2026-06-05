@@ -12,6 +12,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           queries: {
             retry: 2,
             refetchOnWindowFocus: false,
+            staleTime: 30 * 1000,
           },
         },
       }),

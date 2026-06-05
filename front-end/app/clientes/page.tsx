@@ -59,7 +59,43 @@ export default function ClientesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newCliente, setNewCliente] = useState({ nome: "", email: "", empresa: "" })
 
-  if (isLoading) return null
+  if (isLoading) {
+    return (
+      <DashboardLayout title="Clientes" subtitle="Gerencie os clientes do sistema">
+        <div className="space-y-6">
+          <div className="flex gap-4">
+            <div className="h-10 w-[250px] bg-muted rounded-md animate-pulse" />
+            <div className="h-10 w-[130px] bg-muted rounded-md animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-xl border bg-card shadow animate-pulse">
+                <div className="p-6 flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-lg bg-muted" />
+                  <div className="space-y-2">
+                    <div className="h-6 w-16 bg-muted rounded" />
+                    <div className="h-4 w-24 bg-muted rounded" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl border bg-card shadow animate-pulse">
+            <div className="p-6 space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="h-4 w-1/4 bg-muted rounded" />
+                  <div className="h-4 w-1/4 bg-muted rounded" />
+                  <div className="h-4 w-1/4 bg-muted rounded" />
+                  <div className="h-4 w-1/4 bg-muted rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   const clientes: ClienteView[] = clients.map((client) => ({
     id: client.id,

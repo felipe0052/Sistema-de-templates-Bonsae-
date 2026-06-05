@@ -30,25 +30,21 @@ function mapClient(assisted: Assisted): Client {
   }
 }
 
-function useAssistedQueryKey(token: string | null, search: string) {
-  return ["assisteds", token, search] as const
-}
-
 export function useAssisteds() {
   const queryClient = useQueryClient()
   const { token } = useAuth()
   const [search, setSearch] = React.useState<string | undefined>(undefined)
   const searchKey = search || ""
-  const queryKey = useAssistedQueryKey(token, searchKey)
 
   const assistedsQuery = useQuery({
-    queryKey,
+    queryKey: ["assisteds", searchKey] as const,
     queryFn: async () => {
       const query = search ? `?search=${encodeURIComponent(search)}` : ""
       const assistedsData = await apiFetch<{ data?: any[] }>(`/assisteds${query}`, { token })
       return (assistedsData.data || []).map(mapAssisted)
     },
     enabled: !!token,
+    staleTime: 30_000,
   })
 
   const addAssistedMutation = useMutation({
@@ -65,7 +61,7 @@ export function useAssisteds() {
       return mapAssisted(data.data ?? data)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assisteds", token] })
+      queryClient.invalidateQueries({ queryKey: ["assisteds"] })
     },
   })
 
