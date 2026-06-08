@@ -3,8 +3,7 @@
 import { Loader2, Lock, Mail, Building } from "lucide-react"
 import { AuthLayout } from "@/components/auth-layout"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { FormFieldWithIcon } from "@/components/form-field-with-icon"
 import { useLoginFlow } from "@/hooks/use-login-flow"
 
 const STEP_META: Record<string, { title: string; description: string }> = {
@@ -25,28 +24,32 @@ export default function LoginPage() {
     <AuthLayout title={title} description={description}>
       {step === "login" && (
         <>
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="email" type="email" autoComplete="email" className="pl-9"
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="password" type="password" autoComplete="current-password" className="pl-9"
-                value={password} onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              />
-            </div>
-          </div>
+          <FormFieldWithIcon
+            label="E-mail"
+            htmlFor="email"
+            icon={Mail}
+            inputProps={{
+              id: "email",
+              type: "email",
+              autoComplete: "email",
+              value: email,
+              onChange: (e) => setEmail(e.target.value),
+              onKeyDown: (e) => e.key === "Enter" && handleLogin(),
+            }}
+          />
+          <FormFieldWithIcon
+            label="Senha"
+            htmlFor="password"
+            icon={Lock}
+            inputProps={{
+              id: "password",
+              type: "password",
+              autoComplete: "current-password",
+              value: password,
+              onChange: (e) => setPassword(e.target.value),
+              onKeyDown: (e) => e.key === "Enter" && handleLogin(),
+            }}
+          />
           <Button className="w-full" onClick={handleLogin} disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Entrar
@@ -62,17 +65,19 @@ export default function LoginPage() {
 
       {step === "activation" && (
         <>
-          <div className="space-y-2">
-            <Label htmlFor="activation-email">E-mail</Label>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="activation-email" type="email" autoComplete="email" className="pl-9"
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleActivationRequest()}
-              />
-            </div>
-          </div>
+          <FormFieldWithIcon
+            label="E-mail"
+            htmlFor="activation-email"
+            icon={Mail}
+            inputProps={{
+              id: "activation-email",
+              type: "email",
+              autoComplete: "email",
+              value: email,
+              onChange: (e) => setEmail(e.target.value),
+              onKeyDown: (e) => e.key === "Enter" && handleActivationRequest(),
+            }}
+          />
           <Button className="w-full" onClick={handleActivationRequest} disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Enviar link de ativação

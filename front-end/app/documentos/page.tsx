@@ -37,17 +37,7 @@ import { useDocuments } from "@/hooks/use-documents"
 import { useTemplates } from "@/hooks/use-templates"
 import type { Document } from "@/lib/types"
 import { useRenderTemplate } from "@/hooks/use-render-template"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 import { toast } from "sonner"
 import { downloadPdf } from "@/lib/pdf-download"
 import {
@@ -262,31 +252,17 @@ export default function DocumentosPage() {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Excluir documento</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(doc.id)}
-                                  disabled={deletingId === doc.id}
-                                >
-                                  {deletingId === doc.id ? "Excluindo..." : "Excluir"}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <ConfirmDeleteDialog
+                            title="Excluir documento"
+                            description="Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita."
+                            isDeleting={deletingId === doc.id}
+                            onConfirm={() => handleDelete(doc.id)}
+                          >
+                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </ConfirmDeleteDialog>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

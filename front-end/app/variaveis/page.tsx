@@ -23,17 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Search, Plus, Variable as VariableIcon, Pencil, Trash2, MoreHorizontal } from "lucide-react"
@@ -318,31 +308,17 @@ export default function VariablesPage() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             {!isNotEditable ? (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Excluir
-                                  </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Excluir variável</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Esta ação removerá a variável {`{{${variable.variable_name}}}`} da lista pública de templates.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDeleteVar(variable.id)}
-                                      disabled={deletingId === variable.id}
-                                    >
-                                      {deletingId === variable.id ? "Excluindo..." : "Excluir"}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                              <ConfirmDeleteDialog
+                                title="Excluir variável"
+                                description={`Esta ação removerá a variável {{${variable.variable_name}}} da lista pública de templates.`}
+                                isDeleting={deletingId === variable.id}
+                                onConfirm={() => handleDeleteVar(variable.id)}
+                              >
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </ConfirmDeleteDialog>
                             ) : (
                               <DropdownMenuItem className="text-destructive" disabled>
                                 <Trash2 className="h-4 w-4 mr-2" />
