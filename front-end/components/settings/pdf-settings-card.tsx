@@ -23,19 +23,18 @@ export function PdfSettingsCard() {
   const updateUser = useUpdateUser()
 
   const [pdfFormat, setPdfFormat] = useState("a4")
-  const [marginTop, setMarginTop] = useState("20")
-  const [marginBottom, setMarginBottom] = useState("20")
-  const [marginLeft, setMarginLeft] = useState("25")
-  const [marginRight, setMarginRight] = useState("25")
+  const [margins, setMargins] = useState({ top: "20", bottom: "20", left: "25", right: "25" })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (prefs) {
       setPdfFormat(prefs?.pdf_default_format || "a4")
-      setMarginTop(String(prefs?.pdf_margin_top ?? 20))
-      setMarginBottom(String(prefs?.pdf_margin_bottom ?? 20))
-      setMarginLeft(String(prefs?.pdf_margin_left ?? 25))
-      setMarginRight(String(prefs?.pdf_margin_right ?? 25))
+      setMargins({
+        top: String(prefs?.pdf_margin_top ?? 20),
+        bottom: String(prefs?.pdf_margin_bottom ?? 20),
+        left: String(prefs?.pdf_margin_left ?? 25),
+        right: String(prefs?.pdf_margin_right ?? 25),
+      })
     }
   }, [prefs])
 
@@ -46,10 +45,10 @@ export function PdfSettingsCard() {
       await updateUser.mutateAsync({
         preferences: {
           pdf_default_format: pdfFormat,
-          pdf_margin_top: Number(marginTop),
-          pdf_margin_bottom: Number(marginBottom),
-          pdf_margin_left: Number(marginLeft),
-          pdf_margin_right: Number(marginRight),
+          pdf_margin_top: Number(margins.top),
+          pdf_margin_bottom: Number(margins.bottom),
+          pdf_margin_left: Number(margins.left),
+          pdf_margin_right: Number(margins.right),
         },
       })
       toast.success("Configurações de PDF salvas com sucesso!")
@@ -88,19 +87,19 @@ export function PdfSettingsCard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label htmlFor="margin-top">Margem Superior</Label>
-            <Input id="margin-top" type="number" value={marginTop} onChange={(e) => setMarginTop(e.target.value)} />
+            <Input id="margin-top" type="number" value={margins.top} onChange={(e) => setMargins({ ...margins, top: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="margin-bottom">Margem Inferior</Label>
-            <Input id="margin-bottom" type="number" value={marginBottom} onChange={(e) => setMarginBottom(e.target.value)} />
+            <Input id="margin-bottom" type="number" value={margins.bottom} onChange={(e) => setMargins({ ...margins, bottom: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="margin-left">Margem Esquerda</Label>
-            <Input id="margin-left" type="number" value={marginLeft} onChange={(e) => setMarginLeft(e.target.value)} />
+            <Input id="margin-left" type="number" value={margins.left} onChange={(e) => setMargins({ ...margins, left: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="margin-right">Margem Direita</Label>
-            <Input id="margin-right" type="number" value={marginRight} onChange={(e) => setMarginRight(e.target.value)} />
+            <Input id="margin-right" type="number" value={margins.right} onChange={(e) => setMargins({ ...margins, right: e.target.value })} />
           </div>
         </div>
         <p className="text-sm text-muted-foreground">

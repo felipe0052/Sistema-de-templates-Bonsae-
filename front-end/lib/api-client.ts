@@ -20,6 +20,23 @@ export function getApiBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || DEFAULT_API_BASE_URL
 }
 
+function parseErrorResponse(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null
+  const p = payload as Record<string, unknown>
+
+  if (typeof p.message === "string") return p.message
+
+  if (p.errors && typeof p.errors === "object" && !Array.isArray(p.errors)) {
+    const errors = p.errors as Record<string, string[]>
+    const firstKey = Object.keys(errors)[0]
+    if (firstKey && Array.isArray(errors[firstKey])) {
+      return errors[firstKey][0] ?? null
+    }
+  }
+
+  return null
+}
+
 export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit & { token?: string | null } = {},
@@ -46,26 +63,13 @@ export async function apiFetch<T>(
   const payload = isJson ? await response.json().catch(() => null) : null
 
   if (!response.ok) {
-    const p = payload as Record<string, unknown> | null
     const message =
-      (p as { message?: string } | null)?.message ||
-      (() => {
-        const errors = (p as { errors?: Record<string, string[]> })?.errors
-        if (errors) {
-          const firstKey = Object.keys(errors)[0]
-          return errors[firstKey]?.[0]
-        }
-        return null
-      })() ||
+      parseErrorResponse(payload) ||
       `Request to ${endpoint} failed with status ${response.status}`
     throw new ApiError(message, response.status, endpoint, payload)
   }
 
-  if (response.status === 204) {
-    return undefined as T
-  }
-
-  if (!isJson) {
+  if (response.status === 204 || !isJson) {
     return undefined as T
   }
 

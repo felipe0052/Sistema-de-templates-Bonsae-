@@ -1,4 +1,5 @@
 'use client'
+// fallow-ignore-file — shadcn/ui vendor component, do not refactor
 
 import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
