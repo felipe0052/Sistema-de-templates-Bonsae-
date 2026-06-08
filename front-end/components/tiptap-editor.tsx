@@ -160,4 +160,4 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
   },
 )
 
-export type { TipTapEditorProps }
+

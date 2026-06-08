@@ -1,5 +1,3 @@
-// Temporary fix for lucide-react types not resolving with moduleResolution: "bundler"
-// Re-export the icons actually used in the project
 declare module "lucide-react" {
   import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from "react"
 
@@ -21,6 +19,7 @@ declare module "lucide-react" {
   export const ChevronRightIcon: LucideIcon
   export const ChevronUpIcon: LucideIcon
   export const ChevronsUpDown: LucideIcon
+  export const CircleIcon: LucideIcon
   export const Copy: LucideIcon
   export const Download: LucideIcon
   export const Edit: LucideIcon
@@ -51,10 +50,7 @@ declare module "lucide-react" {
   export const User: LucideIcon
   export const UserRound: LucideIcon
   export const Variable: LucideIcon
+  export const VariableIcon: LucideIcon
   export const X: LucideIcon
   export const XIcon: LucideIcon
-  export const CircleIcon: LucideIcon
-  export const VariableIcon: LucideIcon
-
-  export type { LucideIcon, LucideProps }
 }

@@ -22,14 +22,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-export interface ToolbarItem {
+interface ToolbarItem {
   type?: "separator"
   icon?: LucideIcon
   command?: string
   label?: string
 }
 
-export const TOOLBAR_ITEMS: ToolbarItem[] = [
+const TOOLBAR_ITEMS: ToolbarItem[] = [
   { icon: Bold, command: "bold", label: "Negrito" },
   { icon: Italic, command: "italic", label: "Itálico" },
   { icon: Underline, command: "underline", label: "Sublinhado" },
