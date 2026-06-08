@@ -240,6 +240,11 @@ export default function GerarDocumentoPage() {
         }
     }, [params.id, templates, isLoading]);
 
+    useEffect(() => {
+        if (!token) return;
+        fetchAssisteds();
+    }, [token, fetchAssisteds]);
+
     const getVariableInfo = (varName: string) => {
         return variablesStore.find((v) => v.variable_name === varName);
     };
@@ -572,7 +577,12 @@ export default function GerarDocumentoPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {assisteds.length === 0 && (
+                                    {!token && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Faça login para carregar assistidos.
+                                        </p>
+                                    )}
+                                    {token && assisteds.length === 0 && (
                                         <p className="text-sm text-muted-foreground">
                                             Nenhum assistido disponível para o seu acesso.
                                         </p>

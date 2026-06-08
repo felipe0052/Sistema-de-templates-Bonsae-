@@ -224,9 +224,9 @@ class TemplateController extends Controller
             auth()->check() &&
             (int) $template->tenant_id !== (int) auth()->user()->tenant_id
         ) {
-            throw new ModelNotFoundException()->setModel(Template::class, [
-                $template->id,
-            ]);
+            $exception = new ModelNotFoundException();
+            $exception->setModel(Template::class, [$template->id]);
+            throw $exception;
         }
     }
 }

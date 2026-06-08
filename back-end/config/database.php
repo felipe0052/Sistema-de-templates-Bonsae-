@@ -107,6 +107,26 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+'bonsae' => [
+    'driver' => env('BONSAE_DB_DRIVER', 'mysql'),
+    'url' => env('BONSAE_DB_URL'),
+    'host' => env('BONSAE_DB_HOST', '127.0.0.1'),
+    'port' => env('BONSAE_DB_PORT', '3306'),
+    'database' => env('BONSAE_DB_DATABASE', 'bonsae_legacy'),
+    'username' => env('BONSAE_DB_USERNAME', 'root'),
+    'password' => env('BONSAE_DB_PASSWORD', ''),
+    'unix_socket' => env('BONSAE_DB_SOCKET', ''),
+    'charset' => env('BONSAE_DB_CHARSET', 'utf8mb4'),
+    'collation' => env('BONSAE_DB_COLLATION', 'utf8mb4_unicode_ci'),
+    'prefix' => '',
+    'prefix_indexes' => true,
+    'strict' => true,
+    'engine' => null,
+    'options' => extension_loaded('pdo_mysql') ? array_filter([
+        (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+    ]) : [],
+],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),
