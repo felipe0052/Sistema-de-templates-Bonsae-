@@ -27,6 +27,7 @@ services:
     env_file:
       - path: ./back-end/.env
         required: false
+    environment:
       BONSAE_DB_DRIVER: mysql
       BONSAE_DB_HOST: db
       BONSAE_DB_PORT: 3306

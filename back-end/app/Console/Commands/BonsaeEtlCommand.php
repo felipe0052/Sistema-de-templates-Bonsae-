@@ -79,7 +79,7 @@ class BonsaeEtlCommand extends Command
             $query = DB::connection($sourceConn)->table($sourceTable);
 
             if (!$query->exists()) {
-                $this->warn("Tabela {$sourceTable} está vazia ou não existe no banco de origem.");
+                $this->warn("Tabela {$sourceTable} está vazia.");
                 return;
             }
 
@@ -205,6 +205,8 @@ class BonsaeEtlCommand extends Command
         return $users;
     }
 
+    protected function extractCreateTableColumns(string $dumpFile, string $table): array
+    {
         $file = new \SplFileObject($dumpFile, 'r');
         $inCreate = false;
         $columns = [];
@@ -232,6 +234,8 @@ class BonsaeEtlCommand extends Command
         return $columns;
     }
 
+    protected function extractInsertStatements(string $dumpFile, string $table): array
+    {
         $file = new \SplFileObject($dumpFile, 'r');
         $needle = "INSERT INTO `{$table}`";
         $inInsert = false;
@@ -250,8 +254,6 @@ class BonsaeEtlCommand extends Command
                 $inInsert = true;
                 $buffer = substr($line, $pos);
             } else {
-                $buffer .= $line;
-            }
                 $buffer .= $line;
             }
 
@@ -297,7 +299,7 @@ class BonsaeEtlCommand extends Command
                     continue;
                 }
 
-                if ($ch === '\\\\') {
+                if ($ch === '\\') {
                     $escape = true;
                     continue;
                 }
