@@ -234,10 +234,8 @@ class BonsaeEtlCommand extends Command
         return $columns;
     }
 
-    protected function extractInsertStatements(string $dumpFile, string $table): array
-    {
         $file = new \SplFileObject($dumpFile, 'r');
-        $needle = "INSERT INTO `{$table}` VALUES";
+        $needle = "INSERT INTO `{$table}`";
         $inInsert = false;
         $buffer = '';
         $statements = [];
@@ -246,7 +244,7 @@ class BonsaeEtlCommand extends Command
             $line = (string) $file->fgets();
 
             if (!$inInsert) {
-                $pos = strpos($line, $needle);
+                $pos = stripos($line, $needle);
                 if ($pos === false) {
                     continue;
                 }
@@ -254,6 +252,8 @@ class BonsaeEtlCommand extends Command
                 $inInsert = true;
                 $buffer = substr($line, $pos);
             } else {
+                $buffer .= $line;
+            }
                 $buffer .= $line;
             }
 
