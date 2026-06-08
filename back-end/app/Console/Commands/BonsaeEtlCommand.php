@@ -205,18 +205,16 @@ class BonsaeEtlCommand extends Command
         return $users;
     }
 
-    protected function extractCreateTableColumns(string $dumpFile, string $table): array
-    {
         $file = new \SplFileObject($dumpFile, 'r');
         $inCreate = false;
         $columns = [];
-        $needle = "CREATE TABLE `{$table}` (";
+        $createRegex = '/CREATE TABLE\s+(?:IF NOT EXISTS\s+)?`' . preg_quote($table, '/') . '`\s*\(/i';
 
         while (!$file->eof()) {
             $line = (string) $file->fgets();
 
             if (!$inCreate) {
-                if (strpos($line, $needle) !== false) {
+                if (preg_match($createRegex, $line) === 1) {
                     $inCreate = true;
                 }
                 continue;
