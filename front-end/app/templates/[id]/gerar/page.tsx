@@ -20,6 +20,7 @@ import { useTemplates } from "@/hooks/use-templates";
 import { useDocuments } from "@/hooks/use-documents";
 import { useVariables } from "@/hooks/use-variables";
 import { useAssisteds } from "@/hooks/use-assisteds";
+import { useAuth } from "@/hooks/use-auth";
 import { useRenderTemplate } from "@/hooks/use-render-template";
 import { toast } from "sonner";
 import { extractVariables, replaceVariables } from "@/lib/store";
@@ -212,6 +213,7 @@ export default function GerarDocumentoPage() {
     const { variables: variablesStore, variableCatalogAvailable } = useVariables();
     const { addDocument } = useDocuments();
     const { assisteds } = useAssisteds();
+    const { token } = useAuth();
     const { renderTemplate, renderTemplatePdf } = useRenderTemplate();
     const isLoading = templatesLoading;
     const [template, setTemplate] = useState<Template | null>(null);
@@ -239,11 +241,6 @@ export default function GerarDocumentoPage() {
             setDados(initialData);
         }
     }, [params.id, templates, isLoading]);
-
-    useEffect(() => {
-        if (!token) return;
-        fetchAssisteds();
-    }, [token, fetchAssisteds]);
 
     const getVariableInfo = (varName: string) => {
         return variablesStore.find((v) => v.variable_name === varName);
