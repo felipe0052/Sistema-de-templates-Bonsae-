@@ -36,6 +36,16 @@ class DatabaseSeeder extends Seeder
 
         $user = User::query()->where('email', 'admin@instituicao.com')->firstOrFail();
 
+        // Executar ETL do Bonsae se o dump existir
+        $dumpPath = base_path('dump.sql');
+        if (file_exists($dumpPath)) {
+            $this->command->info("Iniciando importação automática do dump.sql via ETL...");
+            \Illuminate\Support\Facades\Artisan::call('app:etl-bonsae', [
+                '--dump-file' => $dumpPath
+            ]);
+            $this->command->info(\Illuminate\Support\Facades\Artisan::output());
+        }
+
         foreach ($this->staticVariables() as $variable) {
             DB::table('static_variables')->updateOrInsert(
                 ['name' => $variable['name']],

@@ -19,6 +19,9 @@ class BonsaeEtlCommand extends Command
         {--source=bonsae : The source database connection defined in config/database.php}
         {--dump-file= : Caminho para um dump MySQL (.sql) do Bonsae para rodar o ETL sem precisar de MySQL local}';
 
+    protected $legacyCities = [];
+    protected $legacyStates = [];
+
     /**
      * The console command description.
      *
@@ -52,6 +55,7 @@ class BonsaeEtlCommand extends Command
 
         $tablesToMigrate = [
             'users' => 'users',
+            'clients' => 'clients',
         ];
 
         foreach ($tablesToMigrate as $sourceTable => $destTable) {
@@ -132,6 +136,47 @@ class BonsaeEtlCommand extends Command
                     'updated_at' => $data['updated_at'] ?? now(),
                 ];
                 break;
+
+            case 'addresses':
+                $cityId = $data['city_id'] ?? null;
+                $stateId = $data['state_id'] ?? null;
+                
+                $data = [
+                    'cep' => $data['cep'] ?? null,
+                    'street_name' => $data['street_name'] ?? null,
+                    'number' => $data['number'] ?? null,
+                    'complement' => $data['complement'] ?? null,
+                    'neighborhood' => $data['neighborhood'] ?? null,
+                    'city' => $this->legacyCities[$cityId]['name'] ?? null,
+                    'state' => $this->legacyStates[$stateId]['uf'] ?? null,
+                    'created_at' => $data['created_at'] ?? now(),
+                    'updated_at' => $data['updated_at'] ?? now(),
+                ];
+                break;
+
+            case 'clients':
+                // Garantir que temos um creator_id válido
+                if (!isset($data['creator_id']) || $data['creator_id'] <= 0) {
+                    $data['creator_id'] = (int) (DB::table('users')->min('id') ?? 1);
+                }
+                
+                // Mapear UF do órgão expedidor se for um ID legado
+                $ufIssuingBodyId = $data['uf_issuing_body'] ?? null;
+                if (is_numeric($ufIssuingBodyId) && isset($this->legacyStates[$ufIssuingBodyId])) {
+                    $data['uf_issuing_body'] = $this->legacyStates[$ufIssuingBodyId]['uf'];
+                }
+
+                // Limpar campos de data se forem inválidos para SQLite (0000-00-00)
+                foreach (['birth_date', 'created_at', 'updated_at', 'deleted_at'] as $dateField) {
+                    if (isset($data[$dateField]) && ($data[$dateField] === '0000-00-00' || $data[$dateField] === '0000-00-00 00:00:00')) {
+                        $data[$dateField] = null;
+                    }
+                }
+
+                // Filtrar apenas colunas que existem na tabela de destino
+                $destColumns = Schema::getColumnListing('clients');
+                $data = array_intersect_key($data, array_flip($destColumns));
+                break;
         }
 
         return $data;
@@ -148,42 +193,102 @@ class BonsaeEtlCommand extends Command
 
         $this->info("Iniciando ETL via dump-file: {$dumpFile}");
 
-        $legacyUsers = $this->extractUsersFromMysqlDump($dumpFile);
+        // Carregar Cidades e Estados para mapeamento de endereços
+        $this->loadLegacyGeoData($dumpFile);
 
-        if ($legacyUsers === []) {
-            $this->warn('Nenhum usuário encontrado no dump.');
-            return 0;
-        }
-
-        $this->comment('Migrando tabela: users -> users...');
-
-        $count = 0;
-        foreach ($legacyUsers as $user) {
-            $transformed = $this->transformData('users', $user);
-
-            if (($transformed['email'] ?? '') === '') {
-                continue;
+        // 1. Migrar Usuários
+        $legacyUsers = $this->extractTableFromMysqlDump($dumpFile, 'users');
+        if ($legacyUsers !== []) {
+            $this->comment('Migrando tabela: users -> users...');
+            $count = 0;
+            foreach ($legacyUsers as $user) {
+                $transformed = $this->transformData('users', $user);
+                if (($transformed['email'] ?? '') === '') {
+                    continue;
+                }
+                DB::table('users')->updateOrInsert(['email' => $transformed['email']], $transformed);
+                $this->upsertAssistedFromUser($user, $transformed);
+                $count++;
             }
-
-            DB::table('users')->updateOrInsert(['email' => $transformed['email']], $transformed);
-            $this->upsertAssistedFromUser($user, $transformed);
-            $count++;
+            $this->info("Migrados {$count} registros da tabela users.");
         }
 
-        $this->info("Migrados {$count} registros da tabela users.");
+        // 2. Migrar Endereços
+        $legacyAddresses = $this->extractTableFromMysqlDump($dumpFile, 'addresses');
+        if ($legacyAddresses !== []) {
+            $this->comment('Migrando tabela: addresses -> addresses...');
+            $count = 0;
+            foreach ($legacyAddresses as $address) {
+                $legacyId = $address['id'] ?? null;
+                $transformed = $this->transformData('addresses', $address);
+                
+                if ($legacyId) {
+                    $transformed['id'] = $legacyId;
+                    DB::table('addresses')->updateOrInsert(['id' => $legacyId], $transformed);
+                } else {
+                    DB::table('addresses')->insert($transformed);
+                }
+                $count++;
+            }
+            $this->info("Migrados {$count} registros da tabela addresses.");
+        }
+
+        // 3. Migrar Clientes (Assistidos)
+        $legacyClients = $this->extractTableFromMysqlDump($dumpFile, 'clients');
+        if ($legacyClients !== []) {
+            $this->comment('Migrando tabela: clients -> clients...');
+            $count = 0;
+            foreach ($legacyClients as $client) {
+                $legacyId = $client['id'] ?? null;
+                $transformed = $this->transformData('clients', $client);
+                
+                // Remove o ID original para evitar conflitos de auto-incremento, 
+                // mas guardamos no id_old_bonsae para referência e idempotência
+                unset($transformed['id']);
+                if ($legacyId) {
+                    $transformed['id_old_bonsae'] = $legacyId;
+                    DB::table('clients')->updateOrInsert(['id_old_bonsae' => $legacyId], $transformed);
+                } else {
+                    DB::table('clients')->insert($transformed);
+                }
+                
+                $count++;
+            }
+            $this->info("Migrados {$count} registros da tabela clients.");
+        }
+
         $this->info('Processo de ETL concluído!');
         return 0;
     }
 
-    protected function extractUsersFromMysqlDump(string $dumpFile): array
+    protected function loadLegacyGeoData(string $dumpFile): void
     {
-        $columns = $this->extractCreateTableColumns($dumpFile, 'users');
+        $this->comment('Carregando dados geográficos legados...');
+
+        // Estados
+        $states = $this->extractTableFromMysqlDump($dumpFile, 'states');
+        foreach ($states as $state) {
+            $this->legacyStates[$state['id']] = $state;
+        }
+
+        // Cidades
+        $cities = $this->extractTableFromMysqlDump($dumpFile, 'cities');
+        foreach ($cities as $city) {
+            $this->legacyCities[$city['id']] = $city;
+        }
+
+        $this->info("Carregados " . count($this->legacyStates) . " estados e " . count($this->legacyCities) . " cidades.");
+    }
+
+    protected function extractTableFromMysqlDump(string $dumpFile, string $tableName): array
+    {
+        $columns = $this->extractCreateTableColumns($dumpFile, $tableName);
         if ($columns === []) {
             return [];
         }
 
-        $users = [];
-        $insertStatements = $this->extractInsertStatements($dumpFile, 'users');
+        $rows = [];
+        $insertStatements = $this->extractInsertStatements($dumpFile, $tableName);
 
         foreach ($insertStatements as $statement) {
             $valuesSql = $this->extractValuesSqlFromInsert($statement);
@@ -198,11 +303,11 @@ class BonsaeEtlCommand extends Command
                     $row[$columns[$i]] = $rowValues[$i];
                 }
 
-                $users[] = $row;
+                $rows[] = $row;
             }
         }
 
-        return $users;
+        return $rows;
     }
 
     protected function extractCreateTableColumns(string $dumpFile, string $table): array
