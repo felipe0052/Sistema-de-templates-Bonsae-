@@ -14,6 +14,11 @@ export type User = {
     pdf_margin_bottom?: number
     pdf_margin_left?: number
     pdf_margin_right?: number
+    notifications?: {
+      email_notifications?: boolean
+      weekly_summary?: boolean
+      system_alerts?: boolean
+    }
   }
 }
 

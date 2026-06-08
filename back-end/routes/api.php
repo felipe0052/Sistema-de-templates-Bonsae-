@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(EnsureUserHasTenant::class)->group(function () {
         Route::get('/user', [UserController::class, 'show']);
         Route::put('/user', [UserController::class, 'update']);
+        Route::put('/user/password', [UserController::class, 'changePassword']);
 
         // CRUD de Templates
         Route::apiResource('templates', TemplateController::class);
