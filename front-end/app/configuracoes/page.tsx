@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,9 +27,11 @@ import {
 import { toast } from "sonner"
 import { useUser, useUserPreferences, useUpdateUser } from "@/hooks/use-user"
 import { useAuth } from "@/hooks/use-auth"
+import { apiFetch } from "@/lib/api-client"
 
 export default function ConfiguracoesPage() {
   const { token } = useAuth()
+  const { theme, setTheme } = useTheme()
   const { data: user } = useUser()
   const prefs = useUserPreferences()
   const updateUser = useUpdateUser()
@@ -41,7 +44,16 @@ export default function ConfiguracoesPage() {
   const [marginLeft, setMarginLeft] = useState("25")
   const [marginRight, setMarginRight] = useState("25")
 
+  const [notifEmail, setNotifEmail] = useState(true)
+  const [notifWeekly, setNotifWeekly] = useState(true)
+  const [notifAlerts, setNotifAlerts] = useState(false)
+
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+
   const [saving, setSaving] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -52,6 +64,9 @@ export default function ConfiguracoesPage() {
       setMarginBottom(String(prefs?.pdf_margin_bottom ?? 20))
       setMarginLeft(String(prefs?.pdf_margin_left ?? 25))
       setMarginRight(String(prefs?.pdf_margin_right ?? 25))
+      setNotifEmail(prefs?.notifications?.email_notifications ?? true)
+      setNotifWeekly(prefs?.notifications?.weekly_summary ?? true)
+      setNotifAlerts(prefs?.notifications?.system_alerts ?? false)
     }
   }, [user, prefs])
 
@@ -86,6 +101,60 @@ export default function ConfiguracoesPage() {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar configurações de PDF")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSaveNotifications = async () => {
+    if (!token) return
+    setSaving(true)
+    try {
+      await updateUser.mutateAsync({
+        preferences: {
+          ...prefs,
+          notifications: {
+            email_notifications: notifEmail,
+            weekly_summary: notifWeekly,
+            system_alerts: notifAlerts,
+          },
+        },
+      })
+      toast.success("Preferências de notificação salvas com sucesso!")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar notificações")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!token) return
+    if (newPassword.length < 8) {
+      toast.error("A nova senha deve ter no mínimo 8 caracteres")
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("A confirmação da senha não coincide")
+      return
+    }
+    setChangingPassword(true)
+    try {
+      await apiFetch("/user/password", {
+        method: "PUT",
+        token,
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+          new_password_confirmation: confirmPassword,
+        }),
+      })
+      toast.success("Senha alterada com sucesso!")
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao alterar senha")
+    } finally {
+      setChangingPassword(false)
     }
   }
 
@@ -141,7 +210,7 @@ export default function ConfiguracoesPage() {
                   Receba atualizações sobre documentos gerados
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={notifEmail} onCheckedChange={setNotifEmail} />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -151,7 +220,7 @@ export default function ConfiguracoesPage() {
                   Receba um resumo semanal das atividades
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={notifWeekly} onCheckedChange={setNotifWeekly} />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -161,8 +230,12 @@ export default function ConfiguracoesPage() {
                   Notificações sobre atualizações e manutenções
                 </p>
               </div>
-              <Switch />
+              <Switch checked={notifAlerts} onCheckedChange={setNotifAlerts} />
             </div>
+            <Button onClick={handleSaveNotifications} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? "Salvando..." : "Salvar Preferências de Notificação"}
+            </Button>
           </CardContent>
         </Card>
 
@@ -179,7 +252,7 @@ export default function ConfiguracoesPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Tema</Label>
-              <Select defaultValue="light">
+              <Select value={theme} onValueChange={setTheme}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Selecione o tema" />
                 </SelectTrigger>
@@ -271,19 +344,21 @@ export default function ConfiguracoesPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="current-password">Senha Atual</Label>
-              <Input id="current-password" type="password" />
+              <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="new-password">Nova Senha</Label>
-                <Input id="new-password" type="password" />
+                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                <Input id="confirm-password" type="password" />
+                <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
               </div>
             </div>
-            <Button variant="outline">Alterar Senha</Button>
+            <Button variant="outline" onClick={handleChangePassword} disabled={changingPassword}>
+              {changingPassword ? "Alterando..." : "Alterar Senha"}
+            </Button>
           </CardContent>
         </Card>
       </div>
