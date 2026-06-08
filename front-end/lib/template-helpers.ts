@@ -48,7 +48,7 @@ export const formatValue = (varName: string, value: string) => {
     return value
 }
 
-export const formatDateFromApi = (value?: string | null) => {
+const formatDateFromApi = (value?: string | null) => {
     if (!value) return ""
 
     const [year, month, day] = value.split("T")[0].split("-")
@@ -57,7 +57,7 @@ export const formatDateFromApi = (value?: string | null) => {
     return `${day}/${month}/${year}`
 }
 
-export const buildFullAddress = (address?: Address | null): string => {
+const buildFullAddress = (address?: Address | null): string => {
     if (!address) return ""
 
     const parts: string[] = []
@@ -92,7 +92,7 @@ export const buildFullAddress = (address?: Address | null): string => {
     return parts.join(" - ")
 }
 
-export const clientFieldMap: Record<string, string> = {
+const clientFieldMap: Record<string, string> = {
     nome: 'name',
     assistido_nome: 'name',
     nome_assistido: 'name',
@@ -140,7 +140,7 @@ export const clientFieldMap: Record<string, string> = {
     complemento: 'address.complement',
 }
 
-export const getFieldValue = (obj: Record<string, any>, path: string): any => {
+const getFieldValue = (obj: Record<string, any>, path: string): any => {
     return path.split('.').reduce((current, key) => {
         if (current == null) return undefined
         return current[key]

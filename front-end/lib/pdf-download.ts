@@ -10,7 +10,7 @@ export function slugify(value: string): string {
 }
 
 export async function downloadPdf(
-  renderTemplatePdf: (id: string, vars: Record<string, string>, behavior: string) => Promise<Blob | null>,
+  renderTemplatePdf: (id: string, vars: Record<string, string>, behavior?: "blank" | "underline") => Promise<Blob | null>,
   doc: Document,
   templates: Template[],
 ): Promise<void> {

@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, type CSSProperties, type ReactNode } from "react"
+import { Fragment, createElement, type CSSProperties, type ReactNode } from "react"
 
 const ALLOWED_TAGS = new Set([
   "p",
@@ -80,10 +80,10 @@ function toReactStyle(styleValue: string): CSSProperties {
   return style
 }
 
-const TAG_COMPONENTS: Record<string, React.ComponentType<any>> = {
-  br, p, strong, b, em, i, u,
-  h1, h2, h3, h4, h5, h6,
-  ul, ol, li, div, span,
+const TAG_COMPONENTS: Record<string, string> = {
+  br: "br", p: "p", strong: "strong", b: "b", em: "em", i: "i", u: "u",
+  h1: "h1", h2: "h2", h3: "h3", h4: "h4", h5: "h5", h6: "h6",
+  ul: "ul", ol: "ol", li: "li", div: "div", span: "span",
 }
 
 function renderNode(node: Node, key: string): ReactNode {
@@ -119,7 +119,7 @@ function renderNode(node: Node, key: string): ReactNode {
       ? safeStyle
       : undefined
 
-  return <Tag key={key} {...(style ? { style } : {})}>{children}</Tag>
+  return createElement(Tag, { key, ...(style ? { style } : {}) }, ...children)
 }
 
 export function SafeHtmlRenderer({ html, className, style }: SafeHtmlRendererProps) {
