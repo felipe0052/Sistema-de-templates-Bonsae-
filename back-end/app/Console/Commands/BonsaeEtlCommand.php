@@ -75,16 +75,16 @@ class BonsaeEtlCommand extends Command
                 return;
             }
 
-            // Verifica se a tabela de origem existe
-            $sourceData = DB::connection($sourceConn)->table($sourceTable)->get();
-            
-            if ($sourceData->isEmpty()) {
+            // Stream rows to avoid loading the entire table into memory
+            $query = DB::connection($sourceConn)->table($sourceTable);
+
+            if (!$query->exists()) {
                 $this->warn("Tabela {$sourceTable} está vazia ou não existe no banco de origem.");
                 return;
             }
 
             $count = 0;
-            foreach ($sourceData as $row) {
+            foreach ($query->cursor() as $row) {
                 // Converter objeto para array
                 $data = (array) $row;
 
