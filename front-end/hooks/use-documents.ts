@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api-client"
 import type { Document } from "@/lib/types"
 import { useAuth } from "./use-auth"
+import { createOptimisticDelete, createOptimisticCreate } from "./mutation-utils"
 
 const queryKey = ["documents"] as const
 
@@ -46,12 +47,7 @@ export function useDocuments() {
       })
       return mapDocument(data.data ?? data)
     },
-    onSuccess: (created) => {
-      queryClient.setQueryData<Document[]>(queryKey, (prev = []) => [created, ...prev])
-    },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey })
-    },
+    ...createOptimisticCreate<Document>(queryClient, queryKey),
   })
 
   const deleteDocumentMutation = useMutation({
@@ -59,20 +55,7 @@ export function useDocuments() {
       if (!token) throw new Error("Autenticação necessária para excluir documento.")
       await apiFetch(`/documents/${id}`, { method: "DELETE", token })
     },
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData<Document[]>(queryKey)
-      queryClient.setQueryData<Document[]>(queryKey, (prev = []) => prev.filter((item) => item.id !== id))
-      return { previous }
-    },
-    onError: (_err, _id, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous)
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
-    },
+    ...createOptimisticDelete<Document>(queryClient, queryKey),
   })
 
   return {

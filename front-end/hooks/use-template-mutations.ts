@@ -5,6 +5,7 @@ import { apiFetch } from "@/lib/api-client"
 import type { Template } from "@/lib/types"
 import { useAuth } from "./use-auth"
 import { queryKey, mapTemplate, serializeBackgroundImage } from "./template-utils"
+import { createOptimisticDelete, createOptimisticUpdate, createOptimisticCreate } from "./mutation-utils"
 
 export function useTemplateMutations() {
   const queryClient = useQueryClient()
@@ -26,15 +27,7 @@ export function useTemplateMutations() {
       })
       return mapTemplate(data.data ?? data)
     },
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey })
-    },
-    onSuccess: (created) => {
-      queryClient.setQueryData<Template[]>(queryKey, (prev = []) => [created, ...prev])
-    },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey })
-    },
+    ...createOptimisticCreate<Template>(queryClient, queryKey),
   })
 
   const updateTemplateMutation = useMutation({
@@ -51,22 +44,7 @@ export function useTemplateMutations() {
         }),
       })
     },
-    onMutate: async ({ id, updates }) => {
-      await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData<Template[]>(queryKey)
-      queryClient.setQueryData<Template[]>(queryKey, (prev = []) =>
-        prev.map((item) => (item.id === id ? { ...item, ...updates } : item)),
-      )
-      return { previous }
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous)
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
-    },
+    ...createOptimisticUpdate<Template>(queryClient, queryKey),
   })
 
   const deleteTemplateMutation = useMutation({
@@ -74,20 +52,7 @@ export function useTemplateMutations() {
       if (!token) throw new Error("Autenticação necessária para excluir template.")
       await apiFetch(`/templates/${id}`, { method: "DELETE", token })
     },
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData<Template[]>(queryKey)
-      queryClient.setQueryData<Template[]>(queryKey, (prev = []) => prev.filter((item) => item.id !== id))
-      return { previous }
-    },
-    onError: (_err, _id, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous)
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
-    },
+    ...createOptimisticDelete<Template>(queryClient, queryKey),
   })
 
   return {
