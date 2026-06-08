@@ -24,11 +24,9 @@ services:
       dockerfile: Dockerfile
     container_name: bonsae-backend
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     env_file:
-      - ./back-end/.env
-    environment:
+      - path: ./back-end/.env
+        required: false
       BONSAE_DB_DRIVER: mysql
       BONSAE_DB_HOST: db
       BONSAE_DB_PORT: 3306
