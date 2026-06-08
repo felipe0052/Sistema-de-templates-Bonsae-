@@ -5,38 +5,18 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
   TableRow,
+  TableHead,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Search, Plus, Variable as VariableIcon, Pencil, Trash2, MoreHorizontal } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Search, Variable as VariableIcon } from "lucide-react"
 import { useVariables } from "@/hooks/use-variables"
 import { toast } from "sonner"
-import type { Variable } from "@/lib/types"
+import { VariableTableRow } from "@/components/variables/variable-table-row"
+import { VariableFormDialog } from "@/components/variables/variable-form-dialog"
 
 const emptyVariableForm = { variable_name: "", description: "", example: "" }
 
@@ -96,7 +76,7 @@ export default function VariablesPage() {
     setIsDialogOpen(true)
   }
 
-  const handleEditClick = (variable: Variable) => {
+  const handleEditClick = (variable: { id: string; variable_name: string; description: string; example?: string }) => {
     setEditingVarId(variable.id)
     setVariableForm({
       variable_name: variable.variable_name,
@@ -158,7 +138,6 @@ export default function VariablesPage() {
       subtitle="Gerencie as variáveis disponíveis para os templates"
     >
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -169,69 +148,18 @@ export default function VariablesPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
-            <DialogTrigger asChild>
-              <Button onClick={handleCreateClick}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Variável
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingVarId ? "Editar Variável" : "Criar Nova Variável"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingVarId
-                    ? "Atualize os dados da variável disponível para os templates."
-                    : "Adicione uma nova variável para usar nos templates de documentos."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="variable_name">Nome da Variável</Label>
-                  <Input
-                    id="variable_name"
-                    placeholder="Ex: numero_processo"
-                    value={variableForm.variable_name}
-                    onChange={(e) => setVariableForm({ ...variableForm, variable_name: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Use apenas letras minúsculas e underscores
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Descreva para que serve esta variável"
-                    value={variableForm.description}
-                    onChange={(e) => setVariableForm({ ...variableForm, description: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="example">Exemplo (opcional)</Label>
-                  <Input
-                    id="example"
-                    placeholder="Ex: 1234/2024"
-                    value={variableForm.example}
-                    onChange={(e) => setVariableForm({ ...variableForm, example: e.target.value })}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => handleDialogChange(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSubmitVar} disabled={isSubmitting}>
-                  {isSubmitting ? "Salvando..." : editingVarId ? "Salvar Alterações" : "Criar Variável"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <VariableFormDialog
+            isOpen={isDialogOpen}
+            onOpenChange={handleDialogChange}
+            editingVarId={editingVarId}
+            form={variableForm}
+            onFormChange={setVariableForm}
+            onSubmit={handleSubmitVar}
+            isSubmitting={isSubmitting}
+            onCreateClick={handleCreateClick}
+          />
         </div>
 
-        {/* Info Card */}
         <Card className="bg-primary/5 border-primary/20">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
@@ -255,7 +183,6 @@ export default function VariablesPage() {
           </CardContent>
         </Card>
 
-        {/* Variables Table */}
         <Card className="bg-card">
           <CardHeader>
             <CardTitle className="text-base">
@@ -273,64 +200,16 @@ export default function VariablesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVariables.map((variable) => {
-                  const isNotEditable = (variable.source ?? "manual") !== "manual"
-                  return (
-                    <TableRow key={variable.id}>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className="font-mono text-xs bg-primary/10 text-primary"
-                        >
-                          {`{{${variable.variable_name}}}`}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {variable.description}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {variable.example || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleEditClick(variable)}
-                              disabled={isNotEditable}
-                            >
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {!isNotEditable ? (
-                              <ConfirmDeleteDialog
-                                title="Excluir variável"
-                                description={`Esta ação removerá a variável {{${variable.variable_name}}} da lista pública de templates.`}
-                                isDeleting={deletingId === variable.id}
-                                onConfirm={() => handleDeleteVar(variable.id)}
-                              >
-                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir
-                                </DropdownMenuItem>
-                              </ConfirmDeleteDialog>
-                            ) : (
-                              <DropdownMenuItem className="text-destructive" disabled>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
+                {filteredVariables.map((variable) => (
+                  <VariableTableRow
+                    key={variable.id}
+                    variable={variable}
+                    isNotEditable={(variable.source ?? "manual") !== "manual"}
+                    isDeleting={deletingId === variable.id}
+                    onEdit={handleEditClick}
+                    onDelete={() => handleDeleteVar(variable.id)}
+                  />
+                ))}
               </TableBody>
             </Table>
           </CardContent>

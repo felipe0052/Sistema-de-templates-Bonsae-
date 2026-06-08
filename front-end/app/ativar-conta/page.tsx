@@ -7,6 +7,7 @@ import { toast } from "sonner"
 
 import { useAuth } from "@/hooks/use-auth"
 import { apiFetch } from "@/lib/api-client"
+import { validateActivationForm } from "@/lib/auth-helpers"
 import { AuthLayout } from "@/components/auth-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,12 +33,8 @@ function ActivationForm() {
   }, [emailParam, tokenParam])
 
   const handleActivate = async () => {
-    if (password.length < 8) {
-      return toast.error("A senha deve ter no mínimo 8 caracteres.")
-    }
-    if (password !== passwordConfirmation) {
-      return toast.error("As senhas não coincidem.")
-    }
+    const validationError = validateActivationForm(password, passwordConfirmation)
+    if (validationError) return toast.error(validationError)
 
     setIsSubmitting(true)
     try {

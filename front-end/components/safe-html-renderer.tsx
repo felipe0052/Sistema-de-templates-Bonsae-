@@ -1,6 +1,7 @@
 "use client"
 
 import { Fragment, createElement, type CSSProperties, type ReactNode } from "react"
+import { toReactStyle } from "@/lib/html-style-utils"
 
 const ALLOWED_TAGS = new Set([
   "p",
@@ -25,25 +26,6 @@ const ALLOWED_TAGS = new Set([
 
 const STRIP_WITH_CONTENT_TAGS = new Set(["script", "style", "iframe", "object", "embed"])
 
-const ALLOWED_STYLE_PROPS = new Set([
-  "text-align",
-  "font-weight",
-  "font-style",
-  "text-decoration",
-  "font-size",
-  "line-height",
-  "margin",
-  "margin-left",
-  "margin-right",
-  "margin-top",
-  "margin-bottom",
-  "padding",
-  "padding-left",
-  "padding-right",
-  "padding-top",
-  "padding-bottom",
-])
-
 const PENDING_VARIABLE_STYLE: CSSProperties = {
   backgroundColor: "#fee2e2",
   color: "#991b1b",
@@ -59,52 +41,23 @@ interface SafeHtmlRendererProps {
   style?: CSSProperties
 }
 
-function toReactStyle(styleValue: string): CSSProperties {
-  const style: CSSProperties = {}
-
-  styleValue.split(";").forEach((declaration) => {
-    const [rawProperty, ...rawValueParts] = declaration.split(":")
-    if (!rawProperty || rawValueParts.length === 0) return
-
-    const property = rawProperty.trim().toLowerCase()
-    const value = rawValueParts.join(":").trim()
-    if (!ALLOWED_STYLE_PROPS.has(property) || !value) return
-    if (/url\s*\(|expression\s*\(|javascript:/i.test(value)) return
-
-    const camelProperty = property.replace(/-([a-z])/g, (_match, letter: string) =>
-      letter.toUpperCase(),
-    )
-    ;(style as Record<string, string>)[camelProperty] = value
-  })
-
-  return style
-}
-
 const TAG_COMPONENTS: Record<string, string> = {
   br: "br", p: "p", strong: "strong", b: "b", em: "em", i: "i", u: "u",
   h1: "h1", h2: "h2", h3: "h3", h4: "h4", h5: "h5", h6: "h6",
   ul: "ul", ol: "ol", li: "li", div: "div", span: "span",
 }
 
-function renderNode(node: Node, key: string): ReactNode {
-  if (node.nodeType === Node.TEXT_NODE) {
-    return node.textContent
-  }
+function renderTextNode(node: Node): ReactNode {
+  return node.textContent
+}
 
-  if (node.nodeType !== Node.ELEMENT_NODE) {
-    return null
-  }
-
+function renderElementNode(node: Node, key: string, children: ReactNode[]): ReactNode {
   const element = node as HTMLElement
   const tagName = element.tagName.toLowerCase()
 
   if (STRIP_WITH_CONTENT_TAGS.has(tagName)) {
     return null
   }
-
-  const children = Array.from(element.childNodes).map((child, index) =>
-    renderNode(child, `${key}-${index}`),
-  )
 
   const Tag = TAG_COMPONENTS[tagName]
   if (!Tag) {
@@ -120,6 +73,22 @@ function renderNode(node: Node, key: string): ReactNode {
       : undefined
 
   return createElement(Tag, { key, ...(style ? { style } : {}) }, ...children)
+}
+
+function renderNode(node: Node, key: string): ReactNode {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return renderTextNode(node)
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return null
+  }
+
+  const children = Array.from(node.childNodes).map((child, index) =>
+    renderNode(child, `${key}-${index}`),
+  )
+
+  return renderElementNode(node, key, children)
 }
 
 export function SafeHtmlRenderer({ html, className, style }: SafeHtmlRendererProps) {

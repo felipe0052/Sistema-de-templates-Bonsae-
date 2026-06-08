@@ -4,12 +4,12 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Bell, Save } from "lucide-react"
 import { toast } from "sonner"
 import { useUserPreferences, useUpdateUser } from "@/hooks/use-user"
 import { useAuth } from "@/hooks/use-auth"
+import { ToggleRow } from "./toggle-row"
 
 export function NotificationsCard() {
   const { token } = useAuth()
@@ -63,35 +63,26 @@ export function NotificationsCard() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">Notificações por e-mail</p>
-            <p className="text-sm text-muted-foreground">
-              Receba atualizações sobre documentos gerados
-            </p>
-          </div>
-          <Switch checked={notifEmail} onCheckedChange={setNotifEmail} />
-        </div>
+        <ToggleRow
+          title="Notificações por e-mail"
+          description="Receba atualizações sobre documentos gerados"
+          checked={notifEmail}
+          onCheckedChange={setNotifEmail}
+        />
         <Separator />
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">Resumo semanal</p>
-            <p className="text-sm text-muted-foreground">
-              Receba um resumo semanal das atividades
-            </p>
-          </div>
-          <Switch checked={notifWeekly} onCheckedChange={setNotifWeekly} />
-        </div>
+        <ToggleRow
+          title="Resumo semanal"
+          description="Receba um resumo semanal das atividades"
+          checked={notifWeekly}
+          onCheckedChange={setNotifWeekly}
+        />
         <Separator />
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">Alertas de sistema</p>
-            <p className="text-sm text-muted-foreground">
-              Notificações sobre atualizações e manutenções
-            </p>
-          </div>
-          <Switch checked={notifAlerts} onCheckedChange={setNotifAlerts} />
-        </div>
+        <ToggleRow
+          title="Alertas de sistema"
+          description="Notificações sobre atualizações e manutenções"
+          checked={notifAlerts}
+          onCheckedChange={setNotifAlerts}
+        />
         <Button onClick={handleSaveNotifications} disabled={saving}>
           <Save className="h-4 w-4 mr-2" />
           {saving ? "Salvando..." : "Salvar Preferências de Notificação"}

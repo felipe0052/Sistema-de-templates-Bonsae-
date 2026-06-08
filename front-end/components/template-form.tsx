@@ -1,37 +1,18 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { TipTapEditor, type TipTapEditorHandle } from "@/components/tiptap-editor"
-import { DocumentPreview } from "@/components/document-preview"
 import { LetterheadUpload } from "@/components/letterhead-upload"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Save, Eye, ArrowLeft, Play } from "lucide-react"
-import Link from "next/link"
 import { useVariables } from "@/hooks/use-variables"
 import { toast } from "sonner"
 import { findUnknownVariables } from "@/lib/document-utils"
 import type { Template } from "@/lib/types"
-
-const CATEGORIAS = [
-  "Declarações",
-  "Comprovantes",
-  "Autorizações",
-  "Contratos",
-  "Relatórios",
-  "Outros",
-]
+import { EditorTab } from "./template-form/editor-tab"
+import { PreviewTab } from "./template-form/preview-tab"
+import { LoadingSkeleton } from "./template-form/loading-skeleton"
+import { FormToolbar } from "./template-form/form-toolbar"
+import { InfoCard } from "./template-form/info-card"
 
 interface TemplateFormProps {
   mode: "create" | "edit"
@@ -56,7 +37,6 @@ export function TemplateForm({
   subtitle,
 }: TemplateFormProps) {
   const { variables, variableCatalogAvailable } = useVariables()
-  const editorRef = useRef<TipTapEditorHandle>(null)
   const [templateName, setTemplateName] = useState("")
   const [category, setCategory] = useState("")
   const [content, setContent] = useState("")
@@ -112,139 +92,47 @@ export function TemplateForm({
   }
 
   if (isLoading) {
-    return (
-      <DashboardLayout title={title} subtitle="">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="h-10 w-24 bg-muted rounded-md animate-pulse" />
-            <div className="flex gap-2">
-              <div className="h-10 w-36 bg-muted rounded-md animate-pulse" />
-              <div className="h-10 w-28 bg-muted rounded-md animate-pulse" />
-            </div>
-          </div>
-          <div className="rounded-xl border bg-card shadow animate-pulse">
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="h-4 w-24 bg-muted rounded" />
-                  <div className="h-10 w-full bg-muted rounded" />
-                </div>
-                <div className="space-y-2">
-                  <div className="h-4 w-24 bg-muted rounded" />
-                  <div className="h-10 w-full bg-muted rounded" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </DashboardLayout>
-    )
+    return <LoadingSkeleton title={title} />
   }
 
   return (
     <DashboardLayout title={title} subtitle={subtitle}>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <Button variant="ghost" asChild>
-            <Link href="/templates">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Link>
-          </Button>
-          <div className="flex gap-2">
-            {mode === "edit" && template && (
-              <Button variant="outline" asChild>
-                <Link href={`/templates/${template.id}/gerar`}>
-                  <Play className="h-4 w-4" />
-                  Gerar Documento
-                </Link>
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => setActiveTab("preview")}>
-              <Eye className="h-4 w-4 mr-2" />
-              Visualizar
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving || hasUnknownVariables}>
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? "Salvando..." : mode === "create" ? "Salvar Template" : "Salvar"}
-            </Button>
-          </div>
-        </div>
-
-        <Card className="bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">Informações do Template</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome do Template</Label>
-                <Input
-                  id="nome"
-                  placeholder="Ex: Declaração de Residência"
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="categoria">Categoria</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIAS.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+        <FormToolbar
+          mode={mode}
+          template={template}
+          isSaving={isSaving}
+          hasUnknownVariables={hasUnknownVariables}
+          onPreview={() => setActiveTab("preview")}
+          onSave={handleSave}
+        />
+        <InfoCard
+          templateName={templateName}
+          setTemplateName={setTemplateName}
+          category={category}
+          setCategory={setCategory}
+        />
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="letterhead">Papel Timbrado</TabsTrigger>
             <TabsTrigger value="preview">Preview</TabsTrigger>
           </TabsList>
-
           <TabsContent value="editor" className="mt-4">
-            {hasUnknownVariables && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">
-                  Variáveis não cadastradas:{" "}
-                  <span className="font-mono">
-                    {unknownVariables.map((item) => `{{${item}}}`).join(", ")}
-                  </span>
-                  . Cadastre em Variáveis ou ajuste o template.
-                </p>
-              </div>
-            )}
-            <div className="max-w-4xl mx-auto">
-              <TipTapEditor
-                ref={editorRef}
-                value={content}
-                onChange={setContent}
-                availableVariables={variables.map((item) => ({
-                  variable_name: item.variable_name,
-                  description: item.description,
-                }))}
-                variableCatalogAvailable={variableCatalogAvailable}
-                placeholder="Digite o conteúdo do template. Use {{ para inserir variáveis."
-              />
-            </div>
+            <EditorTab
+              content={content}
+              setContent={setContent}
+              variables={variables}
+              variableCatalogAvailable={variableCatalogAvailable}
+              hasUnknownVariables={hasUnknownVariables}
+              unknownVariables={unknownVariables}
+            />
           </TabsContent>
-
           <TabsContent value="letterhead" className="mt-4">
             <LetterheadUpload value={letterhead} onChange={setLetterhead} />
           </TabsContent>
-
           <TabsContent value="preview" className="mt-4">
-            <DocumentPreview content={content} letterhead={letterhead} data={{}} />
+            <PreviewTab content={content} letterhead={letterhead} />
           </TabsContent>
         </Tabs>
       </div>

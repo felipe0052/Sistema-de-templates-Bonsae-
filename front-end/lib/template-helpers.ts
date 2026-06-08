@@ -21,33 +21,22 @@ export const formatValue = (varName: string, value: string): string => {
 }
 
 const formatDateFromApi = (value?: string | null): string => {
-  if (!value) return ""
-  const [year, month, day] = value.split("T")[0].split("-")
-  if (!year || !month || !day) return value
-  return `${day}/${month}/${year}`
+  const [year, month, day] = value?.split("T")[0].split("-") ?? []
+  return year && month && day ? `${day}/${month}/${year}` : (value ?? "")
 }
 
 const buildFullAddress = (address?: Address | null): string => {
   if (!address) return ""
 
-  const parts: string[] = []
-
-  if (address.street_name) {
-    const streetPart = address.number
-      ? `${address.street_name}, ${address.number}`
-      : address.street_name
-    parts.push(streetPart)
-  }
-
-  if (address.complement) parts.push(address.complement)
-  if (address.neighborhood) parts.push(address.neighborhood)
-
+  const streetPart = address.street_name
+    ? `${address.street_name}${address.number ? `, ${address.number}` : ""}`
+    : null
   const cityState = [address.city, address.state].filter(Boolean).join("/")
-  if (cityState) parts.push(cityState)
+  const cepPart = address.cep ? `CEP: ${address.cep}` : null
 
-  if (address.cep) parts.push(`CEP: ${address.cep}`)
-
-  return parts.join(" - ")
+  return [streetPart, address.complement, address.neighborhood, cityState, cepPart]
+    .filter(Boolean)
+    .join(" - ")
 }
 
 const clientFieldMap: Record<string, string> = {
