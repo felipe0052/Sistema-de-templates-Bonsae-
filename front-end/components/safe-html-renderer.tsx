@@ -80,6 +80,12 @@ function toReactStyle(styleValue: string): CSSProperties {
   return style
 }
 
+const TAG_COMPONENTS: Record<string, React.ComponentType<any>> = {
+  br, p, strong, b, em, i, u,
+  h1, h2, h3, h4, h5, h6,
+  ul, ol, li, div, span,
+}
+
 function renderNode(node: Node, key: string): ReactNode {
   if (node.nodeType === Node.TEXT_NODE) {
     return node.textContent
@@ -100,61 +106,20 @@ function renderNode(node: Node, key: string): ReactNode {
     renderNode(child, `${key}-${index}`),
   )
 
-  if (!ALLOWED_TAGS.has(tagName)) {
+  const Tag = TAG_COMPONENTS[tagName]
+  if (!Tag) {
     return <Fragment key={key}>{children}</Fragment>
   }
 
-  const props: {
-    style?: CSSProperties
-  } = {}
-
   const safeStyle = toReactStyle(element.getAttribute("style") || "")
-  if (element.dataset.variablePreview === "pending") {
-    props.style = { ...safeStyle, ...PENDING_VARIABLE_STYLE }
-  } else if (Object.keys(safeStyle).length > 0) {
-    props.style = safeStyle
-  }
+  const hasPending = element.dataset.variablePreview === "pending"
+  const style = hasPending
+    ? { ...safeStyle, ...PENDING_VARIABLE_STYLE }
+    : Object.keys(safeStyle).length > 0
+      ? safeStyle
+      : undefined
 
-  switch (tagName) {
-    case "br":
-      return <br key={key} />
-    case "p":
-      return <p key={key} {...props}>{children}</p>
-    case "strong":
-      return <strong key={key} {...props}>{children}</strong>
-    case "b":
-      return <b key={key} {...props}>{children}</b>
-    case "em":
-      return <em key={key} {...props}>{children}</em>
-    case "i":
-      return <i key={key} {...props}>{children}</i>
-    case "u":
-      return <u key={key} {...props}>{children}</u>
-    case "h1":
-      return <h1 key={key} {...props}>{children}</h1>
-    case "h2":
-      return <h2 key={key} {...props}>{children}</h2>
-    case "h3":
-      return <h3 key={key} {...props}>{children}</h3>
-    case "h4":
-      return <h4 key={key} {...props}>{children}</h4>
-    case "h5":
-      return <h5 key={key} {...props}>{children}</h5>
-    case "h6":
-      return <h6 key={key} {...props}>{children}</h6>
-    case "ul":
-      return <ul key={key} {...props}>{children}</ul>
-    case "ol":
-      return <ol key={key} {...props}>{children}</ol>
-    case "li":
-      return <li key={key} {...props}>{children}</li>
-    case "div":
-      return <div key={key} {...props}>{children}</div>
-    case "span":
-      return <span key={key} {...props}>{children}</span>
-    default:
-      return <Fragment key={key}>{children}</Fragment>
-  }
+  return <Tag key={key} {...(style ? { style } : {})}>{children}</Tag>
 }
 
 export function SafeHtmlRenderer({ html, className, style }: SafeHtmlRendererProps) {

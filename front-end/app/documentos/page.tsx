@@ -49,6 +49,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { downloadPdf } from "@/lib/pdf-download"
 import {
   Select,
   SelectContent,
@@ -103,38 +104,8 @@ export default function DocumentosPage() {
     })
   }
 
-  const handleDownloadPdf = async (doc: Document) => {
-    const template = templates.find((t) => t.id === doc.template_id)
-    if (!template) return
-
-    try {
-      const pdfBlob = await renderTemplatePdf(
-        doc.template_id,
-        doc.data_json,
-        "underline",
-      )
-      if (!pdfBlob || pdfBlob.type !== "application/pdf") {
-        toast.error("Não foi possível gerar o PDF para download.")
-        return
-      }
-
-      const fileNameBase = (
-        doc.name || template.template_name || "documento"
-      ).toLowerCase().replace(/[^a-z0-9-_]+/g, "-")
-        .replace(/-+/g, "-").replace(/^-|-$/g, "")
-
-      const downloadUrl = window.URL.createObjectURL(pdfBlob)
-      const link = document.createElement("a")
-      link.href = downloadUrl
-      link.download = `${fileNameBase || "documento"}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(downloadUrl)
-      toast.success("PDF baixado com sucesso.")
-    } catch {
-      toast.error("Erro ao baixar PDF.")
-    }
+  const handleDownloadPdf = (doc: Document) => {
+    return downloadPdf(renderTemplatePdf, doc, templates)
   }
 
   return (

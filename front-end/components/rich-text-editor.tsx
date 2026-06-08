@@ -166,6 +166,42 @@ function isSpacing(value: string) {
   return /^[\s\u00A0]*$/.test(value)
 }
 
+function getTokenFromTextBackspace(text: string, offset: number, sibling: Node | null): HTMLElement | null {
+  if (offset === 0 || isSpacing(text.slice(0, offset))) {
+    return isVariableTokenElement(sibling) ? sibling : null
+  }
+  return null
+}
+
+function getTokenFromTextDelete(text: string, offset: number, sibling: Node | null): HTMLElement | null {
+  if (offset === text.length || isSpacing(text.slice(offset))) {
+    return isVariableTokenElement(sibling) ? sibling : null
+  }
+  return null
+}
+
+function getTokenFromTextNode(container: Node, offset: number, key: string): HTMLElement | null {
+  const text = container.textContent || ""
+
+  if (key === "Backspace") {
+    return getTokenFromTextBackspace(text, offset, container.previousSibling)
+  }
+
+  if (key === "Delete") {
+    return getTokenFromTextDelete(text, offset, container.nextSibling)
+  }
+
+  return null
+}
+
+function getTokenFromElementNode(container: Element, offset: number, key: string): HTMLElement | null {
+  const targetNode = key === "Backspace"
+    ? container.childNodes.item(offset - 1)
+    : container.childNodes.item(offset)
+
+  return isVariableTokenElement(targetNode) ? targetNode : null
+}
+
 function getVariableTokenNearRange(range: Range, root: HTMLElement, key: string): HTMLElement | null {
   if (!range.collapsed || !root.contains(range.startContainer)) return null
 
@@ -173,35 +209,12 @@ function getVariableTokenNearRange(range: Range, root: HTMLElement, key: string)
   const offset = range.startOffset
 
   if (container.nodeType === Node.TEXT_NODE) {
-    const text = container.textContent || ""
-
-    if (key === "Backspace" && offset === 0) {
-      return isVariableTokenElement(container.previousSibling) ? container.previousSibling : null
-    }
-
-    if (key === "Backspace" && isSpacing(text.slice(0, offset))) {
-      return isVariableTokenElement(container.previousSibling) ? container.previousSibling : null
-    }
-
-    if (key === "Delete" && offset === text.length) {
-      return isVariableTokenElement(container.nextSibling) ? container.nextSibling : null
-    }
-
-    if (key === "Delete" && isSpacing(text.slice(offset))) {
-      return isVariableTokenElement(container.nextSibling) ? container.nextSibling : null
-    }
-
-    return null
+    return getTokenFromTextNode(container, offset, key)
   }
 
   if (container.nodeType !== Node.ELEMENT_NODE) return null
 
-  const element = container as Element
-  const targetNode = key === "Backspace"
-    ? element.childNodes.item(offset - 1)
-    : element.childNodes.item(offset)
-
-  return isVariableTokenElement(targetNode) ? targetNode : null
+  return getTokenFromElementNode(container as Element, offset, key)
 }
 
 function unlockVariableToken(token: HTMLElement, placeCursor: "start" | "end") {

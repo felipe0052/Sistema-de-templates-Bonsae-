@@ -12,6 +12,7 @@ import { useDocuments } from "@/hooks/use-documents";
 import { useTemplates } from "@/hooks/use-templates";
 import { useRenderTemplate } from "@/hooks/use-render-template";
 import { toast } from "sonner";
+import { downloadPdf } from "@/lib/pdf-download";
 import type { Document, Template } from "@/lib/types";
 
 export default function VisualizarDocumentoPage() {
@@ -54,42 +55,7 @@ export default function VisualizarDocumentoPage() {
 
     const handleDownloadPdf = async () => {
         if (!currentDocument || !template) return;
-
-        try {
-            const pdfBlob = await renderTemplatePdf(
-                template.id,
-                currentDocument.data_json,
-                "underline",
-            );
-
-            if (!pdfBlob || pdfBlob.type !== "application/pdf") {
-                toast.error("Não foi possível gerar o PDF para download.");
-                return;
-            }
-
-            const fileNameBase = (
-                currentDocument.name ||
-                template.template_name ||
-                "documento"
-            )
-                .toLowerCase()
-                .replace(/[^a-z0-9-_]+/g, "-")
-                .replace(/-+/g, "-")
-                .replace(/^-|-$/g, "");
-
-            const downloadUrl = window.URL.createObjectURL(pdfBlob);
-            const link = document.createElement("a");
-            link.href = downloadUrl;
-            link.download = `${fileNameBase || "documento"}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(downloadUrl);
-
-            toast.success("PDF baixado com sucesso.");
-        } catch {
-            toast.error("Erro ao baixar PDF.");
-        }
+        await downloadPdf(renderTemplatePdf, currentDocument, templates);
     };
 
     if (isLoading || templatesLoading) {
