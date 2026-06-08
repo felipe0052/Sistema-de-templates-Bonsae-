@@ -1,5 +1,6 @@
 import { toast } from "sonner"
 import type { Document, Template } from "@/lib/types"
+import { triggerDownload } from "@/lib/download-utils"
 
 export function slugify(value: string): string {
   return value
@@ -24,17 +25,8 @@ export async function downloadPdf(
       return
     }
 
-    const fileNameBase = slugify(doc.name || template.template_name || "documento")
-
-    const downloadUrl = window.URL.createObjectURL(pdfBlob)
-    const link = document.createElement("a")
-    link.href = downloadUrl
-    link.download = `${fileNameBase || "documento"}.pdf`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(downloadUrl)
-
+    const fileName = slugify(doc.name || template.template_name || "documento")
+    triggerDownload(pdfBlob, `${fileName || "documento"}.pdf`)
     toast.success("PDF baixado com sucesso.")
   } catch {
     toast.error("Erro ao baixar PDF.")

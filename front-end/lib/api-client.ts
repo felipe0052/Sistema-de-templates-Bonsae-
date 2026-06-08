@@ -20,45 +20,33 @@ export function getApiBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || DEFAULT_API_BASE_URL
 }
 
-function parseErrorResponse(payload: unknown): string | null {
-  if (!payload || typeof payload !== "object") return null
-  const p = payload as Record<string, unknown>
-
-  if (typeof p.message === "string") return p.message
-
-  if (p.errors && typeof p.errors === "object" && !Array.isArray(p.errors)) {
-    const errors = p.errors as Record<string, string[]>
-    const firstKey = Object.keys(errors)[0]
-    if (firstKey && Array.isArray(errors[firstKey])) {
-      return errors[firstKey][0] ?? null
-    }
-  }
-
-  return null
+function isNonArrayObject(val: unknown): val is Record<string, unknown> {
+  return typeof val === "object" && val !== null && !Array.isArray(val)
 }
 
-export async function apiFetch<T>(
-  endpoint: string,
-  options: RequestInit & { token?: string | null } = {},
-): Promise<T> {
-  const { token, headers, ...rest } = options
+function parseErrorResponse(payload: unknown): string | null {
+  if (!isNonArrayObject(payload)) return null
+  if (typeof payload.message === "string") return payload.message
 
+  const errors = payload.errors
+  if (!isNonArrayObject(errors)) return null
+  const firstKey = Object.keys(errors)[0]
+  if (!firstKey || !Array.isArray(errors[firstKey])) return null
+  return errors[firstKey][0] ?? null
+}
+
+function buildRequestHeaders(options: { token?: string | null; headers?: HeadersInit }) {
+  const { token, headers } = options
   const requestHeaders = new Headers(headers)
   requestHeaders.set("Accept", "application/json")
-
-  if (token) {
-    requestHeaders.set("Authorization", `Bearer ${token}`)
-  }
-
-  if (rest.body && !requestHeaders.has("Content-Type")) {
+  if (token) requestHeaders.set("Authorization", `Bearer ${token}`)
+  if (!requestHeaders.has("Content-Type")) {
     requestHeaders.set("Content-Type", "application/json")
   }
+  return requestHeaders
+}
 
-  const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
-    ...rest,
-    headers: requestHeaders,
-  })
-
+async function parseResponse<T>(response: Response, endpoint: string): Promise<T> {
   const isJson = (response.headers.get("content-type") || "").includes("application/json")
   const payload = isJson ? await response.json().catch(() => null) : null
 
@@ -74,6 +62,21 @@ export async function apiFetch<T>(
   }
 
   return payload as T
+}
+
+export async function apiFetch<T>(
+  endpoint: string,
+  options: RequestInit & { token?: string | null } = {},
+): Promise<T> {
+  const { token, headers, ...rest } = options
+  const requestHeaders = buildRequestHeaders({ token, headers })
+
+  const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+    ...rest,
+    headers: requestHeaders,
+  })
+
+  return parseResponse<T>(response, endpoint)
 }
 
 export function mapApiVariable(variable: StaticVariableApiResponse): Variable {
