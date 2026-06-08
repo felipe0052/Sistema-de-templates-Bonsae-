@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { LoaderCircle, LockKeyhole, Mail, User, Building } from "lucide-react"
+import { Loader2, Lock, Mail, User, Building } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/hooks/use-auth"
@@ -121,7 +121,7 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
                 <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                  <Lock className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
@@ -154,7 +154,7 @@ export default function RegisterPage() {
                 onClick={handleRegister}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Cadastrar
               </Button>
             </CardContent>

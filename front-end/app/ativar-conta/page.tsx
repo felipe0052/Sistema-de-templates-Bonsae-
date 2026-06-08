@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { LoaderCircle, LockKeyhole, Mail } from "lucide-react"
+import { Loader2, Lock, Mail } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/hooks/use-auth"
@@ -91,7 +91,7 @@ function ActivationForm() {
       <div className="space-y-2">
         <Label htmlFor="password">Nova Senha</Label>
         <div className="relative">
-          <LockKeyhole className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+          <Lock className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
           <Input
             id="password" type="password" className="pl-9"
             value={password} onChange={(e) => setPassword(e.target.value)}
@@ -102,7 +102,7 @@ function ActivationForm() {
       <div className="space-y-2">
         <Label htmlFor="password_confirmation">Confirmar Senha</Label>
         <div className="relative">
-          <LockKeyhole className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+          <Lock className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
           <Input
             id="password_confirmation" type="password" className="pl-9"
             value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)}
@@ -111,7 +111,7 @@ function ActivationForm() {
       </div>
 
       <Button className="w-full" onClick={handleActivate} disabled={isSubmitting}>
-        {isSubmitting && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Ativar e Entrar
       </Button>
     </>
@@ -121,7 +121,7 @@ function ActivationForm() {
 export default function ActivateAccountPage() {
   return (
     <AuthLayout title="Criar Senha" description="Este é seu primeiro acesso. Defina uma senha segura para sua conta.">
-      <Suspense fallback={<div className="flex justify-center p-4"><LoaderCircle className="animate-spin h-6 w-6 text-muted-foreground" /></div>}>
+      <Suspense fallback={<div className="flex justify-center p-4"><Loader2 className="animate-spin h-6 w-6 text-muted-foreground" /></div>}>
         <ActivationForm />
       </Suspense>
     </AuthLayout>

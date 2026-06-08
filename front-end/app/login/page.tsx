@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { LoaderCircle, LockKeyhole, Mail, Building } from "lucide-react"
+import { Loader2, Lock, Mail, Building } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/hooks/use-auth"
@@ -127,7 +127,7 @@ export default function LoginPage() {
           <div className="space-y-2">
             <Label htmlFor="password">Senha</Label>
             <div className="relative">
-              <LockKeyhole className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+              <Lock className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password" type="password" autoComplete="current-password" className="pl-9"
                 value={password} onChange={(e) => setPassword(e.target.value)}
@@ -136,7 +136,7 @@ export default function LoginPage() {
             </div>
           </div>
           <Button className="w-full" onClick={handleLogin} disabled={isSubmitting}>
-            {isSubmitting && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Entrar
           </Button>
 
@@ -174,7 +174,7 @@ export default function LoginPage() {
           </div>
 
           <Button className="w-full" onClick={handleActivationRequest} disabled={isSubmitting}>
-            {isSubmitting && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Enviar link de ativação
           </Button>
 
