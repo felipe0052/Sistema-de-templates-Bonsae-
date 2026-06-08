@@ -14,76 +14,21 @@ import {
 import type { Template } from "@/lib/types"
 import Link from "next/link"
 
-interface TemplateListProps {
+interface GridListProps {
   templates: Template[]
-  compact?: boolean
+  onDelete: (id: string) => void
+  onDuplicate: (template: Template) => void
 }
 
-import { useTemplates, useTemplatesMutations } from "@/hooks/use-templates"
-import { toast } from "sonner"
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
 
-export function TemplateList({ templates, compact = false }: TemplateListProps) {
-  const { deleteTemplate, addTemplate } = useTemplatesMutations()
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
-
-  const handleDuplicate = (template: Template) => {
-    addTemplate({
-      ...template,
-      template_name: `${template.template_name} (Cópia)`,
-    })
-    toast.success("Template duplicado com sucesso!")
-  }
-
-  const handleDelete = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este template?")) {
-      deleteTemplate(id)
-      toast.success("Template excluído com sucesso!")
-    }
-  }
-
-  if (compact) {
-    return (
-      <Card className="bg-card">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-semibold">Templates Populares</CardTitle>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/templates">Ver todos</Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {templates.slice(0, 5).map((template) => (
-              <Link
-                key={template.id}
-                href={`/templates/${template.id}`}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
-              >
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-foreground truncate">
-                    {template.template_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {template.category || "Sem categoria"}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
+export function GridList({ templates, onDelete, onDuplicate }: GridListProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {templates.map((template) => (
@@ -118,12 +63,12 @@ export function TemplateList({ templates, compact = false }: TemplateListProps) 
                       Editar
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleDuplicate(template)}>
+                  <DropdownMenuItem onClick={() => onDuplicate(template)}>
                     <Copy className="h-4 w-4 mr-2" />
                     Duplicar
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(template.id)}>
+                  <DropdownMenuItem className="text-destructive" onClick={() => onDelete(template.id)}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Excluir
                   </DropdownMenuItem>

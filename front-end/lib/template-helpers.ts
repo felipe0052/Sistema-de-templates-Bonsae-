@@ -1,25 +1,5 @@
 import type { Assisted, Address } from "@/lib/types"
 
-type Formatter = (value: string) => string
-
-const FORMATTERS: Array<[string, Formatter]> = [
-  ["cpf", (v) => v.replace(/\D/g, "").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})/, "$1-$2").replace(/(-\d{2})\d+?$/, "$1")],
-  ["rg", (v) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1})/, "$1-$2").replace(/(-\d{1})\d+?$/, "$1")],
-  ["cep", (v) => v.replace(/\D/g, "").replace(/(\d{5})(\d)/, "$1-$2").replace(/(-\d{3})\d+?$/, "$1")],
-  ["telefone", (v) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4,5})(\d{4})$/, "$1-$2")],
-  ["celular", (v) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4,5})(\d{4})$/, "$1-$2")],
-  ["data", (v) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").replace(/(\d{2})(\d)/, "$1/$2").replace(/(\d{4})\d+?$/, "$1")],
-]
-
-export const formatValue = (varName: string, value: string): string => {
-  if (!value) return ""
-  const nomeLower = varName.toLowerCase()
-  for (const [keyword, formatter] of FORMATTERS) {
-    if (nomeLower.includes(keyword)) return formatter(value)
-  }
-  return value
-}
-
 const formatDateFromApi = (value?: string | null): string => {
   const [year, month, day] = value?.split("T")[0].split("-") ?? []
   return year && month && day ? `${day}/${month}/${year}` : (value ?? "")
@@ -58,17 +38,17 @@ const clientFieldMap: Record<string, string> = {
   logradouro: 'address.street_name', numero: 'address.number', complemento: 'address.complement',
 }
 
-const getFieldValue = (obj: Record<string, any>, path: string): any => {
-  return path.split('.').reduce((current, key) => {
+const getFieldValue = (obj: Record<string, unknown>, path: string): unknown => {
+  return path.split('.').reduce((current: unknown, key: string) => {
     if (current == null) return undefined
-    return current[key]
+    return (current as Record<string, unknown>)[key]
   }, obj)
 }
 
-const SPECIAL_FORMATTERS: Record<string, (val: any) => string> = {
-  birth_date: (v) => formatDateFromApi(v),
+const SPECIAL_FORMATTERS: Record<string, (val: unknown) => string> = {
+  birth_date: (v) => formatDateFromApi(v as string | null),
   monthly_income: (v) => String(v),
-  priority: (v) => v ? "Sim" : "Não",
+  priority: (v) => (v ? "Sim" : "Não"),
 }
 
 export const getAssistidoValueForVariable = (varName: string, assistido: Assisted): string => {
@@ -78,7 +58,7 @@ export const getAssistidoValueForVariable = (varName: string, assistido: Assiste
   const fieldPath = clientFieldMap[fieldName]
   if (!fieldPath) return ""
 
-  const rawValue = getFieldValue(assistido as Record<string, any>, fieldPath)
+  const rawValue = getFieldValue(assistido as unknown as Record<string, unknown>, fieldPath)
   if (rawValue == null) return ""
 
   const formatter = SPECIAL_FORMATTERS[fieldPath]

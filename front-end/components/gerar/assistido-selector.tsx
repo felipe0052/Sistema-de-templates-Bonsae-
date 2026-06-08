@@ -7,7 +7,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { formatValue } from "@/lib/template-helpers";
+import { formatValue } from "@/lib/variable-formatters";
 import type { Assisted } from "@/lib/types";
 
 interface AssistidoSelectorProps {

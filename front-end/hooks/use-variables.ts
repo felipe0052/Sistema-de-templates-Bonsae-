@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiFetch, mapApiVariable } from "@/lib/api-client"
+import { optimisticAdd, optimisticUpdate, optimisticDelete, rollback, invalidateVariables } from "@/lib/variable-mutations"
 import { availableVariables as fallbackVariables } from "@/lib/store"
 import type { StaticVariableApiResponse, Variable } from "@/lib/types"
 import { useAuth } from "./use-auth"
@@ -47,20 +48,21 @@ export function useVariables() {
       })
       return mapApiVariable(data)
     },
-    onMutate: async () => {
+    onMutate: async (variable) => {
       await queryClient.cancelQueries({ queryKey })
+      const optimistic: Variable = {
+        id: `temp-${Date.now()}`,
+        variable_name: variable.variable_name.trim().toLowerCase(),
+        description: variable.description.trim(),
+        example: variable.example?.trim() || undefined,
+      }
+      return optimisticAdd(queryClient, optimistic)
     },
-    onSuccess: (created) => {
-      queryClient.setQueryData<{ items: Variable[]; available: boolean }>(queryKey, (prev) => {
-        const current = prev?.items || fallbackVariables
-        return {
-          items: [...current, created].sort((a, b) => a.variable_name.localeCompare(b.variable_name)),
-          available: true,
-        }
-      })
+    onError: (_err, _variable, context) => {
+      rollback(queryClient, context?.previous)
     },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey })
+    onSettled: () => {
+      invalidateVariables(queryClient)
     },
   })
 
@@ -80,25 +82,13 @@ export function useVariables() {
     },
     onMutate: async ({ id, variable }) => {
       await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData<{ items: Variable[]; available: boolean }>(queryKey)
-      queryClient.setQueryData<{ items: Variable[]; available: boolean }>(queryKey, (prev) => {
-        const current = prev?.items || fallbackVariables
-        return {
-          items: current
-            .map((item) => (item.id === id ? { id, variable_name: variable.variable_name, description: variable.description, example: variable.example } : item))
-            .sort((a, b) => a.variable_name.localeCompare(b.variable_name)),
-          available: true,
-        }
-      })
-      return { previous }
+      return optimisticUpdate(queryClient, id, variable)
     },
     onError: (_err, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous)
-      }
+      rollback(queryClient, context?.previous)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
+      invalidateVariables(queryClient)
     },
   })
 
@@ -109,23 +99,13 @@ export function useVariables() {
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData<{ items: Variable[]; available: boolean }>(queryKey)
-      queryClient.setQueryData<{ items: Variable[]; available: boolean }>(queryKey, (prev) => {
-        const current = prev?.items || fallbackVariables
-        return {
-          items: current.filter((item) => item.id !== id),
-          available: true,
-        }
-      })
-      return { previous }
+      return optimisticDelete(queryClient, id)
     },
     onError: (_err, _id, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous)
-      }
+      rollback(queryClient, context?.previous)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
+      invalidateVariables(queryClient)
     },
   })
 

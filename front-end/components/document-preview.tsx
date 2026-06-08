@@ -85,52 +85,7 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
             <span className="text-muted-foreground">Variável pendente</span>
           </div>
         </div>
-        <style jsx>{`
-          :global(.preview-document p) {
-            margin: 0 0 12pt 0;
-            text-indent: 1.25cm;
-          }
 
-          :global(.preview-document) {
-            box-sizing: border-box;
-            max-width: 210mm;
-            margin: 0 auto;
-          }
-
-          :global(.preview-document p[style*="text-align"]) {
-            text-indent: 0;
-          }
-
-          :global(.preview-document h1),
-          :global(.preview-document h2),
-          :global(.preview-document h3),
-          :global(.preview-document h4),
-          :global(.preview-document h5),
-          :global(.preview-document h6) {
-            margin: 0 0 12pt 0;
-            text-indent: 0;
-            text-align: center;
-          }
-
-          :global(.preview-document ul),
-          :global(.preview-document ol) {
-            margin: 0 0 12pt 1.2cm;
-            padding: 0;
-            text-indent: 0;
-          }
-
-          :global(.preview-document ul) {
-            list-style: disc outside;
-          }
-
-          :global(.preview-document ol) {
-            list-style: decimal outside;
-          }
-
-          :global(.preview-document li) {
-            margin: 0 0 6pt 0;
-          }
-        `}</style>
       </CardContent>
     </Card>
   )
