@@ -4,18 +4,9 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { ArrowLeft, FileDown, Eye, Printer, Save, UserRound } from "lucide-react";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useTemplates } from "@/hooks/use-templates";
 import { useDocuments } from "@/hooks/use-documents";
 import { useVariables } from "@/hooks/use-variables";
@@ -26,8 +17,8 @@ import { toast } from "sonner";
 import { extractVariables, replaceVariables } from "@/lib/store";
 import { slugify } from "@/lib/pdf-download";
 import { escapeHtml, findUnknownVariables, highlightPendingVariables, normalizeTemplateContent, stripVariableTokens } from "@/lib/document-utils";
-import { SafeHtmlRenderer } from "@/components/safe-html-renderer";
 import { formatValue, getAssistidoValueForVariable } from "@/lib/template-helpers";
+import { ActionBar, VariableForm, DocumentPreview } from "@/components/gerar";
 import type { Template } from "@/lib/types";
 
 export default function GerarDocumentoPage() {
@@ -58,17 +49,12 @@ export default function GerarDocumentoPage() {
             const extractedVars = extractVariables(normalizedContent);
             setVariables(extractedVars);
 
-            // Initialize with current date
             const initialData: Record<string, string> = {
                 data_atual: new Date().toLocaleDateString("pt-BR"),
             };
             setDados(initialData);
         }
     }, [params.id, templates, isLoading]);
-
-    const getVariableInfo = (varName: string) => {
-        return variablesStore.find((v) => v.variable_name === varName);
-    };
 
     const handleInputChange = (varName: string, value: string) => {
         const formattedValue = formatValue(varName, value);
@@ -102,7 +88,6 @@ export default function GerarDocumentoPage() {
         (item) => item.id === selectedAssistidoId,
     );
     const assistidoName = selectedAssistido?.name || dados.nome || dados.nome_completo || dados.assistido_nome || "Novo Documento";
-
 
     const availableVariableNames = variablesStore.map((item) => item.variable_name);
     const unknownVariables = template && variableCatalogAvailable
@@ -317,43 +302,16 @@ export default function GerarDocumentoPage() {
             subtitle={template.template_name}
         >
             <div className="space-y-6">
-                {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <Button variant="ghost" asChild>
-                        <Link href="/templates">
-                            <ArrowLeft className="h-4 w-4" />
-                            Voltar
-                        </Link>
-                    </Button>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="secondary"
-                            onClick={handleSaveDocument}
-                            disabled={isSaving || isGenerating || hasUnknownVariables}
-                        >
-                            <Save className="h-4 w-4" />
-                            {isSaving ? "Salvando..." : "Salvar Documento"}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={handlePrint}
-                            disabled={isGenerating || hasUnknownVariables}
-                        >
-                            <Printer className="h-4 w-4" />
-                            Imprimir
-                        </Button>
-                        <Button
-                            onClick={handleGeneratePDF}
-                            disabled={isGenerating || hasUnknownVariables}
-                        >
-                            <FileDown className="h-4 w-4" />
-                            {isGenerating ? "Gerando..." : "Exportar PDF"}
-                        </Button>
-                    </div>
-                </div>
+                <ActionBar
+                    isSaving={isSaving}
+                    isGenerating={isGenerating}
+                    hasUnknownVariables={hasUnknownVariables}
+                    onSave={handleSaveDocument}
+                    onPrint={handlePrint}
+                    onExportPdf={handleGeneratePDF}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Form */}
                     <Card className="bg-card">
                         <CardHeader>
                             <CardTitle className="text-base font-semibold">
@@ -361,187 +319,27 @@ export default function GerarDocumentoPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
-                                    <Label
-                                        htmlFor="assistido"
-                                        className="flex items-center gap-2"
-                                    >
-                                        <UserRound className="h-4 w-4 text-primary" />
-                                        Assistido para autopreenchimento
-                                    </Label>
-                                    <Select
-                                        value={selectedAssistidoId}
-                                        onValueChange={handleAssistidoChange}
-                                    >
-                                        <SelectTrigger
-                                            id="assistido"
-                                            className="w-full"
-                                        >
-                                            <SelectValue placeholder="Selecione um assistido" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {assisteds.map((assistido) => (
-                                                <SelectItem
-                                                    key={assistido.id}
-                                                    value={assistido.id}
-                                                >
-                                                    {assistido.name}
-                                                    {assistido.cpf
-                                                        ? ` - ${formatValue("cpf", assistido.cpf)}`
-                                                        : ""}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {!token && (
-                                        <p className="text-sm text-muted-foreground">
-                                            Faça login para carregar assistidos.
-                                        </p>
-                                    )}
-                                    {token && assisteds.length === 0 && (
-                                        <p className="text-sm text-muted-foreground">
-                                            Nenhum assistido disponível para o seu acesso.
-                                        </p>
-                                    )}
-                                    {selectedAssistido && (
-                                        <p className="text-sm text-muted-foreground">
-                                            Dados de {selectedAssistido.name} aplicados. Revise e edite os campos abaixo antes de gerar o documento.
-                                        </p>
-                                    )}
-                                </div>
-                                {variables.map((varName) => {
-                                    const info = getVariableInfo(varName);
-                                    const isSystem = info?.source === 'system';
-
-                                    if (isSystem) {
-                                        return (
-                                            <div
-                                                key={varName}
-                                                className="space-y-2"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-mono text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                                                        {`{{${varName}}}`}
-                                                    </span>
-                                                    <span>
-                                                        {info?.description || varName}
-                                                    </span>
-                                                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                                                        automático
-                                                    </span>
-                                                </div>
-                                                <div className="h-9 px-3 py-1.5 text-sm rounded-md border border-border bg-muted/30 text-muted-foreground">
-                                                    {dados[varName] || (varName === 'endereco' ? 'Selecione um assistido para preencher automaticamente' : '')}
-                                                </div>
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <div
-                                            key={varName}
-                                            className="space-y-2"
-                                        >
-                                            <Label
-                                                htmlFor={varName}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <span className="font-mono text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                                                    {`{{${varName}}}`}
-                                                </span>
-                                                <span>
-                                                    {info?.description || varName}
-                                                </span>
-                                            </Label>
-                                            <Input
-                                                id={varName}
-                                                placeholder={
-                                                    info?.example ||
-                                                    `Informe ${varName}`
-                                                }
-                                                value={dados[varName] || ""}
-                                                onChange={(e) =>
-                                                    handleInputChange(
-                                                        varName,
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                    );
-                                })}
-                                {variables.length === 0 && (
-                                    <p className="text-sm text-muted-foreground text-center py-4">
-                                        Este template não possui variáveis.
-                                    </p>
-                                )}
-                            </div>
+                            <VariableForm
+                                variables={variables}
+                                dados={dados}
+                                variableStore={variablesStore}
+                                assisteds={assisteds}
+                                selectedAssistidoId={selectedAssistidoId}
+                                hasToken={!!token}
+                                onInputChange={handleInputChange}
+                                onAssistidoChange={handleAssistidoChange}
+                            />
                         </CardContent>
                     </Card>
 
-                    {/* Preview */}
-                    <Card className="bg-card">
-                        <CardHeader>
-                            <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                <Eye className="h-4 w-4 text-primary" />
-                                Preview do Documento
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                                <div
-                                    className="relative mx-auto bg-white shadow-lg rounded-sm overflow-hidden border border-border"
-                                    style={{
-                                        width: "100%",
-                                        maxWidth: "210mm",
-                                        maxHeight: "600px",
-                                        overflowY: "auto",
-                                    }}
-                                >
-                                {template.background_image && (
-                                    <div
-                                        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-                                        style={{
-                                            backgroundImage: `url(${template.background_image})`,
-                                        }}
-                                    />
-                                )}
-                                <SafeHtmlRenderer
-                                    html={previewHtml}
-                                    className="preview-document relative !text-black"
-                                    style={{
-                                        fontFamily: "Times New Roman, serif",
-                                        fontSize: "12pt",
-                                        lineHeight: "1.7",
-                                        color: "#000000",
-                                        padding: "3cm 2.5cm 2.5cm 2.5cm",
-                                    }}
-                                />
-                            </div>
-
-                            {/* Unfilled variables warning */}
-                            {variables.some((v) => !dados[v]) && (
-                                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                                    <p className="text-sm text-amber-800">
-                                        Existem variáveis não preenchidas.
-                                        Preencha todos os campos para gerar o
-                                        documento completo.
-                                    </p>
-                                </div>
-                            )}
-                            {hasUnknownVariables && (
-                                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-sm text-red-800">
-                                        O template contém variáveis que não existem no sistema:{" "}
-                                        <span className="font-mono">
-                                            {unknownVariables.map((v) => `{{${v}}}`).join(", ")}
-                                        </span>
-                                        . Corrija antes de salvar/exportar.
-                                    </p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <DocumentPreview
+                        previewHtml={previewHtml}
+                        backgroundImage={template.background_image}
+                        variables={variables}
+                        dados={dados}
+                        hasUnknownVariables={hasUnknownVariables}
+                        unknownVariables={unknownVariables}
+                    />
                 </div>
                 <style jsx>{`
                     :global(.preview-document p) {

@@ -19,11 +19,11 @@ interface TemplateListProps {
   compact?: boolean
 }
 
-import { useTemplates } from "@/hooks/use-templates"
+import { useTemplates, useTemplatesMutations } from "@/hooks/use-templates"
 import { toast } from "sonner"
 
 export function TemplateList({ templates, compact = false }: TemplateListProps) {
-  const { deleteTemplate, addTemplate } = useTemplates()
+  const { deleteTemplate, addTemplate } = useTemplatesMutations()
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {

@@ -46,8 +46,17 @@ export async function apiFetch<T>(
   const payload = isJson ? await response.json().catch(() => null) : null
 
   if (!response.ok) {
+    const p = payload as Record<string, unknown> | null
     const message =
-      (payload as { message?: string } | null)?.message ||
+      (p as { message?: string } | null)?.message ||
+      (() => {
+        const errors = (p as { errors?: Record<string, string[]> })?.errors
+        if (errors) {
+          const firstKey = Object.keys(errors)[0]
+          return errors[firstKey]?.[0]
+        }
+        return null
+      })() ||
       `Request to ${endpoint} failed with status ${response.status}`
     throw new ApiError(message, response.status, endpoint, payload)
   }

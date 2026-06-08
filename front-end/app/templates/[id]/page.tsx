@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select"
 import { Save, Eye, ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
-import { useTemplates } from "@/hooks/use-templates"
+import { useTemplates, useTemplatesMutations } from "@/hooks/use-templates"
 import { useVariables } from "@/hooks/use-variables"
 import { toast } from "sonner"
 import { findUnknownVariables } from "@/lib/document-utils"
@@ -38,7 +38,8 @@ const categorias = [
 export default function EditarTemplatePage() {
   const params = useParams()
   const router = useRouter()
-  const { templates, updateTemplate, isLoading } = useTemplates()
+  const { templates, isLoading } = useTemplates()
+  const { updateTemplate } = useTemplatesMutations()
   const { variables, variableCatalogAvailable } = useVariables()
   const editorRef = useRef<TipTapEditorHandle>(null)
   const [template, setTemplate] = useState<Template | null>(null)

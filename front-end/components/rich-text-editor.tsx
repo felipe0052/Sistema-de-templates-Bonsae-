@@ -8,32 +8,13 @@ import {
   useImperativeHandle,
   useMemo,
 } from "react"
-import { Button } from "@/components/ui/button"
-import {
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  List,
-  ListOrdered,
-  Undo,
-  Redo,
-} from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   normalizeTemplateContent,
   serializeEditorContent,
   VARIABLE_TOKEN_REGEX,
 } from "@/lib/document-utils"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { EditorToolbar } from "@/components/editor/editor-toolbar"
 
 export interface RichTextEditorHandle {
   insertVariable: (variavel: string) => void
@@ -362,51 +343,9 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
 
   useImperativeHandle(ref, () => ({ insertVariable }), [insertVariable])
 
-  const tools = [
-    { icon: Bold, command: "bold", label: "Negrito" },
-    { icon: Italic, command: "italic", label: "Itálico" },
-    { icon: Underline, command: "underline", label: "Sublinhado" },
-    { type: "separator" },
-    { icon: AlignLeft, command: "justifyLeft", label: "Alinhar à esquerda" },
-    { icon: AlignCenter, command: "justifyCenter", label: "Centralizar" },
-    { icon: AlignRight, command: "justifyRight", label: "Alinhar à direita" },
-    { icon: AlignJustify, command: "justifyFull", label: "Justificar" },
-    { type: "separator" },
-    { icon: List, command: "insertUnorderedList", label: "Lista" },
-    { icon: ListOrdered, command: "insertOrderedList", label: "Lista numerada" },
-    { type: "separator" },
-    { icon: Undo, command: "undo", label: "Desfazer" },
-    { icon: Redo, command: "redo", label: "Refazer" },
-  ]
-
   return (
     <div className={cn("border border-border rounded-lg overflow-hidden bg-card", className)}>
-      <TooltipProvider>
-        <div className="flex flex-wrap items-center gap-1 p-2 border-b border-border bg-muted/30">
-          {tools.map((tool, index) =>
-            tool.type === "separator" ? (
-              <div key={index} className="w-px h-6 bg-border mx-1" />
-            ) : (
-              <Tooltip key={index}>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => execCommand(tool.command!)}
-                  >
-                    {tool.icon && <tool.icon className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{tool.label}</p>
-                </TooltipContent>
-              </Tooltip>
-            )
-          )}
-        </div>
-      </TooltipProvider>
+      <EditorToolbar onCommand={(cmd) => execCommand(cmd)} />
 
       <div
         ref={editorRef}

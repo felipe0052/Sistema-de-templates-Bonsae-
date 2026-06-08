@@ -1,18 +1,16 @@
 "use client"
 
 import { useEffect, useState, Suspense } from "react"
-import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
 import { LoaderCircle, LockKeyhole, Mail } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/hooks/use-auth"
+import { apiFetch } from "@/lib/api-client"
+import { AuthLayout } from "@/components/auth-layout"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://127.0.0.1:8000/api"
 
 function ActivationForm() {
   const router = useRouter()
@@ -43,29 +41,21 @@ function ActivationForm() {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/activate`, {
+      const data = await apiFetch<{ status: string; access_token?: string }>("/auth/activate", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           email: emailParam,
           token: tokenParam,
-          password: password,
+          password,
           password_confirmation: passwordConfirmation,
         }),
       })
 
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        throw new Error(data.message || data.errors?.[Object.keys(data.errors)[0]]?.[0] || "Falha na ativação.")
-      }
-
       if (data.status === "needs_tenant_selection") {
-        // We log them in partially, but it's simpler to redirect to login since they now have a password
         toast.success("Conta ativada! Faça o login para acessar seus NPJs.")
-        router.replace(`/login`)
+        router.replace("/login")
       } else {
-        setAuthToken(data.access_token)
+        setAuthToken(data.access_token ?? null)
         toast.success("Conta ativada com sucesso!")
         router.replace("/templates")
       }
@@ -130,28 +120,10 @@ function ActivationForm() {
 
 export default function ActivateAccountPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 text-foreground">
-      <div className="mx-auto flex min-h-screen max-w-md items-center px-4 py-8">
-        <div className="w-full space-y-4">
-          <div className="flex justify-center">
-            <Image src="/academy-2.png" alt="Bonsae" width={140} height={48} className="h-12 w-auto" priority />
-          </div>
-
-          <Card className="w-full border-border/70 bg-white shadow-lg">
-            <CardHeader className="space-y-2">
-              <CardTitle className="text-2xl">Criar Senha</CardTitle>
-              <CardDescription>
-                Este é seu primeiro acesso. Defina uma senha segura para sua conta.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <Suspense fallback={<div className="flex justify-center p-4"><LoaderCircle className="animate-spin h-6 w-6 text-muted-foreground" /></div>}>
-                <ActivationForm />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+    <AuthLayout title="Criar Senha" description="Este é seu primeiro acesso. Defina uma senha segura para sua conta.">
+      <Suspense fallback={<div className="flex justify-center p-4"><LoaderCircle className="animate-spin h-6 w-6 text-muted-foreground" /></div>}>
+        <ActivationForm />
+      </Suspense>
+    </AuthLayout>
   )
 }
