@@ -43,6 +43,12 @@
             text-indent: 0;
         }
 
+        p[style*="min-height"]::before,
+        p:empty::before {
+            content: "\00a0";
+            white-space: pre;
+        }
+
         h1, h2, h3, h4, h5, h6 {
             margin: 0 0 12pt 0;
             text-indent: 0;

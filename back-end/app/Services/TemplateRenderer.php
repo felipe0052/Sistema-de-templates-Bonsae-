@@ -89,7 +89,7 @@ class TemplateRenderer
             }
 
             $html = view("templates.render_pdf", [
-                "content" => $htmlContent,
+                "content" => $this->prepareHtmlForPdf($htmlContent),
             ])->render();
 
             $html = preg_replace('/@import\s+url\s*\(/i', '/* @import disabled */', $html) ?? $html;
@@ -99,6 +99,72 @@ class TemplateRenderer
         } finally {
             ini_set("pcre.backtrack_limit", (string) $oldLimit);
         }
+    }
+
+    protected function prepareHtmlForPdf(string $htmlContent): string
+    {
+        if (trim($htmlContent) === '') {
+            return $htmlContent;
+        }
+
+        $document = new \DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML(
+            '<?xml encoding="UTF-8"><div id="pdf-root">' .
+                $htmlContent .
+                '</div>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD,
+        );
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $root = $document->getElementById('pdf-root');
+        if (!$root) {
+            return $htmlContent;
+        }
+
+        foreach ($root->getElementsByTagName('p') as $paragraph) {
+            $content = trim(str_replace("\xc2\xa0", '', $paragraph->textContent ?? ''));
+            if ($content !== '') {
+                continue;
+            }
+
+            if ($paragraph->childNodes->length === 0) {
+                $paragraph->appendChild($document->createTextNode("\u{00A0}"));
+                continue;
+            }
+
+            $hasMeaningfulChild = false;
+            foreach ($paragraph->childNodes as $childNode) {
+                if ($childNode->nodeType === XML_TEXT_NODE) {
+                    $text = trim(str_replace("\xc2\xa0", '', $childNode->textContent ?? ''));
+                    if ($text !== '') {
+                        $hasMeaningfulChild = true;
+                        break;
+                    }
+                    continue;
+                }
+
+                if ($childNode->nodeType === XML_ELEMENT_NODE) {
+                    $elementText = trim(str_replace("\xc2\xa0", '', $childNode->textContent ?? ''));
+                    if ($elementText !== '') {
+                        $hasMeaningfulChild = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$hasMeaningfulChild) {
+                $paragraph->appendChild($document->createTextNode("\u{00A0}"));
+            }
+        }
+
+        $output = '';
+        foreach ($root->childNodes as $child) {
+            $output .= $document->saveHTML($child);
+        }
+
+        return str_replace('<?xml encoding="UTF-8">', '', $output);
     }
 
     protected function resolveBackgroundImage(?string $backgroundImageUrl): ?string

@@ -6,6 +6,7 @@ use App\Models\StaticVariable;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Template;
+use App\Services\TemplateRenderer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -63,10 +64,10 @@ class TemplateApiTest extends TestCase
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('templates', ['title' => 'New Template']);
-        
+
         $template = Template::first();
         $this->assertNotNull($template->background_image_url);
-        
+
         // Check if file was uploaded to the configured public disk
         $path = 'templates/backgrounds/' . $payload['background_image']->hashName();
         Storage::disk('template-backgrounds-test')->assertExists($path);
@@ -142,6 +143,24 @@ class TemplateApiTest extends TestCase
             '<p style="min-height: 1.7em"></p><p>Texto</p>',
             Template::firstOrFail()->content,
         );
+    }
+
+    public function test_pdf_render_prepares_empty_paragraphs_with_non_breaking_space()
+    {
+        $renderer = app(TemplateRenderer::class);
+        $method = new \ReflectionMethod($renderer, 'prepareHtmlForPdf');
+        $method->setAccessible(true);
+
+        $prepared = $method->invoke(
+            $renderer,
+            '<p style="min-height: 1.7em"></p><p>Texto</p>',
+        );
+
+        $this->assertMatchesRegularExpression(
+            '/<p style="min-height: 1.7em">(?:\x{00A0}|&nbsp;|\s)<\/p>/u',
+            $prepared,
+        );
+        $this->assertStringContainsString('<p>Texto</p>', $prepared);
     }
 
     public function test_template_content_is_sanitized_when_created()
