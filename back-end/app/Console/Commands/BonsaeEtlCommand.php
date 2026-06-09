@@ -257,6 +257,28 @@ class BonsaeEtlCommand extends Command
             $this->info("Migrados {$count} registros da tabela clients.");
         }
 
+        // 4. Migrar Tipos de Documentos
+        $legacyTypeDocs = $this->extractTableFromMysqlDump($dumpFile, 'type_documents');
+        if ($legacyTypeDocs !== []) {
+            $this->comment('Migrando tabela: type_documents -> type_documents...');
+            $count = 0;
+            foreach ($legacyTypeDocs as $typeDoc) {
+                $legacyId = $typeDoc['id'] ?? null;
+                $data = [
+                    'name' => $typeDoc['name'] ?? '',
+                    'created_at' => $typeDoc['created_at'] ?? now(),
+                    'updated_at' => $typeDoc['updated_at'] ?? now(),
+                ];
+                if ($legacyId) {
+                    DB::table('type_documents')->updateOrInsert(['id' => $legacyId], $data);
+                } else {
+                    DB::table('type_documents')->insert($data);
+                }
+                $count++;
+            }
+            $this->info("Migrados {$count} registros da tabela type_documents.");
+        }
+
         $this->info('Processo de ETL concluído!');
         return 0;
     }

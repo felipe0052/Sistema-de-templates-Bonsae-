@@ -8,15 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-const CATEGORIAS = [
-  "Declarações",
-  "Comprovantes",
-  "Autorizações",
-  "Contratos",
-  "Relatórios",
-  "Outros",
-]
+import { useTypeDocuments } from "@/hooks/use-type-documents"
 
 interface InfoCardProps {
   templateName: string
@@ -31,6 +23,8 @@ export function InfoCard({
   category,
   setCategory,
 }: InfoCardProps) {
+  const { typeDocuments } = useTypeDocuments()
+
   return (
     <Card className="bg-card">
       <CardHeader>
@@ -54,9 +48,9 @@ export function InfoCard({
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIAS.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
+                {typeDocuments.map((doc) => (
+                  <SelectItem key={doc.id} value={doc.name}>
+                    {doc.name}
                   </SelectItem>
                 ))}
               </SelectContent>

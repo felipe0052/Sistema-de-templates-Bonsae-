@@ -15,7 +15,7 @@ interface VariableFormProps {
 }
 
 const SYSTEM_PLACEHOLDERS: Record<string, string> = {
-  endereco: "Selecione um assistido para preencher automaticamente",
+  endereco: "Será preenchido ao selecionar um assistido",
 }
 
 function VariableTag({ varName }: { varName: string }) {

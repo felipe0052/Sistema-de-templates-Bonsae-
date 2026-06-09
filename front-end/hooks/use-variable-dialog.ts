@@ -27,11 +27,6 @@ export function useVariableDialog() {
     }
   }
 
-  const handleCreateClick = () => {
-    resetForm()
-    setIsDialogOpen(true)
-  }
-
   const handleEditClick = (variable: { id: string; variable_name: string; description: string; example?: string }) => {
     setEditingVarId(variable.id)
     setVariableForm({
@@ -96,7 +91,6 @@ export function useVariableDialog() {
     deletingId,
     setVariableForm,
     handleDialogChange,
-    handleCreateClick,
     handleEditClick,
     handleSubmitVar,
     handleDeleteVar,
