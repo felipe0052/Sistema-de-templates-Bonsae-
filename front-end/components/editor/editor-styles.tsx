@@ -27,9 +27,38 @@ export function EditorStyles() {
         text-indent: 0;
       }
 
-      .tiptap-editor-content .tiptap h1,
-      .tiptap-editor-content .tiptap h2,
-      .tiptap-editor-content .tiptap h3,
+      .tiptap-editor-content .tiptap p[style*="min-height"],
+      .tiptap-editor-content .tiptap p:empty,
+      .tiptap-editor-content .tiptap p[data-empty] {
+        min-height: 1.7em;
+        display: flow-root;
+        text-indent: 0;
+      }
+
+      .tiptap-editor-content .tiptap h1 {
+        margin: 0 0 12pt 0;
+        text-indent: 0;
+        text-align: center;
+        font-size: 24pt;
+        font-weight: bold;
+      }
+
+      .tiptap-editor-content .tiptap h2 {
+        margin: 0 0 12pt 0;
+        text-indent: 0;
+        text-align: center;
+        font-size: 18pt;
+        font-weight: bold;
+      }
+
+      .tiptap-editor-content .tiptap h3 {
+        margin: 0 0 12pt 0;
+        text-indent: 0;
+        text-align: center;
+        font-size: 14pt;
+        font-weight: bold;
+      }
+
       .tiptap-editor-content .tiptap h4,
       .tiptap-editor-content .tiptap h5,
       .tiptap-editor-content .tiptap h6 {

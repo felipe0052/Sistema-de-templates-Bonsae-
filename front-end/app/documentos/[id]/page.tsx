@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { DocumentPreview } from "@/components/document-preview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Download, Printer, FileText } from "lucide-react";
-import Link from "next/link";
 import { useDocuments } from "@/hooks/use-documents";
 import { useTemplates } from "@/hooks/use-templates";
 import { useRenderTemplate } from "@/hooks/use-render-template";
@@ -18,6 +17,7 @@ import type { Document, Template } from "@/lib/types";
 
 export default function VisualizarDocumentoPage() {
     const params = useParams();
+    const router = useRouter();
 
     const searchParams = useSearchParams();
     const { documents, isLoading } = useDocuments();
@@ -40,7 +40,6 @@ export default function VisualizarDocumentoPage() {
             if (foundTemplate) {
                 setTemplate(foundTemplate);
 
-                // Auto-print if param is present
                 if (searchParams.get("print") === "true") {
                     setTimeout(() => {
                         window.print();
@@ -96,11 +95,9 @@ export default function VisualizarDocumentoPage() {
                     <p className="text-muted-foreground">
                         O documento solicitado não foi encontrado.
                     </p>
-                    <Button className="mt-4" asChild>
-                        <Link href="/documentos">
-                            <ArrowLeft className="h-4 w-4" />
-                            Voltar aos documentos
-                        </Link>
+                    <Button className="mt-4" onClick={() => router.back()}>
+                        <ArrowLeft className="h-4 w-4" />
+                        Voltar aos documentos
                     </Button>
                 </div>
             </DashboardLayout>
@@ -110,13 +107,10 @@ export default function VisualizarDocumentoPage() {
     return (
         <DashboardLayout title="Visualizar Documento" subtitle={currentDocument.name}>
             <div className="space-y-6">
-                {/* Actions bar */}
                 <div className="flex flex-wrap items-center justify-between gap-4 no-print">
-                    <Button variant="ghost" asChild>
-                        <Link href="/documentos">
-                            <ArrowLeft className="h-4 w-4" />
-                            Voltar
-                        </Link>
+                    <Button variant="ghost" onClick={() => router.back()}>
+                        <ArrowLeft className="h-4 w-4" />
+                        Voltar
                     </Button>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={handlePrint}>
@@ -130,7 +124,6 @@ export default function VisualizarDocumentoPage() {
                     </div>
                 </div>
 
-                {/* Document Info Card - Hidden when printing */}
                 <Card className="bg-card no-print">
                     <CardContent className="pt-6">
                         <div className="flex items-start gap-4">
@@ -162,7 +155,6 @@ export default function VisualizarDocumentoPage() {
                     </CardContent>
                 </Card>
 
-                {/* Document Preview */}
                 <div className="print-container">
                     <DocumentPreview
                         content={template.content}

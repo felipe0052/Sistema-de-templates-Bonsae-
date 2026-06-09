@@ -42,7 +42,7 @@ export function DocumentPreview({ content, letterhead, data }: DocumentPreviewPr
           {/* Letterhead Background */}
           {letterhead && (
             <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{
                 backgroundImage: `url(${letterhead})`,
               }}

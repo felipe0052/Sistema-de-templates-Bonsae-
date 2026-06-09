@@ -45,6 +45,7 @@ class TemplateHtmlSanitizer
         "text-decoration",
         "font-size",
         "line-height",
+        "min-height",
         "margin",
         "margin-left",
         "margin-right",

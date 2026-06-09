@@ -22,5 +22,6 @@ export function useTemplates() {
   return {
     templates: templatesQuery.data || [],
     isLoading: !!token && templatesQuery.isLoading,
+    isFetched: templatesQuery.isFetched,
   }
 }

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { ArrowLeft, FileDown, Printer, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface ActionBarProps {
     isSaving: boolean;
@@ -19,13 +19,13 @@ export function ActionBar({
     onPrint,
     onExportPdf,
 }: ActionBarProps) {
+    const router = useRouter();
+
     return (
         <div className="flex flex-wrap items-center justify-between gap-4">
-            <Button variant="ghost" asChild>
-                <Link href="/templates">
-                    <ArrowLeft className="h-4 w-4" />
-                    Voltar
-                </Link>
+            <Button variant="ghost" onClick={() => router.back()}>
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
             </Button>
             <div className="flex gap-2">
                 <Button

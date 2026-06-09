@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Save, Eye, ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
 import type { Template } from "@/lib/types"
+import { useRouter } from "next/navigation"
 
 interface FormToolbarProps {
   mode: "create" | "edit"
@@ -20,13 +21,13 @@ export function FormToolbar({
   onPreview,
   onSave,
 }: FormToolbarProps) {
+  const router = useRouter()
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
-      <Button variant="ghost" asChild>
-        <Link href="/templates">
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </Link>
+      <Button variant="ghost" onClick={() => router.back()}>
+        <ArrowLeft className="h-4 w-4" />
+        Voltar
       </Button>
       <div className="flex gap-2">
         {mode === "edit" && template && (

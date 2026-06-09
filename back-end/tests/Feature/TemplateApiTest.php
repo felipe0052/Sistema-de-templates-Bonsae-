@@ -99,6 +99,51 @@ class TemplateApiTest extends TestCase
             ->assertJsonPath('html', 'Hello Felipe');
     }
 
+    public function test_can_render_template_as_pdf()
+    {
+        StaticVariable::create([
+            'name' => 'assistido_nome',
+            'description' => 'Nome completo da pessoa assistida.',
+            'example' => 'Felipe',
+        ]);
+
+        $template = Template::create([
+            'tenant_id' => $this->tenant->id,
+            'title' => 'PDF Render Test',
+            'content' => '<p>Hello {{assistido_nome}}</p>',
+            'visibility' => 'public',
+        ]);
+
+        $response = $this->postJson("/api/templates/{$template->id}/render", [
+            'variables' => [
+                'assistido_nome' => 'Felipe',
+            ],
+            'format' => 'pdf',
+        ]);
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
+
+        $this->assertStringStartsWith('%PDF', $response->getContent());
+    }
+
+    public function test_empty_paragraph_min_height_is_preserved_when_created()
+    {
+        $payload = [
+            'title' => 'Spaced Template',
+            'content' => '<p style="min-height: 1.7em"></p><p>Texto</p>',
+            'visibility' => 'public',
+        ];
+
+        $response = $this->postJson('/api/templates', $payload);
+
+        $response->assertCreated();
+        $this->assertSame(
+            '<p style="min-height: 1.7em"></p><p>Texto</p>',
+            Template::firstOrFail()->content,
+        );
+    }
+
     public function test_template_content_is_sanitized_when_created()
     {
         $payload = [
