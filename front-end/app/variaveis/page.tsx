@@ -27,7 +27,6 @@ export default function VariablesPage() {
     deletingId,
     setVariableForm,
     handleDialogChange,
-    handleCreateClick,
     handleEditClick,
     handleSubmitVar,
     handleDeleteVar,
@@ -88,7 +87,6 @@ export default function VariablesPage() {
             onFormChange={setVariableForm}
             onSubmit={handleSubmitVar}
             isSubmitting={isSubmitting}
-            onCreateClick={handleCreateClick}
           />
         </div>
 
@@ -103,12 +101,11 @@ export default function VariablesPage() {
                   Como usar variáveis
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  As variáveis são inseridas nos templates usando a sintaxe{" "}
+                  Insira variáveis no template com a sintaxe{" "}
                   <code className="bg-muted px-1 py-0.5 rounded text-primary font-mono">
                     {"{{nome_variavel}}"}
                   </code>
-                  . Quando o documento é gerado, as variáveis são substituídas pelos
-                  dados reais informados pelo usuário.
+                  . Ao gerar o documento, elas são substituídas pelos valores informados.
                 </p>
               </div>
             </div>

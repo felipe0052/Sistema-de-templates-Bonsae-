@@ -61,8 +61,8 @@ export function DocumentPreview({
                 {variables.some((v) => !dados[v]) && (
                     <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                         <p className="text-sm text-amber-800">
-                            Existem variáveis não preenchidas. Preencha todos os
-                            campos para gerar o documento completo.
+                            Há variáveis em branco. Preencha os campos para
+                            gerar o documento.
                         </p>
                     </div>
                 )}
@@ -76,7 +76,7 @@ export function DocumentPreview({
                                     .map((v) => `{{${v}}}`)
                                     .join(", ")}
                             </span>
-                            . Corrija antes de salvar/exportar.
+                            . Corrija antes de salvar.
                         </p>
                     </div>
                 )}

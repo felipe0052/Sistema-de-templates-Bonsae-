@@ -9,9 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { Plus } from "lucide-react"
 
 interface VariableFormDialogProps {
   isOpen: boolean
@@ -21,7 +19,6 @@ interface VariableFormDialogProps {
   onFormChange: (updater: (prev: { variable_name: string; description: string; example: string }) => { variable_name: string; description: string; example: string }) => void
   onSubmit: () => void
   isSubmitting: boolean
-  onCreateClick: () => void
 }
 
 export function VariableFormDialog({
@@ -32,25 +29,14 @@ export function VariableFormDialog({
   onFormChange,
   onSubmit,
   isSubmitting,
-  onCreateClick,
 }: VariableFormDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button onClick={onCreateClick}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Variável
-        </Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {editingVarId ? "Editar Variável" : "Criar Nova Variável"}
-          </DialogTitle>
+          <DialogTitle>Editar Variável</DialogTitle>
           <DialogDescription>
-            {editingVarId
-              ? "Atualize os dados da variável disponível para os templates."
-              : "Adicione uma nova variável para usar nos templates de documentos."}
+            Atualize os dados da variável disponível para os templates.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -90,7 +76,7 @@ export function VariableFormDialog({
             Cancelar
           </Button>
           <Button onClick={onSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Salvando..." : editingVarId ? "Salvar Alterações" : "Criar Variável"}
+            {isSubmitting ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </DialogFooter>
       </DialogContent>

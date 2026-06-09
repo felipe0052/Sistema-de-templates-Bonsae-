@@ -9,6 +9,7 @@ use App\Http\Middleware\EnsureUserHasTenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AssistedController;
+use App\Http\Controllers\Api\TypeDocumentController;
 
 // Rota de Login para obter o token de teste (Mantida para comp. mas com Unified Auth Controller)
 Route::post('/auth/identify', [UnifiedAuthController::class, 'identify']);
@@ -27,6 +28,9 @@ Route::get('templates/{template}/background', [TemplateController::class, 'backg
 
 // Variáveis disponíveis
 Route::get('/variables', [StaticVariableController::class, 'index']);
+
+// Tipos de documentos
+Route::get('/type-documents', [TypeDocumentController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(EnsureUserHasTenant::class)->group(function () {
