@@ -29,17 +29,17 @@ export function DocumentPreview({
             </CardHeader>
             <CardContent>
                 <div
-                    className="relative mx-auto bg-white shadow-lg rounded-sm overflow-hidden border border-border"
+                    className="relative mx-auto bg-white shadow-lg rounded-sm overflow-hidden"
                     style={{
                         width: "100%",
                         maxWidth: "210mm",
-                        maxHeight: "600px",
-                        overflowY: "auto",
+                        minHeight: "297mm",
+                        aspectRatio: "210 / 297",
                     }}
                 >
                     {backgroundImage && (
                         <div
-                            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+                            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                             style={{
                                 backgroundImage: `url(${backgroundImage})`,
                             }}

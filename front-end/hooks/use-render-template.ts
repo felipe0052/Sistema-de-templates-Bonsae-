@@ -48,7 +48,11 @@ export function useRenderTemplate() {
   const renderTemplatePdf = useCallback(
     async (templateId: string, vars: Record<string, string>, behavior: "blank" | "underline" = "blank") => {
       const response = await callRenderApi(token, templateId, vars, behavior, "pdf", "application/pdf, application/json")
-      if (!response?.ok) return null
+      if (!response?.ok) {
+        const errorBody = await response?.json().catch(() => null)
+        console.error("PDF render failed:", response?.status, errorBody)
+        return null
+      }
 
       const contentType = response.headers.get("content-type") || ""
       if (contentType.includes("application/pdf")) {

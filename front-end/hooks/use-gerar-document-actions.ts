@@ -59,7 +59,6 @@ export function useGerarDocumentActions({
     setIsGenerating(true)
     try {
       const pdfBlob = await renderTemplatePdf(template.id, dados, "underline")
-      await saveDocument()
       if (!pdfBlob || pdfBlob.type !== "application/pdf") {
         toast.error("Não foi possível gerar o PDF para download.")
         return
@@ -67,8 +66,9 @@ export function useGerarDocumentActions({
       const fileName = slugify(`${template.template_name}-${assistidoName}`)
       triggerDownload(pdfBlob, `${fileName || "documento"}.pdf`)
       toast.success("PDF baixado com sucesso.")
-      router.push("/documentos")
-    } catch (_error) {
+      saveDocument().catch(() => {})
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error)
       toast.error("Erro ao gerar documento via API.")
     } finally {
       setIsGenerating(false)

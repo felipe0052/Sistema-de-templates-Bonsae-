@@ -12,10 +12,12 @@ import StarterKit from "@tiptap/starter-kit"
 import TextAlign from "@tiptap/extension-text-align"
 import UnderlineExt from "@tiptap/extension-underline"
 import Placeholder from "@tiptap/extension-placeholder"
+import { TextStyle, FontSize } from "@tiptap/extension-text-style"
 import { cn } from "@/lib/utils"
 import { VariableNode } from "@/lib/tiptap-extensions/variable-node"
 import { createVariableSuggestionExtension } from "@/lib/tiptap-extensions/variable-suggestion"
 import { IndentExtension } from "@/lib/tiptap-extensions/indent-extension"
+import { EmptyParagraphHeight } from "@/lib/tiptap-extensions/empty-paragraph-height"
 import { EditorToolbar } from "@/components/editor/editor-toolbar"
 import { EditorStyles } from "@/components/editor/editor-styles"
 
@@ -86,12 +88,17 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
           types: ["heading", "paragraph"],
         }),
         UnderlineExt,
-        Placeholder.configure({
-          placeholder,
-        }),
         VariableNode,
         VariableSuggestionExt,
         IndentExtension,
+        EmptyParagraphHeight,
+        Placeholder.configure({
+          placeholder,
+        }),
+        TextStyle,
+        FontSize.configure({
+          types: ["textStyle", "paragraph", "heading"],
+        }),
       ],
       content: value || "",
       onUpdate: ({ editor: e }) => {
@@ -106,7 +113,9 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
 
     useEffect(() => {
       if (editor && editor.getHTML() !== value) {
-        editor.commands.setContent(value || "", { emitUpdate: false })
+        queueMicrotask(() => {
+          editor.commands.setContent(value || "", { emitUpdate: false })
+        })
       }
     }, [value])
 
@@ -140,7 +149,10 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
           className,
         )}
       >
-        <EditorToolbar onCommand={handleCommand} />
+        <EditorToolbar
+          onCommand={handleCommand}
+          editor={editor}
+        />
 
         <div
           className={cn(
@@ -159,5 +171,3 @@ export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
     )
   },
 )
-
-

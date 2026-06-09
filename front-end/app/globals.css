@@ -143,9 +143,37 @@
   text-indent: 0;
 }
 
-.preview-document h1,
-.preview-document h2,
-.preview-document h3,
+.preview-document p[style*="min-height"],
+.preview-document p:empty {
+  min-height: 1.7em;
+  display: flow-root;
+  text-indent: 0;
+}
+
+.preview-document h1 {
+  margin: 0 0 12pt 0;
+  text-indent: 0;
+  text-align: center;
+  font-size: 24pt;
+  font-weight: bold;
+}
+
+.preview-document h2 {
+  margin: 0 0 12pt 0;
+  text-indent: 0;
+  text-align: center;
+  font-size: 18pt;
+  font-weight: bold;
+}
+
+.preview-document h3 {
+  margin: 0 0 12pt 0;
+  text-indent: 0;
+  text-align: center;
+  font-size: 14pt;
+  font-weight: bold;
+}
+
 .preview-document h4,
 .preview-document h5,
 .preview-document h6 {
