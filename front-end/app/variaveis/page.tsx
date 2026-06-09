@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -14,20 +13,26 @@ import {
 } from "@/components/ui/table"
 import { Search, Variable as VariableIcon } from "lucide-react"
 import { useVariables } from "@/hooks/use-variables"
-import { toast } from "sonner"
 import { VariableTableRow } from "@/components/variables/variable-table-row"
 import { VariableFormDialog } from "@/components/variables/variable-form-dialog"
-
-const emptyVariableForm = { variable_name: "", description: "", example: "" }
+import { useVariableDialog } from "@/hooks/use-variable-dialog"
 
 export default function VariablesPage() {
-  const { variables, addVariable, updateVariable, deleteVariable, isLoading } = useVariables()
+  const { variables, isLoading } = useVariables()
+  const {
+    isDialogOpen,
+    editingVarId,
+    variableForm,
+    isSubmitting,
+    deletingId,
+    setVariableForm,
+    handleDialogChange,
+    handleCreateClick,
+    handleEditClick,
+    handleSubmitVar,
+    handleDeleteVar,
+  } = useVariableDialog()
   const [searchQuery, setSearchQuery] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingVarId, setEditingVarId] = useState<string | null>(null)
-  const [variableForm, setVariableForm] = useState(emptyVariableForm)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   if (isLoading) {
     return (
@@ -58,79 +63,6 @@ export default function VariablesPage() {
       v.variable_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       v.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
-
-  const resetForm = () => {
-    setVariableForm(emptyVariableForm)
-    setEditingVarId(null)
-  }
-
-  const handleDialogChange = (open: boolean) => {
-    setIsDialogOpen(open)
-    if (!open) {
-      resetForm()
-    }
-  }
-
-  const handleCreateClick = () => {
-    resetForm()
-    setIsDialogOpen(true)
-  }
-
-  const handleEditClick = (variable: { id: string; variable_name: string; description: string; example?: string }) => {
-    setEditingVarId(variable.id)
-    setVariableForm({
-      variable_name: variable.variable_name,
-      description: variable.description,
-      example: variable.example || "",
-    })
-    setIsDialogOpen(true)
-  }
-
-  const handleSubmitVar = async () => {
-    if (!variableForm.variable_name.trim()) {
-      toast.error("O nome da variável é obrigatório.")
-      return
-    }
-    if (!variableForm.description.trim()) {
-      toast.error("A descrição da variável é obrigatória.")
-      return
-    }
-
-    setIsSubmitting(true)
-    try {
-      const payload = {
-        variable_name: variableForm.variable_name.trim(),
-        description: variableForm.description.trim(),
-        example: variableForm.example.trim(),
-      }
-
-      if (editingVarId) {
-        await updateVariable(editingVarId, payload)
-        toast.success("Variável atualizada com sucesso!")
-      } else {
-        await addVariable(payload)
-        toast.success("Variável criada com sucesso!")
-      }
-
-      handleDialogChange(false)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível salvar a variável.")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleDeleteVar = async (id: string) => {
-    setDeletingId(id)
-    try {
-      await deleteVariable(id)
-      toast.success("Variável excluída com sucesso!")
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível excluir a variável.")
-    } finally {
-      setDeletingId(null)
-    }
-  }
 
   return (
     <DashboardLayout
