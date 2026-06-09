@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api-client"
 import { useAuth } from "./use-auth"
 
-export type User = {
+type User = {
   id: number
   name: string
   email: string

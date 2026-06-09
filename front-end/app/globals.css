@@ -126,3 +126,49 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Document Preview */
+.preview-document {
+  box-sizing: border-box;
+  max-width: 210mm;
+  margin: 0 auto;
+}
+
+.preview-document p {
+  margin: 0 0 12pt 0;
+  text-indent: 1.25cm;
+}
+
+.preview-document p[style*="text-align"] {
+  text-indent: 0;
+}
+
+.preview-document h1,
+.preview-document h2,
+.preview-document h3,
+.preview-document h4,
+.preview-document h5,
+.preview-document h6 {
+  margin: 0 0 12pt 0;
+  text-indent: 0;
+  text-align: center;
+}
+
+.preview-document ul,
+.preview-document ol {
+  margin: 0 0 12pt 1.2cm;
+  padding: 0;
+  text-indent: 0;
+}
+
+.preview-document ul {
+  list-style: disc outside;
+}
+
+.preview-document ol {
+  list-style: decimal outside;
+}
+
+.preview-document li {
+  margin: 0 0 6pt 0;
+}

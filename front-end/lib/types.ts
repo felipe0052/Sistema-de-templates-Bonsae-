@@ -89,16 +89,4 @@ export interface Document {
   created_at: string
 }
 
-export interface DocumentData {
-  name?: string
-  cpf?: string
-  rg?: string
-  birth_date?: string
-  address?: string
-  city?: string
-  state?: string
-  zip_code?: string
-  phone?: string
-  email?: string
-  [key: string]: string | undefined
-}
+

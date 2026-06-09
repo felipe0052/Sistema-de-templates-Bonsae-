@@ -12,6 +12,8 @@ import { useDocuments } from "@/hooks/use-documents";
 import { useTemplates } from "@/hooks/use-templates";
 import { useRenderTemplate } from "@/hooks/use-render-template";
 import { toast } from "sonner";
+import { downloadPdf } from "@/lib/pdf-download";
+import { PrintStyles } from "@/components/print-styles";
 import type { Document, Template } from "@/lib/types";
 
 export default function VisualizarDocumentoPage() {
@@ -54,42 +56,7 @@ export default function VisualizarDocumentoPage() {
 
     const handleDownloadPdf = async () => {
         if (!currentDocument || !template) return;
-
-        try {
-            const pdfBlob = await renderTemplatePdf(
-                template.id,
-                currentDocument.data_json,
-                "underline",
-            );
-
-            if (!pdfBlob || pdfBlob.type !== "application/pdf") {
-                toast.error("Não foi possível gerar o PDF para download.");
-                return;
-            }
-
-            const fileNameBase = (
-                currentDocument.name ||
-                template.template_name ||
-                "documento"
-            )
-                .toLowerCase()
-                .replace(/[^a-z0-9-_]+/g, "-")
-                .replace(/-+/g, "-")
-                .replace(/^-|-$/g, "");
-
-            const downloadUrl = window.URL.createObjectURL(pdfBlob);
-            const link = document.createElement("a");
-            link.href = downloadUrl;
-            link.download = `${fileNameBase || "documento"}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(downloadUrl);
-
-            toast.success("PDF baixado com sucesso.");
-        } catch {
-            toast.error("Erro ao baixar PDF.");
-        }
+        await downloadPdf(renderTemplatePdf, currentDocument, templates);
     };
 
     if (isLoading || templatesLoading) {
@@ -205,78 +172,7 @@ export default function VisualizarDocumentoPage() {
                 </div>
             </div>
 
-            <style jsx global>{`
-                @media print {
-                    /* Hide everything by default */
-                    html,
-                    body {
-                        height: auto !important;
-                        overflow: visible !important;
-                        background: white !important;
-                    }
-
-                    body * {
-                        visibility: hidden;
-                    }
-
-                    /* Show only the print container and its children */
-                    .print-container,
-                    .print-container * {
-                        visibility: visible;
-                    }
-
-                    /* Position the print container at the top left */
-                    .print-container {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100% !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-
-                    /* Hide UI wrappers of the preview component */
-                    .print-container .bg-card {
-                        border: none !important;
-                        box-shadow: none !important;
-                        background: transparent !important;
-                        padding: 0 !important;
-                    }
-
-                    /* Hide legends and preview headers */
-                    .print-container > div > div:first-child, /* CardHeader */
-          .print-container .mt-4.flex.flex-wrap /* Legend */ {
-                        display: none !important;
-                        visibility: hidden !important;
-                    }
-
-                    /* Focus on the A4 div */
-                    .print-container div[style*="min-height: 297mm"] {
-                        box-shadow: none !important;
-                        margin: 0 !important;
-                        width: 100% !important;
-                        max-width: none !important;
-                        border: none !important;
-                    }
-
-                    /* Generic helper to hide elements */
-                    .no-print,
-                    aside,
-                    header,
-                    nav,
-                    button,
-                    .dashboard-sidebar,
-                    .dashboard-header {
-                        display: none !important;
-                    }
-
-                    /* Reset margins */
-                    @page {
-                        margin: 0;
-                        size: auto;
-                    }
-                }
-            `}</style>
+            <PrintStyles />
         </DashboardLayout>
     );
 }

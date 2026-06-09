@@ -1,6 +1,6 @@
 import { Extension } from "@tiptap/core"
 
-export interface IndentOptions {
+interface IndentOptions {
   types: string[]
   minLevel: number
   maxLevel: number

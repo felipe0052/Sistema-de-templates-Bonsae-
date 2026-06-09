@@ -1,5 +1,4 @@
-export const VARIABLE_TOKEN_REGEX = /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g
-export const VARIABLE_TOKEN_SOURCE = "{{\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*}}"
+const VARIABLE_TOKEN_REGEX = /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g
 
 export function extractVariableTokens(content: string): string[] {
   const variables = new Set<string>()
@@ -25,15 +24,6 @@ export function escapeHtml(value: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;")
-}
-
-export function serializeEditorContent(root: HTMLElement): string {
-  const clone = root.cloneNode(true) as HTMLElement
-  clone.querySelectorAll("[data-variable-token]").forEach((node) => {
-    node.replaceWith(document.createTextNode(node.textContent || ""))
-  })
-
-  return normalizeTemplateContent(clone.innerHTML)
 }
 
 export function highlightPendingVariables(content: string): string {
