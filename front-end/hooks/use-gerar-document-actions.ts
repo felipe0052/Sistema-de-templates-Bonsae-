@@ -32,6 +32,19 @@ export function useGerarDocumentActions({
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    const canGenerateDocument = () => {
+        if (!template || hasUnknownVariables) {
+            return false;
+        }
+
+        if (!selectedAssistidoId) {
+            toast.error("Selecione um assistido para gerar o documento.");
+            return false;
+        }
+
+        return true;
+    };
+
     const saveDocument = async () => {
         if (!template) return null;
         return await addDocument({
@@ -41,92 +54,94 @@ export function useGerarDocumentActions({
         });
     };
 
-    const handleSaveDocument = async () => {
-        if (!template || hasUnknownVariables) return;
-        if (!selectedAssistidoId) {
-            toast.error("Selecione um assistido para gerar o documento.");
-            return;
-        }
-        setIsSaving(true);
+    const runWithLoadingState = async (
+        setter: (value: boolean) => void,
+        action: () => Promise<void>,
+    ) => {
+        setter(true);
         try {
-            const saved = await saveDocument();
-            if (!saved) {
-                toast.error("Não foi possível salvar o documento.");
-                return;
-            }
-            toast.success("Documento salvo com sucesso.");
-            router.push("/documentos");
-        } catch (_error) {
-            toast.error("Erro ao salvar documento.");
+            await action();
         } finally {
-            setIsSaving(false);
+            setter(false);
         }
+    };
+
+    const handleSaveDocument = async () => {
+        if (!canGenerateDocument()) return;
+
+        await runWithLoadingState(setIsSaving, async () => {
+            try {
+                const saved = await saveDocument();
+                if (!saved) {
+                    toast.error("Não foi possível salvar o documento.");
+                    return;
+                }
+                toast.success("Documento salvo com sucesso.");
+                router.push("/documentos");
+            } catch (_error) {
+                toast.error("Erro ao salvar documento.");
+            }
+        });
     };
 
     const handleGeneratePDF = async () => {
-        if (!template || hasUnknownVariables) return;
-        if (!selectedAssistidoId) {
-            toast.error("Selecione um assistido para gerar o documento.");
-            return;
-        }
-        setIsGenerating(true);
-        try {
-            const pdfBlob = await renderTemplatePdf(
-                template.id,
-                dados,
-                "underline",
-            );
-            if (!pdfBlob || pdfBlob.type !== "application/pdf") {
-                toast.error("Não foi possível gerar o PDF para download.");
-                return;
+        if (!canGenerateDocument() || !template) return;
+
+        await runWithLoadingState(setIsGenerating, async () => {
+            try {
+                const pdfBlob = await renderTemplatePdf(
+                    template.id,
+                    dados,
+                    "underline",
+                );
+                if (!pdfBlob || pdfBlob.type !== "application/pdf") {
+                    toast.error("Não foi possível gerar o PDF para download.");
+                    return;
+                }
+                const fileName = slugify(
+                    `${template.template_name}-${assistidoName}`,
+                );
+                triggerDownload(pdfBlob, `${fileName || "documento"}.pdf`);
+                toast.success("PDF baixado com sucesso.");
+                saveDocument().catch(() => {});
+            } catch (error) {
+                console.error("Erro ao gerar PDF:", error);
+                toast.error("Erro ao gerar documento via API.");
             }
-            const fileName = slugify(
-                `${template.template_name}-${assistidoName}`,
-            );
-            triggerDownload(pdfBlob, `${fileName || "documento"}.pdf`);
-            toast.success("PDF baixado com sucesso.");
-            saveDocument().catch(() => {});
-        } catch (error) {
-            console.error("Erro ao gerar PDF:", error);
-            toast.error("Erro ao gerar documento via API.");
-        } finally {
-            setIsGenerating(false);
-        }
+        });
     };
 
     const handlePrint = async () => {
-        if (!template || hasUnknownVariables) return;
-        if (!selectedAssistidoId) {
-            toast.error("Selecione um assistido para gerar o documento.");
-            return;
-        }
-        setIsGenerating(true);
-        try {
-            const renderedHtml = await renderTemplate(
-                template.id,
-                dados,
-                "underline",
-            );
-            if (!renderedHtml) {
-                toast.error(
-                    "Não foi possível preparar o documento para impressão.",
+        if (!canGenerateDocument() || !template) return;
+
+        await runWithLoadingState(setIsGenerating, async () => {
+            try {
+                const renderedHtml = await renderTemplate(
+                    template.id,
+                    dados,
+                    "underline",
                 );
-                return;
+                if (!renderedHtml) {
+                    toast.error(
+                        "Não foi possível preparar o documento para impressão.",
+                    );
+                    return;
+                }
+                const printWindow = window.open("", "_blank");
+                if (!printWindow) {
+                    toast.error(
+                        "Não foi possível abrir a janela de impressão.",
+                    );
+                    return;
+                }
+                printWindow.document.write(
+                    buildPrintHtml(renderedHtml, template.template_name),
+                );
+                printWindow.document.close();
+            } catch (_error) {
+                toast.error("Erro ao preparar impressão.");
             }
-            const printWindow = window.open("", "_blank");
-            if (!printWindow) {
-                toast.error("Não foi possível abrir a janela de impressão.");
-                return;
-            }
-            printWindow.document.write(
-                buildPrintHtml(renderedHtml, template.template_name),
-            );
-            printWindow.document.close();
-        } catch (_error) {
-            toast.error("Erro ao preparar impressão.");
-        } finally {
-            setIsGenerating(false);
-        }
+        });
     };
 
     return {

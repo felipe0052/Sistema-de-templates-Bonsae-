@@ -1,6 +1,7 @@
 import { Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SafeHtmlRenderer } from "@/components/safe-html-renderer";
+import { PreviewWarnings } from "./preview-warnings";
 
 interface DocumentPreviewProps {
     previewHtml: string;
@@ -21,6 +22,9 @@ export function DocumentPreview({
     unknownVariables,
     hasSelectedAssistido,
 }: DocumentPreviewProps) {
+    const hasMissingValues =
+        hasSelectedAssistido && variables.some((v) => !dados[v]);
+
     return (
         <Card className="bg-card">
             <CardHeader>
@@ -49,7 +53,7 @@ export function DocumentPreview({
                     )}
                     <SafeHtmlRenderer
                         html={previewHtml}
-                        className="preview-document relative !text-black"
+                        className="preview-document relative text-black!"
                         style={{
                             fontFamily: "Times New Roman, serif",
                             fontSize: "12pt",
@@ -60,38 +64,12 @@ export function DocumentPreview({
                     />
                 </div>
 
-                {!hasSelectedAssistido && (
-                    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                        <p className="text-sm text-amber-800">
-                            Selecione um assistido para carregar os dados no
-                            preview.
-                        </p>
-                    </div>
-                )}
-                {hasSelectedAssistido && variables.some((v) => !dados[v]) && (
-                    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                        <p className="text-sm text-amber-800">
-                            Algumas variáveis ficaram sem valor porque esses
-                            dados não estão preenchidos no cadastro do assistido
-                            selecionado.
-                        </p>
-                    </div>
-                )}
-                {hasUnknownVariables && (
-                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-sm text-red-800">
-                            O template contém variáveis sem preenchimento
-                            automático disponível:{" "}
-                            <span className="font-mono">
-                                {unknownVariables
-                                    .map((v) => `{{${v}}}`)
-                                    .join(", ")}
-                            </span>
-                            . Remova essas variáveis do template antes de gerar
-                            o documento.
-                        </p>
-                    </div>
-                )}
+                <PreviewWarnings
+                    hasSelectedAssistido={hasSelectedAssistido}
+                    hasMissingValues={hasMissingValues}
+                    hasUnknownVariables={hasUnknownVariables}
+                    unknownVariables={unknownVariables}
+                />
             </CardContent>
         </Card>
     );

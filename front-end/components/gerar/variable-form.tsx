@@ -1,5 +1,6 @@
 import { AssistidoSelector } from "./assistido-selector";
 import type { Assisted } from "@/lib/types";
+import { formatValue } from "@/lib/variable-formatters";
 
 interface VariableFormProps {
     assisteds: Assisted[];
@@ -46,7 +47,9 @@ export function VariableForm({
                             CPF
                         </p>
                         <p className="text-sm text-foreground">
-                            {selectedAssistido.cpf || "Não informado"}
+                            {selectedAssistido.cpf
+                                ? formatValue("cpf", selectedAssistido.cpf)
+                                : "Não informado"}
                         </p>
                     </div>
                 </div>

@@ -1,21 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTemplates } from "@/hooks/use-templates";
 import { useVariables } from "@/hooks/use-variables";
 import { useAssisteds } from "@/hooks/use-assisteds";
 import { useAuth } from "@/hooks/use-auth";
 import { useGerarDocumentActions } from "@/hooks/use-gerar-document-actions";
-import { extractVariables, replaceVariables } from "@/lib/store";
+import { replaceVariables } from "@/lib/store";
 import {
-    findUnknownVariables,
     highlightPendingVariables,
     normalizeTemplateContent,
     stripVariableTokens,
 } from "@/lib/document-utils";
-import { formatValue } from "@/lib/variable-formatters";
-import { getAssistidoValueForVariable } from "@/lib/template-helpers";
+import {
+    buildAssistidoDocumentData,
+    getAssistidoDisplayName,
+    getAvailableVariableNames,
+    getInitialDocumentData,
+    getSupportedTemplateVariables,
+    getSupportedVariables,
+    getTemplateVariables,
+    getUnknownTemplateVariables,
+} from "@/lib/document-generation";
 import type { Template } from "@/lib/types";
 
 export function useGerarDocumento() {
@@ -27,76 +34,73 @@ export function useGerarDocumento() {
     const { token } = useAuth();
 
     const isLoading = templatesLoading;
-    const [template, setTemplate] = useState<Template | null>(null);
-    const [dados, setDados] = useState<Record<string, string>>({});
-    const [templateVariables, setTemplateVariables] = useState<string[]>([]);
+    const [dados, setDados] = useState<Record<string, string>>(
+        getInitialDocumentData,
+    );
     const [selectedAssistidoId, setSelectedAssistidoId] = useState("");
 
-    const supportedVariablesStore = variablesStore.filter(
-        (item) => item.source !== "manual",
+    const template = useMemo<Template | null>(() => {
+        const templateId = params.id as string;
+        return templates.find((item) => item.id === templateId) || null;
+    }, [params.id, templates]);
+
+    const supportedVariablesStore = useMemo(
+        () => getSupportedVariables(variablesStore),
+        [variablesStore],
     );
-    const availableVariableNames = supportedVariablesStore.map(
-        (item) => item.variable_name,
+    const availableVariableNames = useMemo(
+        () => getAvailableVariableNames(supportedVariablesStore),
+        [supportedVariablesStore],
     );
-    const variables = templateVariables.filter((varName) =>
-        availableVariableNames.includes(varName),
+    const templateVariables = useMemo(
+        () => getTemplateVariables(template),
+        [template],
+    );
+    const variables = useMemo(
+        () =>
+            getSupportedTemplateVariables(
+                templateVariables,
+                availableVariableNames,
+            ),
+        [templateVariables, availableVariableNames],
     );
 
     useEffect(() => {
-        if (isLoading) return;
-        const templateId = params.id as string;
-        const foundTemplate = templates.find((t) => t.id === templateId);
-        if (foundTemplate) {
-            setTemplate(foundTemplate);
-            const normalizedContent = normalizeTemplateContent(
-                foundTemplate.content,
-            );
-            setTemplateVariables(extractVariables(normalizedContent));
-            setSelectedAssistidoId("");
-            setDados({ data_atual: new Date().toLocaleDateString("pt-BR") });
-        }
-    }, [params.id, templates, isLoading]);
+        setSelectedAssistidoId("");
+        setDados(getInitialDocumentData());
+    }, [template?.id]);
 
     const handleAssistidoChange = (assistidoId: string) => {
         setSelectedAssistidoId(assistidoId);
 
         if (!assistidoId) {
-            setDados({ data_atual: new Date().toLocaleDateString("pt-BR") });
+            setDados(getInitialDocumentData());
             return;
         }
 
         const assistido = assisteds.find((item) => item.id === assistidoId);
-        if (!assistido) return;
+        if (!assistido) {
+            return;
+        }
 
-        setDados(() => {
-            const nextData: Record<string, string> = {
-                data_atual: new Date().toLocaleDateString("pt-BR"),
-            };
-
-            variables.forEach((varName) => {
-                if (varName === "data_atual") {
-                    return;
-                }
-
-                const value = getAssistidoValueForVariable(varName, assistido);
-                if (value) {
-                    nextData[varName] = formatValue(varName, value);
-                }
-            });
-
-            return nextData;
-        });
+        setDados(buildAssistidoDocumentData(assistido, variables));
     };
 
-    const selectedAssistido = assisteds.find(
-        (item) => item.id === selectedAssistidoId,
+    const selectedAssistido = useMemo(
+        () => assisteds.find((item) => item.id === selectedAssistidoId),
+        [assisteds, selectedAssistidoId],
     );
-    const assistidoName = selectedAssistido?.name || "Novo Documento";
+    const assistidoName = getAssistidoDisplayName(selectedAssistido);
 
-    const unknownVariables =
-        template && variableCatalogAvailable
-            ? findUnknownVariables(template.content, availableVariableNames)
-            : [];
+    const unknownVariables = useMemo(
+        () =>
+            getUnknownTemplateVariables(
+                template,
+                variableCatalogAvailable,
+                availableVariableNames,
+            ),
+        [template, variableCatalogAvailable, availableVariableNames],
+    );
     const hasUnknownVariables = unknownVariables.length > 0;
 
     const actions = useGerarDocumentActions({
@@ -107,11 +111,19 @@ export function useGerarDocumento() {
         selectedAssistidoId,
     });
 
-    const processedContent = template
-        ? replaceVariables(normalizeTemplateContent(template.content), dados)
-        : "";
-    const previewHtml = highlightPendingVariables(
-        stripVariableTokens(processedContent),
+    const processedContent = useMemo(
+        () =>
+            template
+                ? replaceVariables(
+                      normalizeTemplateContent(template.content),
+                      dados,
+                  )
+                : "",
+        [template, dados],
+    );
+    const previewHtml = useMemo(
+        () => highlightPendingVariables(stripVariableTokens(processedContent)),
+        [processedContent],
     );
 
     return {
