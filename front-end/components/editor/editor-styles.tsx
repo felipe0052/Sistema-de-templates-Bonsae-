@@ -38,7 +38,7 @@ export function EditorStyles() {
             .tiptap-editor-content .tiptap p[style*="min-height"]::before,
             .tiptap-editor-content .tiptap p:empty::before,
             .tiptap-editor-content .tiptap p[data-empty]::before {
-                content: " ";
+                content: "\\00A0";
                 white-space: pre;
             }
 

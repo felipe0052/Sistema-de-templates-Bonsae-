@@ -1,6 +1,5 @@
 import { AssistidoSelector } from "./assistido-selector";
 import type { Assisted } from "@/lib/types";
-import { formatValue } from "@/lib/variable-formatters";
 
 interface VariableFormProps {
     assisteds: Assisted[];
@@ -13,7 +12,7 @@ interface VariableFormProps {
 export function VariableForm({
     assisteds,
     selectedAssistidoId,
-    selectedAssistido,
+    selectedAssistido: _selectedAssistido,
     hasToken,
     onAssistidoChange,
 }: VariableFormProps) {
@@ -28,32 +27,8 @@ export function VariableForm({
 
             <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
                 Ao selecionar um assistido, os dados do cadastro serão aplicados
-                automaticamente no documento. A edição manual dos dados do
-                assistido não está mais disponível nesta tela.
+                automaticamente no documento.
             </div>
-
-            {selectedAssistido && (
-                <div className="grid grid-cols-1 gap-3 rounded-lg border border-border bg-background p-4 sm:grid-cols-2">
-                    <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Nome
-                        </p>
-                        <p className="text-sm text-foreground">
-                            {selectedAssistido.name}
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            CPF
-                        </p>
-                        <p className="text-sm text-foreground">
-                            {selectedAssistido.cpf
-                                ? formatValue("cpf", selectedAssistido.cpf)
-                                : "Não informado"}
-                        </p>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
