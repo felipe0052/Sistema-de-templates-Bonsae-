@@ -6,6 +6,7 @@ interface ActionBarProps {
     isSaving: boolean;
     isGenerating: boolean;
     hasUnknownVariables: boolean;
+    hasSelectedAssistido: boolean;
     onSave: () => void;
     onPrint: () => void;
     onExportPdf: () => void;
@@ -15,11 +16,15 @@ export function ActionBar({
     isSaving,
     isGenerating,
     hasUnknownVariables,
+    hasSelectedAssistido,
     onSave,
     onPrint,
     onExportPdf,
 }: ActionBarProps) {
     const router = useRouter();
+    const hasBlockedActions = hasUnknownVariables || !hasSelectedAssistido;
+    const isSaveDisabled = isSaving || isGenerating || hasBlockedActions;
+    const isGenerationDisabled = isGenerating || hasBlockedActions;
 
     return (
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -31,7 +36,7 @@ export function ActionBar({
                 <Button
                     variant="secondary"
                     onClick={onSave}
-                    disabled={isSaving || isGenerating || hasUnknownVariables}
+                    disabled={isSaveDisabled}
                 >
                     <Save className="h-4 w-4" />
                     {isSaving ? "Salvando..." : "Salvar Documento"}
@@ -39,15 +44,12 @@ export function ActionBar({
                 <Button
                     variant="outline"
                     onClick={onPrint}
-                    disabled={isGenerating || hasUnknownVariables}
+                    disabled={isGenerationDisabled}
                 >
                     <Printer className="h-4 w-4" />
                     Imprimir
                 </Button>
-                <Button
-                    onClick={onExportPdf}
-                    disabled={isGenerating || hasUnknownVariables}
-                >
+                <Button onClick={onExportPdf} disabled={isGenerationDisabled}>
                     <FileDown className="h-4 w-4" />
                     {isGenerating ? "Gerando..." : "Exportar PDF"}
                 </Button>
