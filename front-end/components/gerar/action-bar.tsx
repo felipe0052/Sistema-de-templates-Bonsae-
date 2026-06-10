@@ -6,6 +6,7 @@ interface ActionBarProps {
     isSaving: boolean;
     isGenerating: boolean;
     hasUnknownVariables: boolean;
+    hasSelectedAssistido: boolean;
     onSave: () => void;
     onPrint: () => void;
     onExportPdf: () => void;
@@ -15,6 +16,7 @@ export function ActionBar({
     isSaving,
     isGenerating,
     hasUnknownVariables,
+    hasSelectedAssistido,
     onSave,
     onPrint,
     onExportPdf,
@@ -31,7 +33,12 @@ export function ActionBar({
                 <Button
                     variant="secondary"
                     onClick={onSave}
-                    disabled={isSaving || isGenerating || hasUnknownVariables}
+                    disabled={
+                        isSaving ||
+                        isGenerating ||
+                        hasUnknownVariables ||
+                        !hasSelectedAssistido
+                    }
                 >
                     <Save className="h-4 w-4" />
                     {isSaving ? "Salvando..." : "Salvar Documento"}
@@ -39,14 +46,22 @@ export function ActionBar({
                 <Button
                     variant="outline"
                     onClick={onPrint}
-                    disabled={isGenerating || hasUnknownVariables}
+                    disabled={
+                        isGenerating ||
+                        hasUnknownVariables ||
+                        !hasSelectedAssistido
+                    }
                 >
                     <Printer className="h-4 w-4" />
                     Imprimir
                 </Button>
                 <Button
                     onClick={onExportPdf}
-                    disabled={isGenerating || hasUnknownVariables}
+                    disabled={
+                        isGenerating ||
+                        hasUnknownVariables ||
+                        !hasSelectedAssistido
+                    }
                 >
                     <FileDown className="h-4 w-4" />
                     {isGenerating ? "Gerando..." : "Exportar PDF"}

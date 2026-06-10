@@ -60,8 +60,8 @@ export function AssistidoSelector({
             )}
             {selectedAssistido && (
                 <p className="text-sm text-muted-foreground">
-                    Dados de {selectedAssistido.name} carregados. Edite os
-                    campos abaixo conforme necessário.
+                    Dados de {selectedAssistido.name} carregados automaticamente
+                    a partir do cadastro.
                 </p>
             )}
         </div>

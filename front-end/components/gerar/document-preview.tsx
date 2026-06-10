@@ -9,6 +9,7 @@ interface DocumentPreviewProps {
     dados: Record<string, string>;
     hasUnknownVariables: boolean;
     unknownVariables: string[];
+    hasSelectedAssistido: boolean;
 }
 
 export function DocumentPreview({
@@ -18,6 +19,7 @@ export function DocumentPreview({
     dados,
     hasUnknownVariables,
     unknownVariables,
+    hasSelectedAssistido,
 }: DocumentPreviewProps) {
     return (
         <Card className="bg-card">
@@ -58,25 +60,35 @@ export function DocumentPreview({
                     />
                 </div>
 
-                {variables.some((v) => !dados[v]) && (
-                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                {!hasSelectedAssistido && (
+                    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
                         <p className="text-sm text-amber-800">
-                            Há variáveis em branco. Preencha os campos para
-                            gerar o documento.
+                            Selecione um assistido para carregar os dados no
+                            preview.
+                        </p>
+                    </div>
+                )}
+                {hasSelectedAssistido && variables.some((v) => !dados[v]) && (
+                    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                        <p className="text-sm text-amber-800">
+                            Algumas variáveis ficaram sem valor porque esses
+                            dados não estão preenchidos no cadastro do assistido
+                            selecionado.
                         </p>
                     </div>
                 )}
                 {hasUnknownVariables && (
                     <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p className="text-sm text-red-800">
-                            O template contém variáveis que não existem no
-                            sistema:{" "}
+                            O template contém variáveis sem preenchimento
+                            automático disponível:{" "}
                             <span className="font-mono">
                                 {unknownVariables
                                     .map((v) => `{{${v}}}`)
                                     .join(", ")}
                             </span>
-                            . Corrija antes de salvar.
+                            . Remova essas variáveis do template antes de gerar
+                            o documento.
                         </p>
                     </div>
                 )}
